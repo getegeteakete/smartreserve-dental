@@ -8,6 +8,7 @@ import TreatmentSelection from "@/pages/TreatmentSelection";
 import { ensureDefaultTreatments } from "@/utils/defaultTreatmentData";
 import { ensureDefaultSchedule } from "@/utils/defaultScheduleData";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useChatSettings } from "@/hooks/useSystemSettings";
 import { AIChatBot } from "@/components/chat/AIChatBot";
 import { StaffConnectionDialog } from "@/components/chat/StaffConnectionDialog";
 
@@ -15,6 +16,7 @@ export default function Index() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showStaffDialog, setShowStaffDialog] = useState(false);
+  const { isChatEnabled } = useChatSettings();
 
   useEffect(() => {
     // アプリ起動時にデフォルトデータを確保
@@ -70,20 +72,24 @@ export default function Index() {
         </div>
       </div>
 
-      {/* AIチャットボット */}
-      <AIChatBot
-        onBookingRequest={handleBookingRequest}
-        onStaffConnection={handleStaffConnection}
-        onPhoneCall={handlePhoneCall}
-      />
+      {/* AIチャットボット（設定で有効な場合のみ表示） */}
+      {isChatEnabled && (
+        <>
+          <AIChatBot
+            onBookingRequest={handleBookingRequest}
+            onStaffConnection={handleStaffConnection}
+            onPhoneCall={handlePhoneCall}
+          />
 
-      {/* スタッフ接続ダイアログ */}
-      <StaffConnectionDialog
-        open={showStaffDialog}
-        onOpenChange={setShowStaffDialog}
-        onPhoneCall={handlePhoneCall}
-        onChatStart={handleStaffChatStart}
-      />
+          {/* スタッフ接続ダイアログ */}
+          <StaffConnectionDialog
+            open={showStaffDialog}
+            onOpenChange={setShowStaffDialog}
+            onPhoneCall={handlePhoneCall}
+            onChatStart={handleStaffChatStart}
+          />
+        </>
+      )}
     </div>
   );
 }

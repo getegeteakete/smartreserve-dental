@@ -22,6 +22,7 @@ import AppointmentCancel from "./pages/AppointmentCancel";
 import AppointmentRebook from "./pages/AppointmentRebook";
 import AdminGuide from "./pages/AdminGuide";
 import NotificationSettings from "./pages/NotificationSettings";
+import SystemSettings from "./pages/SystemSettings";
 import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/admin/treatments" element={<TreatmentManagement />} />
           <Route path="/admin/patients" element={<PatientManagement />} />
           <Route path="/admin/notifications" element={<NotificationSettings />} />
+          <Route path="/admin/settings" element={<SystemSettings />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/calendar-embed" element={<BusinessCalendarEmbed />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

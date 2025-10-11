@@ -1,0 +1,469 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { ArrowLeft, CreditCard, MessageCircle, Mail, Smartphone, Calendar, Settings as SettingsIcon } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
+
+export default function SystemSettings() {
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const {
+    settings,
+    loading: settingsLoading,
+    getSettingsByCategory,
+    updateSetting,
+    isFeatureEnabled,
+  } = useSystemSettings();
+
+  useEffect(() => {
+    const checkAdminAuth = () => {
+      const isAdminLoggedIn = localStorage.getItem("admin_logged_in");
+      const adminUsername = localStorage.getItem("admin_username");
+      
+      if (!isAdminLoggedIn || adminUsername !== "admin@smartreserve.com") {
+        navigate("/admin-login");
+        return;
+      }
+      
+      setLoading(false);
+    };
+
+    checkAdminAuth();
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_logged_in");
+    localStorage.removeItem("admin_username");
+    navigate("/admin-login");
+  };
+
+  const handleToggleSetting = async (key: string, currentValue: any) => {
+    const newEnabled = !(currentValue?.enabled ?? false);
+    await updateSetting(key, { ...currentValue, enabled: newEnabled }, newEnabled);
+  };
+
+  const handleToggleIsEnabled = async (key: string, currentIsEnabled: boolean) => {
+    const setting = settings.find(s => s.setting_key === key);
+    if (setting) {
+      await updateSetting(key, setting.setting_value, !currentIsEnabled);
+    }
+  };
+
+  if (loading || settingsLoading) {
+    return (
+      <div className="container mx-auto py-10 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const settingsByCategory = getSettingsByCategory();
+
+  return (
+    <>
+      <AdminHeader title="システム設定" />
+      <div className="pt-20 min-h-screen bg-gray-50">
+        <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
+          <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
+            <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2"
+                size={isMobile ? "sm" : "default"}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {isMobile ? '戻る' : '管理画面に戻る'}
+              </Button>
+              <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold flex items-center gap-2`}>
+                <SettingsIcon className="h-6 w-6" />
+                システム設定
+              </h1>
+            </div>
+            <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
+              ログアウト
+            </Button>
+          </div>
+
+          <Tabs defaultValue="payment" className="w-full">
+            <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : 'grid-cols-5'}`}>
+              <TabsTrigger value="payment" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                {isMobile ? '決済' : '決済設定'}
+              </TabsTrigger>
+              <TabsTrigger value="chat" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                {isMobile ? 'チャット' : 'チャット設定'}
+              </TabsTrigger>
+              <TabsTrigger value="notification" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                {isMobile ? '通知' : '通知設定'}
+              </TabsTrigger>
+              <TabsTrigger value="booking" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                {isMobile ? '予約' : '予約設定'}
+              </TabsTrigger>
+              <TabsTrigger value="general" className="flex items-center gap-2">
+                <SettingsIcon className="h-4 w-4" />
+                {isMobile ? '一般' : '一般設定'}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* 決済設定 */}
+            <TabsContent value="payment" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                    決済機能設定
+                  </CardTitle>
+                  <CardDescription>
+                    KOMOJU決済機能のオンオフと決済方法を設定します
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settingsByCategory.payment.map((setting) => (
+                    <div key={setting.id} className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <Label htmlFor={setting.setting_key} className="text-base font-semibold">
+                            {setting.setting_key === 'payment_enabled' ? '決済機能を有効にする' : '決済方法の選択'}
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-1">{setting.description}</p>
+                        </div>
+                        <Switch
+                          id={setting.setting_key}
+                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                        />
+                      </div>
+                      
+                      {setting.setting_key === 'payment_methods' && setting.is_enabled && (
+                        <div className="ml-4 space-y-2 pl-4 border-l-2 border-blue-200">
+                          <div className="flex items-center justify-between py-2">
+                            <Label>クレジットカード決済</Label>
+                            <Switch
+                              checked={setting.setting_value?.credit_card ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  credit_card: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <Label>コンビニ決済</Label>
+                            <Switch
+                              checked={setting.setting_value?.konbini ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  konbini: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <Label>銀行振込（Pay-easy）</Label>
+                            <Switch
+                              checked={setting.setting_value?.bank_transfer ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  bank_transfer: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-blue-900">
+                      <strong>注意：</strong> 決済機能を有効にする前に、KOMOJU APIキーの設定が必要です。
+                      詳しくは <code className="bg-blue-100 px-2 py-1 rounded">KOMOJU_SETUP_GUIDE.md</code> をご確認ください。
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* チャット設定 */}
+            <TabsContent value="chat" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-green-600" />
+                    AIチャット機能設定
+                  </CardTitle>
+                  <CardDescription>
+                    AIチャットボット機能のオンオフと動作を設定します
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settingsByCategory.chat.map((setting) => (
+                    <div key={setting.id} className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <Label htmlFor={setting.setting_key} className="text-base font-semibold">
+                            {setting.setting_key === 'chat_enabled' 
+                              ? 'AIチャット機能を有効にする' 
+                              : 'スタッフ接続機能を有効にする'}
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-1">{setting.description}</p>
+                        </div>
+                        <Switch
+                          id={setting.setting_key}
+                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                        />
+                      </div>
+                      
+                      {setting.setting_key === 'chat_enabled' && setting.is_enabled && (
+                        <div className="ml-4 space-y-2 pl-4 border-l-2 border-green-200">
+                          <div className="flex items-center justify-between py-2">
+                            <Label>自動応答</Label>
+                            <Switch
+                              checked={setting.setting_value?.auto_response ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  auto_response: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <Label>営業時間のみ有効</Label>
+                            <Switch
+                              checked={setting.setting_value?.business_hours_only ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  business_hours_only: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-green-900">
+                      <strong>ヒント：</strong> チャット機能を無効にすると、右下のチャットボタンが非表示になります。
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 通知設定 */}
+            <TabsContent value="notification" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Smartphone className="h-5 w-5 text-purple-600" />
+                    SMS通知設定
+                  </CardTitle>
+                  <CardDescription>
+                    SMS（ショートメッセージ）通知機能の設定
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settingsByCategory.notification
+                    .filter(s => s.setting_key.includes('sms'))
+                    .map((setting) => (
+                    <div key={setting.id} className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <Label htmlFor={setting.setting_key} className="text-base font-semibold">
+                            {setting.setting_key === 'sms_enabled' 
+                              ? 'SMS通知機能を有効にする' 
+                              : 'SMSリマインダー設定'}
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-1">{setting.description}</p>
+                        </div>
+                        <Switch
+                          id={setting.setting_key}
+                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                        />
+                      </div>
+                      
+                      {setting.setting_key === 'sms_reminder_timing' && setting.is_enabled && (
+                        <div className="ml-4 space-y-2 pl-4 border-l-2 border-purple-200">
+                          <div className="flex items-center justify-between py-2">
+                            <Label>24時間前に送信</Label>
+                            <Switch
+                              checked={setting.setting_value?.before_24h ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  before_24h: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <Label>2時間前に送信</Label>
+                            <Switch
+                              checked={setting.setting_value?.before_2h ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  before_2h: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <Label>30分前に送信</Label>
+                            <Switch
+                              checked={setting.setting_value?.before_30m ?? false}
+                              onCheckedChange={(checked) => {
+                                updateSetting(setting.setting_key, {
+                                  ...setting.setting_value,
+                                  before_30m: checked,
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <p className="text-sm text-yellow-900">
+                      <strong>注意：</strong> SMS送信には別途料金が発生します。
+                      Twilioまたは他のSMSプロバイダーの設定が必要です。
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                    メール通知設定
+                  </CardTitle>
+                  <CardDescription>
+                    メール通知機能の設定
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settingsByCategory.notification
+                    .filter(s => s.setting_key.includes('email'))
+                    .map((setting) => (
+                    <div key={setting.id} className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <Label htmlFor={setting.setting_key} className="text-base font-semibold">
+                            {setting.setting_key === 'email_enabled' 
+                              ? 'メール通知機能を有効にする' 
+                              : 'メールリマインダー設定'}
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-1">{setting.description}</p>
+                        </div>
+                        <Switch
+                          id={setting.setting_key}
+                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 予約設定 */}
+            <TabsContent value="booking" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-orange-600" />
+                    予約システム設定
+                  </CardTitle>
+                  <CardDescription>
+                    予約の承認ルールやキャンセルポリシーを設定します
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settingsByCategory.booking.map((setting) => (
+                    <div key={setting.id} className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <Label htmlFor={setting.setting_key} className="text-base font-semibold">
+                            {setting.setting_key === 'booking_approval_required' 
+                              ? '予約の承認を必須にする' 
+                              : 'キャンセルポリシー'}
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-1">{setting.description}</p>
+                        </div>
+                        <Switch
+                          id={setting.setting_key}
+                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 一般設定 */}
+            <TabsContent value="general" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <SettingsIcon className="h-5 w-5 text-gray-600" />
+                    一般設定
+                  </CardTitle>
+                  <CardDescription>
+                    医院名、連絡先、営業時間などの基本情報
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {settingsByCategory.general.map((setting) => (
+                    <div key={setting.id} className="p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-base font-semibold block mb-2">
+                        {setting.description}
+                      </Label>
+                      <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto">
+                        {JSON.stringify(setting.setting_value, null, 2)}
+                      </pre>
+                    </div>
+                  ))}
+                  <p className="text-sm text-gray-600">
+                    ※ 一般設定の編集機能は今後実装予定です
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </>
+  );
+}
+

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentList } from "@/components/admin/AppointmentList";
 import { ReservationCalendar } from "@/components/admin/ReservationCalendar";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { Calendar, Users, BarChart3, UserCheck, BookOpen, Bell } from "lucide-react";
+import { Calendar, Users, BarChart3, UserCheck, BookOpen, Bell, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Admin() {
@@ -105,6 +105,15 @@ export default function Admin() {
               >
                 <Bell className="h-4 w-4" />
                 {isMobile ? '通知設定' : '通知・リマインダー設定'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/settings")}
+                className="flex items-center gap-2"
+                size={isMobile ? "sm" : "default"}
+              >
+                <Settings className="h-4 w-4" />
+                {isMobile ? 'システム設定' : 'システム設定'}
               </Button>
             </div>
           </div>
