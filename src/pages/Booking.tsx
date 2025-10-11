@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AppointmentCalendar from "@/components/appointment/AppointmentCalendar";
@@ -14,6 +14,8 @@ import Header from "@/components/Header";
 
 export default function Booking() {
   const location = useLocation();
+  const patientFormRef = useRef<HTMLDivElement>(null);
+  
   const {
     formData,
     setFormData,
@@ -33,6 +35,18 @@ export default function Booking() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // 名前入力欄へスクロールする関数
+  const scrollToPatientForm = () => {
+    setTimeout(() => {
+      if (patientFormRef.current) {
+        patientFormRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }, 300);
+  };
 
   // AIからの予約データは各フックで処理されるため、ここでは削除
 
@@ -56,11 +70,12 @@ export default function Booking() {
               userEmail={formData.email}
               selectedTreatment={selectedTreatment}
               treatmentData={selectedTreatmentData}
+              onScrollToPatientForm={scrollToPatientForm}
             />
           </div>
 
           {/* Booking form section */}
-          <div className="w-full max-w-2xl mx-auto space-y-6">
+          <div ref={patientFormRef} className="w-full max-w-2xl mx-auto space-y-6 scroll-mt-20">
             <AppointmentForm
               formData={formData}
               onFormChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}

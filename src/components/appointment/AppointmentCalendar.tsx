@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { format, addDays, addWeeks, getDay } from "date-fns";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Clock, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getScheduleInfo } from "@/components/admin/calendar/utils/scheduleInfoUtils";
@@ -22,6 +23,7 @@ interface AppointmentCalendarProps {
     duration: number;
     description?: string;
   };
+  onScrollToPatientForm?: () => void;
 }
 
 const AppointmentCalendar = ({
@@ -30,7 +32,8 @@ const AppointmentCalendar = ({
   onTimeSlotSelect,
   userEmail,
   selectedTreatment,
-  treatmentData
+  treatmentData,
+  onScrollToPatientForm
 }: AppointmentCalendarProps) => {
   // 2週間後から6週間後までの日付のみ選択可能
   const twoWeeksFromNow = addDays(new Date(), 14);
@@ -103,7 +106,7 @@ const AppointmentCalendar = ({
   const handleTimeSlotSelect = (timeSlot: string, index: number) => {
     onTimeSlotSelect(index, timeSlot);
     
-    // 時間選択後、次の希望日セクションへ自動スクロール
+    // 時間選択後、次の希望日セクションまたは名前入力欄へ自動スクロール
     setTimeout(() => {
       if (index === 0 && preference2Ref.current) {
         // 第1希望の時間選択後、第2希望へスクロール
@@ -117,6 +120,9 @@ const AppointmentCalendar = ({
           behavior: 'smooth', 
           block: 'start' 
         });
+      } else if (index === 2 && onScrollToPatientForm) {
+        // 第3希望の時間選択後、名前入力欄へスクロール
+        onScrollToPatientForm();
       }
     }, 300); // 選択アニメーション後にスクロール
   };
@@ -180,9 +186,17 @@ const AppointmentCalendar = ({
             <div className="text-green-600 font-medium text-base sm:text-lg mb-2">
               ↓ 第3希望も選択できます（任意）↓
             </div>
-            <div className="text-green-500 text-xs sm:text-sm">
+            <div className="text-green-500 text-xs sm:text-sm mb-3">
               第2希望の時間選択が完了しました！第3希望も入力いただくと、予約が確定しやすくなります
             </div>
+            <Button
+              onClick={() => onScrollToPatientForm && onScrollToPatientForm()}
+              variant="outline"
+              size="sm"
+              className="bg-white hover:bg-gray-50 border-green-300 text-green-700 hover:text-green-800"
+            >
+              第2希望だけで予約する →
+            </Button>
           </div>
         )}
 
