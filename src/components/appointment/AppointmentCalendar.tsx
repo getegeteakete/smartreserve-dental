@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format, addDays, addWeeks, getDay } from "date-fns";
@@ -40,6 +40,11 @@ const AppointmentCalendar = ({
   const [schedules, setSchedules] = useState<any[]>([]);
   const [specialSchedules, setSpecialSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // 各希望日のセクションへの参照
+  const preference1Ref = useRef<HTMLDivElement>(null);
+  const preference2Ref = useRef<HTMLDivElement>(null);
+  const preference3Ref = useRef<HTMLDivElement>(null);
   
   // スケジュールデータの取得
   useEffect(() => {
@@ -97,6 +102,23 @@ const AppointmentCalendar = ({
 
   const handleTimeSlotSelect = (timeSlot: string, index: number) => {
     onTimeSlotSelect(index, timeSlot);
+    
+    // 時間選択後、次の希望日セクションへ自動スクロール
+    setTimeout(() => {
+      if (index === 0 && preference2Ref.current) {
+        // 第1希望の時間選択後、第2希望へスクロール
+        preference2Ref.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      } else if (index === 1 && preference3Ref.current) {
+        // 第2希望の時間選択後、第3希望へスクロール
+        preference3Ref.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }, 300); // 選択アニメーション後にスクロール
   };
 
   const getPreferenceLabel = (index: number) => {
@@ -133,33 +155,49 @@ const AppointmentCalendar = ({
     const isRequired = index < 2;
     const hasCompleted = index > 0 && preferredDates[index - 1]?.date && preferredDates[index - 1]?.timeSlot;
     const shouldShowNextMessage = index === 1 && preferredDates[0]?.date && preferredDates[0]?.timeSlot;
+    const shouldShowThirdMessage = index === 2 && preferredDates[1]?.date && preferredDates[1]?.timeSlot;
 
+    // refを各セクションに割り当て
+    const sectionRef = index === 0 ? preference1Ref : index === 1 ? preference2Ref : preference3Ref;
+    
     return (
-      <div key={index} className="mb-8">
+      <div key={index} ref={sectionRef} className="mb-8 scroll-mt-20">
         {/* 第2希望への案内メッセージ */}
         {shouldShowNextMessage && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center mb-4">
-            <div className="text-blue-600 font-medium text-lg mb-2">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center mb-4 animate-in fade-in-50 slide-in-from-top-3">
+            <div className="text-blue-600 font-medium text-base sm:text-lg mb-2">
               ↓ 第2希望を選択してください ↓
             </div>
-            <div className="text-blue-500 text-sm">
+            <div className="text-blue-500 text-xs sm:text-sm">
               第1希望の時間選択が完了しました！続けて第2希望もご入力ください（必須項目です）
+            </div>
+          </div>
+        )}
+        
+        {/* 第3希望への案内メッセージ */}
+        {shouldShowThirdMessage && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center mb-4 animate-in fade-in-50 slide-in-from-top-3">
+            <div className="text-green-600 font-medium text-base sm:text-lg mb-2">
+              ↓ 第3希望も選択できます（任意）↓
+            </div>
+            <div className="text-green-500 text-xs sm:text-sm">
+              第2希望の時間選択が完了しました！第3希望も入力いただくと、予約が確定しやすくなります
             </div>
           </div>
         )}
 
         {/* タイトル部分 */}
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5" />
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6" />
             {getPreferenceLabel(index)}
-            {isRequired && <span className="text-red-500 text-sm ml-2">※必須</span>}
+            {isRequired && <span className="text-red-500 text-xs sm:text-sm ml-2">※必須</span>}
           </h3>
         </div>
 
         {/* カレンダーと時間選択のコンテナ */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* 左側：カレンダー */}
             <div>
               <div className="mb-4">
