@@ -73,7 +73,7 @@ export default function Index() {
             <Shield className="h-4 w-4" />
             管理者ログイン
           </Button>
-          <p className="text-xs text-gray-500 mt-2">©合同会社UMA - SmartReserve予約システム</p>
+          <p className="text-xs text-gray-500 mt-2">SmartReserve予約システム</p>
         </div>
       </div>
 

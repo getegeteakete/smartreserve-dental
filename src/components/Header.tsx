@@ -35,10 +35,6 @@ const Header = () => {
                     予約システム
                   </span>
                 </div>
-                <div className="border-l border-gray-300 h-10 mx-2"></div>
-                <span className="text-xs text-gray-500 whitespace-nowrap">
-                  ©合同会社UMA
-                </span>
               </div>
             </div>
           </div>
