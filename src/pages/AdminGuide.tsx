@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -58,8 +59,10 @@ export default function AdminGuide() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className="container max-w-6xl mx-auto py-8 px-4">
+    <>
+      <AdminHeader title="管理者向け使い方ガイド" />
+      <div className="pt-20 min-h-screen bg-gray-50">
+        <div className="container max-w-6xl mx-auto py-8 px-4">
         {/* ヘッダー */}
         <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
           <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
@@ -666,5 +669,6 @@ export default function AdminGuide() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

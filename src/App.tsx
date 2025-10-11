@@ -16,6 +16,7 @@ import TreatmentManagement from "./pages/TreatmentManagement";
 import PatientManagement from "./pages/PatientManagement";
 import BusinessCalendarEmbed from "./pages/BusinessCalendarEmbed";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Guide from "./pages/Guide";
 import NotFound from "./pages/NotFound";
 import AppointmentCancel from "./pages/AppointmentCancel";
 import AppointmentRebook from "./pages/AppointmentRebook";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/treatment/:id" element={<TreatmentDetail />} />
           <Route path="/treatment-detail/:treatmentId" element={<TreatmentDetail />} />
           <Route path="/course/:courseName" element={<CourseDetail />} />
+          <Route path="/guide" element={<Guide />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin/guide" element={<AdminGuide />} />
@@ -47,10 +49,10 @@ const App = () => (
           <Route path="/admin/notifications" element={<NotificationSettings />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/calendar-embed" element={<BusinessCalendarEmbed />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/cancel" element={<AppointmentCancel />} />
-        <Route path="/rebook" element={<AppointmentRebook />} />
-        <Route path="*" element={<NotFound />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/cancel" element={<AppointmentCancel />} />
+          <Route path="/rebook" element={<AppointmentRebook />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

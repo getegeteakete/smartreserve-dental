@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentList } from "@/components/admin/AppointmentList";
 import { ReservationCalendar } from "@/components/admin/ReservationCalendar";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Calendar, Users, BarChart3, UserCheck, BookOpen, Bell } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -52,8 +53,10 @@ export default function Admin() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className="container max-w-6xl mx-auto py-8 px-4">
+    <>
+      <AdminHeader title="管理画面" />
+      <div className="pt-20 min-h-screen bg-gray-50">
+        <div className="container max-w-6xl mx-auto py-8 px-4">
         <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
           <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
             <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>管理画面</h1>
@@ -163,5 +166,6 @@ export default function Admin() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }

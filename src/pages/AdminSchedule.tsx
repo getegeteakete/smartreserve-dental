@@ -1,6 +1,7 @@
 
 import { AdminScheduleHeader } from "@/components/admin/AdminScheduleHeader";
 import { AdminScheduleTabs } from "@/components/admin/AdminScheduleTabs";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { useScheduleManagement } from "@/hooks/useScheduleManagement";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -27,8 +28,10 @@ const AdminSchedule = () => {
   console.log("AdminSchedule - treatmentLimits length:", treatmentLimits.length);
 
   return (
-    <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
-      <AdminScheduleHeader />
+    <>
+      <AdminHeader title="スケジュール設定" />
+      <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
+        <AdminScheduleHeader />
       
       <AdminScheduleTabs
         selectedYear={selectedYear}
@@ -43,6 +46,7 @@ const AdminSchedule = () => {
         onSpecialScheduleDelete={handleSpecialScheduleDelete}
       />
     </div>
+    </>
   );
 };
 

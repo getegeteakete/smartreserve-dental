@@ -1,5 +1,6 @@
 
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AppointmentCalendar from "@/components/appointment/AppointmentCalendar";
 import AppointmentForm from "@/components/appointment/AppointmentForm";
@@ -8,8 +9,11 @@ import BookingHeader from "@/components/appointment/BookingHeader";
 import TreatmentDisplay from "@/components/appointment/TreatmentDisplay";
 import { Toaster } from "@/components/ui/sonner";
 import { useBookingForm } from "@/hooks/useBookingForm";
+import { AIBookingParser } from "@/utils/aiBookingParser";
+import Header from "@/components/Header";
 
 export default function Booking() {
+  const location = useLocation();
   const {
     formData,
     setFormData,
@@ -30,12 +34,17 @@ export default function Booking() {
     window.scrollTo(0, 0);
   }, []);
 
+  // AIからの予約データは各フックで処理されるため、ここでは削除
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <BookingHeader />
-        
-        <TreatmentDisplay treatmentData={selectedTreatmentData} />
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      <div className="flex-1 pt-16 bg-gray-50 py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <BookingHeader />
+          
+          <TreatmentDisplay treatmentData={selectedTreatmentData} />
 
         <form onSubmit={handleSubmit} className="pointer-events-auto space-y-8">
           {/* Calendar section */}
@@ -74,6 +83,7 @@ export default function Booking() {
         </form>
         
         <Toaster position="bottom-right" />
+        </div>
       </div>
     </div>
   );

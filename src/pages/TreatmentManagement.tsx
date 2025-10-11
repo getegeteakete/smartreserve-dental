@@ -7,6 +7,7 @@ import { Plus, ArrowLeft } from "lucide-react";
 import { TreatmentManagementTable } from "@/components/admin/treatment-limits/TreatmentManagementTable";
 import { TreatmentEditWithCategoryDialog } from "@/components/admin/treatment-limits/TreatmentEditWithCategoryDialog";
 import { TreatmentCreateDialog } from "@/components/admin/treatment-limits/TreatmentCreateDialog";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { useTreatmentsWithCategories, TreatmentWithCategory } from "@/hooks/useTreatmentsWithCategories";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -106,8 +107,10 @@ export default function TreatmentManagement() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
+    <>
+      <AdminHeader title="診療メニュー管理" />
+      <div className="pt-20 min-h-screen bg-gray-50">
+        <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
         <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
           <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
             <Button
@@ -176,5 +179,6 @@ export default function TreatmentManagement() {
         />
       </div>
     </div>
+    </>
   );
 }

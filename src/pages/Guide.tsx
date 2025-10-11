@@ -3,13 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Phone } from "lucide-react";
+import Header from "@/components/Header";
 
 const Guide = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="container max-w-4xl mx-auto py-8 px-4">
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      <div className="flex-1 pt-16 bg-gray-50">
+        <div className="container max-w-4xl mx-auto py-8 px-4">
         <div className="mb-6">
           <Button
             variant="outline"
@@ -122,6 +126,7 @@ const Guide = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>

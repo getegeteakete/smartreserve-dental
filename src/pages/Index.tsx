@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
 import Header from "@/components/Header";
@@ -8,16 +8,43 @@ import TreatmentSelection from "@/pages/TreatmentSelection";
 import { ensureDefaultTreatments } from "@/utils/defaultTreatmentData";
 import { ensureDefaultSchedule } from "@/utils/defaultScheduleData";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AIChatBot } from "@/components/chat/AIChatBot";
+import { StaffConnectionDialog } from "@/components/chat/StaffConnectionDialog";
 
 export default function Index() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [showStaffDialog, setShowStaffDialog] = useState(false);
 
   useEffect(() => {
     // アプリ起動時にデフォルトデータを確保
     ensureDefaultTreatments();
     ensureDefaultSchedule();
   }, []);
+
+  const handleBookingRequest = (data: any) => {
+    // 予約画面に遷移し、抽出されたデータを渡す
+    navigate('/booking', { 
+      state: { 
+        aiBookingData: data,
+        fromAI: true 
+      } 
+    });
+  };
+
+  const handleStaffConnection = () => {
+    setShowStaffDialog(true);
+  };
+
+  const handlePhoneCall = (staffId?: string) => {
+    // 実際の実装では、電話システムと連携
+    alert(`スタッフ（ID: ${staffId || 'default'}）にお電話をおかけします`);
+  };
+
+  const handleStaffChatStart = (staffId: string) => {
+    // スタッフとのチャットを開始
+    alert(`スタッフ（ID: ${staffId}）とのチャットを開始します`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,6 +69,21 @@ export default function Index() {
           <p className="text-xs text-gray-500 mt-2">©合同会社UMA - SmartReserve予約システム</p>
         </div>
       </div>
+
+      {/* AIチャットボット */}
+      <AIChatBot
+        onBookingRequest={handleBookingRequest}
+        onStaffConnection={handleStaffConnection}
+        onPhoneCall={handlePhoneCall}
+      />
+
+      {/* スタッフ接続ダイアログ */}
+      <StaffConnectionDialog
+        open={showStaffDialog}
+        onOpenChange={setShowStaffDialog}
+        onPhoneCall={handlePhoneCall}
+        onChatStart={handleStaffChatStart}
+      />
     </div>
   );
 }

@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReminderSettingsManager } from "@/components/admin/ReminderSettingsManager";
 import { NotificationHistoryManager } from "@/components/admin/NotificationHistoryManager";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { ArrowLeft, Bell, History } from "lucide-react";
-import Header from "@/components/Header";
 
 export default function NotificationSettings() {
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ export default function NotificationSettings() {
 
   return (
     <>
-      <Header />
+      <AdminHeader title="通知設定" />
       <div className="pt-20 min-h-screen bg-gray-50">
         <div className="container max-w-6xl mx-auto py-8 px-4">
           <div className="flex items-center justify-between mb-6">

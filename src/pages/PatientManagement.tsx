@@ -1,6 +1,7 @@
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { usePatientManagementAuth } from "@/hooks/usePatientManagementAuth";
 import { usePatientManagementState } from "@/hooks/usePatientManagementState";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { PatientManagementHeader } from "@/components/admin/patient/PatientManagementHeader";
 import { PatientSearchCard } from "@/components/admin/patient/PatientSearchCard";
 import { PatientStatsCard } from "@/components/admin/patient/PatientStatsCard";
@@ -100,8 +101,10 @@ export default function PatientManagement() {
   console.log("PatientManagement: メインコンテンツを表示");
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className="container max-w-6xl mx-auto py-8 px-4">
+    <>
+      <AdminHeader title="患者情報管理" />
+      <div className="pt-20 min-h-screen bg-gray-50">
+        <div className="container max-w-6xl mx-auto py-8 px-4">
         <PatientManagementHeader
           onBackToAdmin={handleBackToAdmin}
           onLogout={handleLogout}
@@ -146,5 +149,6 @@ export default function PatientManagement() {
         />
       </div>
     </div>
+    </>
   );
 }

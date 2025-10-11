@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Clock, JapaneseYen, Phone } from "lucide-react";
+import Header from "@/components/Header";
 
 const TreatmentDetail = () => {
   const { treatmentId } = useParams<{ treatmentId: string }>();
@@ -155,12 +156,15 @@ const TreatmentDetail = () => {
 
   if (!treatment) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">診療メニューが見つかりません</h1>
-          <Button onClick={() => navigate("/")}>
-            トップページに戻る
-          </Button>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 pt-16 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">診療メニューが見つかりません</h1>
+            <Button onClick={() => navigate("/")}>
+              トップページに戻る
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -171,7 +175,10 @@ const TreatmentDetail = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 bg-gray-50">
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      <div className="flex-1 pt-16 bg-gray-50">
       {/* 電話案内セクション */}
       <div className="bg-slate-800 text-white py-4">
         <div className="container max-w-6xl mx-auto px-4">
@@ -277,6 +284,7 @@ const TreatmentDetail = () => {
             </Card>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
