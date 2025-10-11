@@ -20,6 +20,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { DentalReceptionistAvatar } from './DentalReceptionistAvatar';
 import { searchTreatmentCourse, TreatmentCourse } from '@/utils/treatmentCourseData';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface Message {
   id: string;
@@ -27,14 +29,15 @@ interface Message {
   content: string;
   timestamp: Date;
   metadata?: {
-    intent?: 'booking' | 'consultation' | 'staff_connection' | 'phone_call' | 'general';
+    intent?: 'booking' | 'consultation' | 'staff_connection' | 'phone_call' | 'general' | 'view_booking' | 'modify_booking' | 'cancel_booking';
     extractedData?: any;
     actions?: Array<{
-      type: 'booking' | 'phone' | 'staff_chat' | 'schedule_view';
+      type: 'booking' | 'phone' | 'staff_chat' | 'schedule_view' | 'view_mypage' | 'modify_booking' | 'cancel_booking';
       label: string;
       data?: any;
     }>;
     bookingState?: 'collecting_dates' | 'collecting_patient_info' | 'confirming_booking' | 'booking_complete';
+    appointments?: any[];
   };
 }
 
@@ -59,6 +62,7 @@ interface AIChatBotProps {
   onBookingRequest?: (data: any) => void;
   onStaffConnection?: () => void;
   onPhoneCall?: () => void;
+  onViewMyPage?: () => void;
   className?: string;
 }
 
@@ -66,6 +70,7 @@ export const AIChatBot = ({
   onBookingRequest, 
   onStaffConnection, 
   onPhoneCall,
+  onViewMyPage,
   className = "" 
 }: AIChatBotProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,15 +78,15 @@ export const AIChatBot = ({
     {
       id: '1',
       type: 'ai',
-      content: 'こんにちは！😊\n\nSmartReserve予約システムのAIアシスタント、受付スタッフの「さくら」です。\n\n以下のことができます：\n• 📅 予約の作成・変更・キャンセル\n• 🦷 治療内容の相談\n• 👥 スタッフとの接続\n• 📞 お電話の転送\n• 🎤 音声入力での予約\n\n何でもお気軽にお尋ねください！',
+      content: 'こんにちは！😊\n\nSmartReserve予約システムのAIアシスタント、受付スタッフの「さくら」です。\n\n以下のことができます：\n• 📅 予約の作成・変更・キャンセル\n• 🔍 予約内容の確認\n• 🦷 治療コースのご案内\n• 👥 スタッフとの接続\n• 📞 お電話の転送\n• 🎤 音声入力での予約\n\n何でもお気軽にお尋ねください！',
       timestamp: new Date(),
       metadata: {
         intent: 'general',
         actions: [
-          { type: 'booking', label: '予約を取る', data: { action: 'new_booking' } },
-          { type: 'schedule_view', label: '空き時間を確認', data: { action: 'view_schedule' } },
-          { type: 'staff_chat', label: 'スタッフと話す', data: { action: 'staff_connection' } },
-          { type: 'phone', label: '電話したい', data: { action: 'phone_call' } }
+          { type: 'booking', label: '新しい予約を取る', data: { action: 'new_booking' } },
+          { type: 'view_mypage', label: '予約を確認する', data: { action: 'view_mypage' } },
+          { type: 'schedule_view', label: 'コースを見る', data: { action: 'view_schedule' } },
+          { type: 'staff_chat', label: 'スタッフと話す', data: { action: 'staff_connection' } }
         ]
       }
     }
@@ -261,6 +266,96 @@ export const AIChatBot = ({
         { type: 'phone', label: '電話をかける', data: { action: 'phone_call' } }
       ];
     }
+    
+    // 予約確認の解析
+    if (lowerMessage.includes('予約') && (lowerMessage.includes('確認') || lowerMessage.includes('見たい') || lowerMessage.includes('見る') || lowerMessage.includes('チェック'))) {
+      intent = 'view_booking';
+      
+      // メールアドレスや電話番号の抽出
+      const emailMatch = userMessage.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+      const phoneMatch = userMessage.match(/\d{2,4}-?\d{2,4}-?\d{4}/);
+      
+      if (emailMatch || phoneMatch) {
+        extractedData.email = emailMatch ? emailMatch[0] : null;
+        extractedData.phone = phoneMatch ? phoneMatch[0].replace(/-/g, '') : null;
+        
+        // 予約を検索
+        try {
+          let query = supabase
+            .from('appointments')
+            .select('*')
+            .gte('preferred_date1', new Date().toISOString())
+            .order('preferred_date1', { ascending: true });
+          
+          if (extractedData.email) {
+            query = query.eq('email', extractedData.email);
+          } else if (extractedData.phone) {
+            query = query.eq('phone', extractedData.phone);
+          }
+          
+          const { data: appointments } = await query.limit(5);
+          
+          if (appointments && appointments.length > 0) {
+            let appointmentList = '以下の予約が見つかりました：\n\n';
+            appointments.forEach((apt, index) => {
+              const date = format(new Date(apt.preferred_date1), 'yyyy年MM月dd日');
+              const status = apt.status === 'confirmed' ? '✅ 確定' : apt.status === 'pending' ? '⏳ 承認待ち' : '❌ キャンセル';
+              appointmentList += `${index + 1}. ${date} ${apt.preferred_time1} ${status}\n`;
+              appointmentList += `   ${apt.treatment_type}\n\n`;
+            });
+            
+            actions = [
+              { type: 'view_mypage', label: 'マイページで詳細を見る', data: { action: 'view_mypage' } },
+              { type: 'modify_booking', label: '予約を変更する', data: { appointments } },
+              { type: 'cancel_booking', label: '予約をキャンセルする', data: { appointments } }
+            ];
+            
+            return {
+              id: Date.now().toString(),
+              type: 'ai',
+              content: appointmentList,
+              timestamp: new Date(),
+              metadata: {
+                intent: 'view_booking',
+                extractedData,
+                actions,
+                appointments
+              }
+            };
+          } else {
+            aiResponse = '申し訳ございません。該当する予約が見つかりませんでした。\n\nメールアドレスまたは電話番号をもう一度ご確認いただけますか？\n\nまたは、マイページからご確認いただけます。';
+            actions = [
+              { type: 'view_mypage', label: 'マイページを見る', data: { action: 'view_mypage' } }
+            ];
+          }
+        } catch (error) {
+          console.error('予約検索エラー:', error);
+        }
+      } else {
+        aiResponse = '予約を確認いたします。\n\nメールアドレスまたは電話番号を教えていただけますか？\n\n例：yamada@example.com または 090-1234-5678';
+        actions = [
+          { type: 'view_mypage', label: 'マイページで確認', data: { action: 'view_mypage' } }
+        ];
+      }
+    }
+    
+    // 予約修正の解析
+    if (lowerMessage.includes('予約') && (lowerMessage.includes('変更') || lowerMessage.includes('修正') || lowerMessage.includes('ずらし'))) {
+      intent = 'modify_booking';
+      aiResponse = '予約の変更を承ります。\n\nまず、現在の予約を確認させてください。\nメールアドレスまたは電話番号を教えていただけますか？';
+      actions = [
+        { type: 'view_mypage', label: 'マイページで変更', data: { action: 'view_mypage' } }
+      ];
+    }
+    
+    // 予約キャンセルの解析
+    if (lowerMessage.includes('キャンセル') || (lowerMessage.includes('予約') && (lowerMessage.includes('取り消') || lowerMessage.includes('中止')))) {
+      intent = 'cancel_booking';
+      aiResponse = '予約のキャンセルを承ります。\n\nまず、キャンセル対象の予約を確認させてください。\nメールアドレスまたは電話番号を教えていただけますか？\n\n※キャンセルは予約日の24時間前まで可能です';
+      actions = [
+        { type: 'view_mypage', label: 'マイページでキャンセル', data: { action: 'view_mypage' } }
+      ];
+    }
 
     // 治療コースの説明が見つかった場合
     if (matchedCourses.length > 0 && (lowerMessage.includes('とは') || lowerMessage.includes('について') || 
@@ -340,7 +435,8 @@ export const AIChatBot = ({
       default:
         aiResponse = '申し訳ございませんが、もう少し詳しく教えていただけますか？\n\n以下のようなことをお手伝いできます：\n• 予約の作成・変更\n• 治療の相談\n• スタッフとの接続\n• お電話の転送';
         actions = [
-          { type: 'booking', label: '予約を取る', data: { action: 'new_booking' } },
+          { type: 'booking', label: '新しい予約を取る', data: { action: 'new_booking' } },
+          { type: 'view_mypage', label: '予約を確認する', data: { action: 'view_mypage' } },
           { type: 'staff_chat', label: 'スタッフと話す', data: { action: 'staff_connection' } },
           { type: 'phone', label: '電話したい', data: { action: 'phone_call' } }
         ];
@@ -425,6 +521,36 @@ export const AIChatBot = ({
           title: 'スケジュール表示',
           description: '空き時間を表示します'
         });
+        break;
+      
+      case 'view_mypage':
+        if (onViewMyPage) {
+          onViewMyPage();
+          toast({
+            title: 'マイページへ',
+            description: 'マイページに移動します'
+          });
+        }
+        break;
+      
+      case 'modify_booking':
+        toast({
+          title: '予約変更',
+          description: 'マイページで予約を変更できます'
+        });
+        if (onViewMyPage) {
+          onViewMyPage();
+        }
+        break;
+      
+      case 'cancel_booking':
+        toast({
+          title: '予約キャンセル',
+          description: 'マイページで予約をキャンセルできます'
+        });
+        if (onViewMyPage) {
+          onViewMyPage();
+        }
         break;
     }
   };

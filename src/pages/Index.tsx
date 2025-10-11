@@ -48,6 +48,11 @@ export default function Index() {
     alert(`スタッフ（ID: ${staffId}）とのチャットを開始します`);
   };
 
+  const handleViewMyPage = () => {
+    // マイページへ遷移
+    navigate('/mypage');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -79,6 +84,7 @@ export default function Index() {
             onBookingRequest={handleBookingRequest}
             onStaffConnection={handleStaffConnection}
             onPhoneCall={handlePhoneCall}
+            onViewMyPage={handleViewMyPage}
           />
 
           {/* スタッフ接続ダイアログ */}
