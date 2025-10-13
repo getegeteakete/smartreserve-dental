@@ -20,28 +20,43 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
 
+    console.log("ログイン試行:", { username, password });
+
     try {
       // 入力値の検証
       if (!username || !password) {
         throw new Error("IDとパスワードを入力してください");
       }
 
+      console.log("入力値検証完了");
+
       // 管理者認証（デモ用認証情報）
       if (username === "sup@ei-life.co.jp" && password === "aA-793179") {
+        console.log("認証成功、ローカルストレージに保存");
+        
         // ローカルストレージに管理者フラグを保存
         localStorage.setItem("admin_logged_in", "true");
         localStorage.setItem("admin_username", username);
+        
+        console.log("ローカルストレージ保存完了:", {
+          admin_logged_in: localStorage.getItem("admin_logged_in"),
+          admin_username: localStorage.getItem("admin_username")
+        });
         
         toast({
           title: "ログイン成功",
           description: "管理画面にリダイレクトします",
         });
         
+        console.log("リダイレクト開始");
+        
         // 少し待ってからリダイレクト
         setTimeout(() => {
+          console.log("navigate実行");
           navigate("/admin", { replace: true });
         }, 1000);
       } else {
+        console.log("認証失敗:", { username, password });
         throw new Error("IDまたはパスワードが正しくありません");
       }
     } catch (error: any) {
