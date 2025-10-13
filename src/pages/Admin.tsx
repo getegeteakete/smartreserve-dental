@@ -24,7 +24,7 @@ export default function Admin() {
       
       console.log("管理者認証チェック:", { isAdminLoggedIn, adminUsername });
       
-      if (!isAdminLoggedIn || adminUsername !== "admin@smartreserve.com") {
+      if (isAdminLoggedIn !== "true" || adminUsername !== "sup@ei-life.co.jp") {
         console.log("管理者認証が必要です");
         navigate("/admin-login");
         return;

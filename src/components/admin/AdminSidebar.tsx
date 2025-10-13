@@ -163,7 +163,7 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
         {showUserMenu && !isCollapsed && (
           <div className="mt-2 bg-gray-800 rounded-lg p-2">
             <div className="px-3 py-2 text-sm text-gray-400">
-              admin@smartreserve.com
+              sup@ei-life.co.jp
             </div>
             <div className="px-3 py-1 text-sm text-gray-400">
               (株)SmartReserve

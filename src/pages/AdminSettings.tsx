@@ -32,7 +32,7 @@ const AdminSettings = () => {
       const isAdminLoggedIn = localStorage.getItem("admin_logged_in");
       const adminUsername = localStorage.getItem("admin_username");
       
-      if (!isAdminLoggedIn || adminUsername !== "admin@smartreserve.com") {
+      if (!isAdminLoggedIn || adminUsername !== "sup@ei-life.co.jp") {
         navigate("/admin-login");
         return;
       }
