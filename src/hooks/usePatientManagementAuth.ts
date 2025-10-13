@@ -13,7 +13,7 @@ export const usePatientManagementAuth = () => {
       
       console.log("管理者認証チェック:", { isAdminLoggedIn, adminUsername });
       
-      if (!isAdminLoggedIn || adminUsername !== "admin@toyoshima-ortho.com") {
+      if (!isAdminLoggedIn || adminUsername !== "sup@ei-life.co.jp") {
         console.log("管理者認証が必要です");
         navigate("/admin-login");
         return;
