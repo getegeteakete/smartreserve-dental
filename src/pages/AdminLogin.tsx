@@ -37,8 +37,10 @@ const AdminLogin = () => {
           description: "管理画面にリダイレクトします",
         });
         
-        // 管理画面の予約状況タブにリダイレクト
-        navigate("/admin");
+        // 少し待ってからリダイレクト
+        setTimeout(() => {
+          navigate("/admin", { replace: true });
+        }, 1000);
       } else {
         throw new Error("IDまたはパスワードが正しくありません");
       }
