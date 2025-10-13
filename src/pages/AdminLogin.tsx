@@ -27,7 +27,7 @@ const AdminLogin = () => {
       }
 
       // 管理者認証（デモ用認証情報）
-      if (username === "admin@smartreserve.com" && password === "admin123") {
+      if (username === "admin@toyoshima-ortho.com" && password === "admin123") {
         // ローカルストレージに管理者フラグを保存
         localStorage.setItem("admin_logged_in", "true");
         localStorage.setItem("admin_username", username);

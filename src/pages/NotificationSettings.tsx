@@ -6,6 +6,7 @@ import { ReminderSettingsManager } from "@/components/admin/ReminderSettingsMana
 import { NotificationHistoryManager } from "@/components/admin/NotificationHistoryManager";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { ArrowLeft, Bell, History } from "lucide-react";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function NotificationSettings() {
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,9 @@ export default function NotificationSettings() {
           </Tabs>
         </div>
       </div>
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </>
   );
 }

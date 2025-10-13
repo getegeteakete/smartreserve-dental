@@ -59,22 +59,22 @@ const TreatmentSelection = () => {
       if (treatment.category?.name) {
         categoryName = treatment.category.name;
       } else {
-        // カテゴリが設定されていない場合は名前から推測
-        const name = treatment.name;
-        if (name.includes('初診') || name.includes('初心')) {
-          categoryName = '一般歯科';
-        } else if (name.includes('精密検査')) {
-          categoryName = '一般歯科';
-        } else if (name.includes('ホワイトニング')) {
-          categoryName = '審美歯科';
-        } else if (name.includes('PMTC') || name.includes('クリーニング') || name.includes('定期検診')) {
-          categoryName = '予防歯科';
-        } else if (name.includes('矯正')) {
-          categoryName = '矯正歯科';
-        } else {
-          // どのカテゴリにも当てはまらない場合は「その他」として分類
-          categoryName = '一般歯科';
-        }
+      // カテゴリが設定されていない場合は名前から推測
+      const name = treatment.name;
+      if (name.includes('初診') || name.includes('初心')) {
+        categoryName = '初診';
+      } else if (name.includes('精密検査')) {
+        categoryName = '精密検査';
+      } else if (name.includes('ホワイトニング')) {
+        categoryName = 'ホワイトニング';
+      } else if (name.includes('PMTC') || name.includes('クリーニング')) {
+        categoryName = 'PMTC';
+      } else if (name.includes('矯正')) {
+        categoryName = '矯正歯科';
+      } else {
+        // どのカテゴリにも当てはまらない場合は「初診」として分類
+        categoryName = '初診';
+      }
       }
       
       if (!acc[categoryName]) {
@@ -90,7 +90,7 @@ const TreatmentSelection = () => {
   console.log("🔍 TreatmentSelection: カテゴリ化結果", categorizedTreatments);
 
   // カテゴリーの表示順序を固定
-  const categoryOrder = ["一般歯科", "予防歯科", "矯正歯科", "審美歯科"];
+  const categoryOrder = ["初診", "精密検査", "ホワイトニング", "PMTC"];
   
   // 存在するカテゴリのみを順序通りに取得
   const orderedCategories = categoryOrder.filter(category => categorizedTreatments[category]);

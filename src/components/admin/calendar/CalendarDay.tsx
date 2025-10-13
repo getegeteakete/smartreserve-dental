@@ -7,6 +7,7 @@ interface CalendarDayProps {
   displayMonth: Date;
   scheduleType: string;
   displayText: string;
+  memo?: string;
   onClick: (date: Date) => void;
 }
 
@@ -15,6 +16,7 @@ export const CalendarDay = ({
   displayMonth, 
   scheduleType, 
   displayText, 
+  memo,
   onClick 
 }: CalendarDayProps) => {
   const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
@@ -41,22 +43,29 @@ export const CalendarDay = ({
   }
 
   return (
-    <button
-      className={dayStyle}
-      onClick={(e) => {
-        e.preventDefault();
-        if (isCurrentMonth) {
-          onClick(date);
-        }
-      }}
-      disabled={!isCurrentMonth}
-    >
-      <span className="text-base font-medium">{date.getDate()}</span>
-      {isCurrentMonth && displayText && (
-        <span className="text-[9px] leading-tight mt-0.5 px-1 rounded text-center">
-          {displayText}
-        </span>
+    <div className="relative">
+      <button
+        className={dayStyle}
+        onClick={(e) => {
+          e.preventDefault();
+          if (isCurrentMonth) {
+            onClick(date);
+          }
+        }}
+        disabled={!isCurrentMonth}
+      >
+        <span className="text-base font-medium">{date.getDate()}</span>
+        {isCurrentMonth && displayText && (
+          <span className="text-[9px] leading-tight mt-0.5 px-1 rounded text-center">
+            {displayText}
+          </span>
+        )}
+      </button>
+      {memo && isCurrentMonth && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+          <span className="text-white text-[8px] font-bold">📝</span>
+        </div>
       )}
-    </button>
+    </div>
   );
 };

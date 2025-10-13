@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarHeader } from "./calendar/CalendarHeader";
 import { CalendarLegend } from "./calendar/CalendarLegend";
 import { ScheduleDialog } from "./calendar/ScheduleDialog";
+import { DailyScheduleEditor } from "./calendar/DailyScheduleEditor";
 import { CalendarDay } from "./calendar/CalendarDay";
 import { getScheduleInfo, generateTimeSlots, getBasicTimeSlots } from "./calendar/utils/scheduleUtils";
 import { useSundayScheduleOperations } from "@/hooks/schedule/useSundayScheduleOperations";
@@ -51,9 +52,11 @@ export const InteractiveBusinessCalendar = ({
 }: InteractiveBusinessCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(selectedYear, selectedMonth - 1));
   const [specialSchedules, setSpecialScheduleData] = useState<SpecialScheduleData[]>([]);
+  const [dailyMemos, setDailyMemos] = useState<Array<{date: string, memo: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [clickedDate, setClickedDate] = useState<Date | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showDailyEditor, setShowDailyEditor] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // UI強制更新用のキー
   const { toast } = useToast();
   const operationInProgress = useRef(false);
@@ -84,6 +87,7 @@ export const InteractiveBusinessCalendar = ({
   const fetchAllScheduleData = async () => {
     console.log("全スケジュールデータ再取得開始");
     await fetchSpecialSchedules();
+    await fetchDailyMemos();
     // UI強制更新
     setRefreshKey(prev => prev + 1);
     console.log("全スケジュールデータ再取得完了");
@@ -113,11 +117,35 @@ export const InteractiveBusinessCalendar = ({
     }
   };
 
+  const fetchDailyMemos = async () => {
+    try {
+      console.log(`メモ取得: ${selectedYear}年${selectedMonth}月`);
+      const startDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endDate = new Date(selectedYear, selectedMonth, 0);
+      
+      const { data: memosData, error } = await supabase
+        .from('daily_memos')
+        .select('*')
+        .gte('date', format(startDate, 'yyyy-MM-dd'))
+        .lte('date', format(endDate, 'yyyy-MM-dd'));
+
+      if (error) {
+        console.error("メモ取得エラー:", error);
+      } else {
+        console.log("メモ取得結果:", memosData);
+        setDailyMemos(memosData || []);
+      }
+    } catch (error) {
+      console.error("メモ取得エラー:", error);
+    }
+  };
+
   useEffect(() => {
     console.log("useEffect: 選択年月変更:", selectedYear, selectedMonth);
     const newDate = new Date(selectedYear, selectedMonth - 1);
     setSelectedDate(newDate);
     fetchSpecialSchedules();
+    fetchDailyMemos();
   }, [selectedYear, selectedMonth]);
 
   const handleSpecialScheduleToggle = async (scheduleId: string, isAvailable: boolean) => {
@@ -205,11 +233,11 @@ export const InteractiveBusinessCalendar = ({
         onYearMonthChange(clickedYear, clickedMonth);
         setTimeout(() => {
           setClickedDate(date);
-          setShowScheduleDialog(true);
+          setShowDailyEditor(true);
         }, 1000);
       } else {
         setClickedDate(date);
-        setShowScheduleDialog(true);
+        setShowDailyEditor(true);
       }
     }
   };
@@ -470,6 +498,17 @@ export const InteractiveBusinessCalendar = ({
     return schedules.filter(s => s.day_of_week === dayOfWeek);
   };
 
+  const getDailyMemo = (date: Date) => {
+    const dateString = format(date, 'yyyy-MM-dd');
+    return dailyMemos.find(memo => memo.date === dateString)?.memo || '';
+  };
+
+  const handleDailyScheduleUpdated = () => {
+    // スケジュール更新後の処理
+    fetchAllScheduleData();
+    setShowDailyEditor(false);
+  };
+
   const { fullOpenDays, partialOpenDays, closedDays, specialOpenDays } = getDayModifiers();
 
   if (loading) {
@@ -517,12 +556,14 @@ export const InteractiveBusinessCalendar = ({
             components={{
               Day: ({ date, ...props }) => {
                 const scheduleInfo = getScheduleInfo(date, specialSchedules, schedules);
+                const memo = getDailyMemo(date);
                 return (
                   <CalendarDay 
                     date={date} 
                     displayMonth={selectedDate}
                     scheduleType={scheduleInfo.type}
                     displayText={scheduleInfo.displayText}
+                    memo={memo}
                     onClick={handleDateClick}
                     {...props}
                   />
@@ -548,6 +589,19 @@ export const InteractiveBusinessCalendar = ({
         onSpecialScheduleRemove={handleSpecialScheduleRemove}
         onSpecialScheduleToggle={handleSpecialScheduleToggle}
       />
+
+      {/* 日別スケジュールエディター */}
+      {showDailyEditor && clickedDate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-h-[90vh] overflow-y-auto">
+            <DailyScheduleEditor
+              selectedDate={clickedDate}
+              onClose={() => setShowDailyEditor(false)}
+              onScheduleUpdated={handleDailyScheduleUpdated}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

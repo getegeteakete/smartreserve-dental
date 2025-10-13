@@ -1,19 +1,20 @@
-
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminContentHeader } from "@/components/admin/AdminContentHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { TreatmentManagementTable } from "@/components/admin/treatment-limits/TreatmentManagementTable";
 import { TreatmentEditWithCategoryDialog } from "@/components/admin/treatment-limits/TreatmentEditWithCategoryDialog";
 import { TreatmentCreateDialog } from "@/components/admin/treatment-limits/TreatmentCreateDialog";
-import { AdminHeader } from "@/components/admin/AdminHeader";
 import { useTreatmentsWithCategories, TreatmentWithCategory } from "@/hooks/useTreatmentsWithCategories";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
-export default function TreatmentManagement() {
+const AdminTreatments = () => {
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { treatments, updateTreatment, createTreatment, deleteTreatment, refetch } = useTreatmentsWithCategories();
@@ -42,10 +43,8 @@ export default function TreatmentManagement() {
     checkAdminAuth();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_logged_in");
-    localStorage.removeItem("admin_username");
-    navigate("/admin-login");
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   const handleEditTreatment = (treatment: TreatmentWithCategory) => {
@@ -108,81 +107,87 @@ export default function TreatmentManagement() {
   }
 
   return (
-    <>
-      <AdminHeader title="診療メニュー管理" />
-      <div className="pt-20 min-h-screen bg-gray-50">
-        <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
-        <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
-          <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin")}
-              className="flex items-center gap-2"
-              size={isMobile ? "sm" : "default"}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {isMobile ? '戻る' : '管理画面に戻る'}
-            </Button>
-            <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-              {isMobile ? '診療管理' : '診療メニュー管理'}
-            </h1>
-          </div>
-          <div className={`${isMobile ? 'grid grid-cols-1 gap-2' : 'flex gap-2'}`}>
-            <Button
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="flex items-center gap-2"
-              size={isMobile ? "sm" : "default"}
-            >
-              <Plus className="h-4 w-4" />
-              {isMobile ? '新規作成' : '新規メニュー作成'}
-            </Button>
-            <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
-              ログアウト
-            </Button>
+    <div className="flex h-screen bg-gray-100">
+      {/* サイドバー */}
+      <AdminSidebar 
+        isCollapsed={sidebarCollapsed} 
+        onToggle={toggleSidebar} 
+      />
+      
+      {/* メインコンテンツ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* ヘッダー */}
+        <AdminContentHeader 
+          title="SmartReserve" 
+          subtitle="診療メニュー管理" 
+        />
+        
+        {/* コンテンツエリア */}
+        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* ヘッダーセクション */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/admin")}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  管理画面に戻る
+                </Button>
+                <h1 className="text-3xl font-bold text-gray-900">診療メニュー管理</h1>
+              </div>
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4" />
+                新規メニュー作成
+              </Button>
+            </div>
+
+            {/* コンテンツ */}
+            <Card>
+              <CardHeader>
+                <CardTitle>診療メニュー・カテゴリー管理</CardTitle>
+                <CardDescription>
+                  診療メニューとカテゴリーの管理ができます。カテゴリーごとに画像を設定でき、診療メニューをカテゴリー別に整理できます。
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TreatmentManagementTable
+                  treatments={treatments}
+                  onEdit={handleEditTreatment}
+                  onDelete={handleDeleteTreatment}
+                />
+              </CardContent>
+            </Card>
+
+            {/* ダイアログ */}
+            <TreatmentEditWithCategoryDialog
+              treatment={editingTreatment}
+              isOpen={isEditDialogOpen}
+              onClose={() => {
+                setIsEditDialogOpen(false);
+                setEditingTreatment(null);
+              }}
+              onSave={handleSaveTreatment}
+            />
+
+            <TreatmentCreateDialog
+              isOpen={isCreateDialogOpen}
+              onClose={() => setIsCreateDialogOpen(false)}
+              onSave={handleCreateTreatment}
+            />
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className={isMobile ? 'text-lg' : ''}>
-              {isMobile ? '診療メニュー管理' : '診療メニュー・カテゴリー管理'}
-            </CardTitle>
-            <CardDescription className={isMobile ? 'text-sm' : ''}>
-              {isMobile 
-                ? '診療メニューとカテゴリーの管理ができます。'
-                : '診療メニューとカテゴリーの管理ができます。カテゴリーごとに画像を設定でき、診療メニューをカテゴリー別に整理できます。'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent className={isMobile ? 'px-2' : ''}>
-            <TreatmentManagementTable
-              treatments={treatments}
-              onEdit={handleEditTreatment}
-              onDelete={handleDeleteTreatment}
-            />
-          </CardContent>
-        </Card>
-
-        <TreatmentEditWithCategoryDialog
-          treatment={editingTreatment}
-          isOpen={isEditDialogOpen}
-          onClose={() => {
-            setIsEditDialogOpen(false);
-            setEditingTreatment(null);
-          }}
-          onSave={handleSaveTreatment}
-        />
-
-        <TreatmentCreateDialog
-          isOpen={isCreateDialogOpen}
-          onClose={() => setIsCreateDialogOpen(false)}
-          onSave={handleCreateTreatment}
-        />
       </div>
-    </div>
 
       {/* ページトップへ戻るボタン */}
       <ScrollToTopButton />
-    </>
+    </div>
   );
-}
+};
+
+export default AdminTreatments;

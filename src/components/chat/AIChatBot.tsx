@@ -78,15 +78,15 @@ export const AIChatBot = ({
     {
       id: '1',
       type: 'ai',
-      content: 'こんにちは！😊\n\nSmartReserve予約システムのAIアシスタント、受付スタッフの「さくら」です。\n\n以下のことができます：\n• 📅 予約の作成・変更・キャンセル\n• 🔍 予約内容の確認\n• 🦷 治療コースのご案内\n• 👥 スタッフとの接続\n• 📞 お電話の転送\n• 🎤 音声入力での予約\n\n何でもお気軽にお尋ねください！',
+      content: 'こんにちは！😊\n歯科衛生士の「さくら」です🦷\n\n私がお手伝いできることは...\n\n📅 予約の作成・変更・キャンセル\n🔍 予約内容の確認\n🦷 診療内容のご案内\n👩‍⚕️ 歯のお悩み相談\n📞 スタッフへの接続\n🎤 音声での予約も可能です\n\nどんなことでもお気軽にご相談くださいね💕',
       timestamp: new Date(),
       metadata: {
         intent: 'general',
         actions: [
-          { type: 'booking', label: '新しい予約を取る', data: { action: 'new_booking' } },
-          { type: 'view_mypage', label: '予約を確認する', data: { action: 'view_mypage' } },
-          { type: 'schedule_view', label: 'コースを見る', data: { action: 'view_schedule' } },
-          { type: 'staff_chat', label: 'スタッフと話す', data: { action: 'staff_connection' } }
+          { type: 'booking', label: '予約する📅', data: { action: 'new_booking' } },
+          { type: 'view_mypage', label: '予約確認📋', data: { action: 'view_mypage' } },
+          { type: 'schedule_view', label: '診療内容🦷', data: { action: 'view_schedule' } },
+          { type: 'staff_chat', label: '相談する💬', data: { action: 'staff_connection' } }
         ]
       }
     }
@@ -199,7 +199,7 @@ export const AIChatBot = ({
 
     const lowerMessage = userMessage.toLowerCase();
     
-    // 治療コースの検索
+    // 診療内容の検索
     const matchedCourses = searchTreatmentCourse(userMessage);
     
     // 意図の解析
@@ -357,11 +357,11 @@ export const AIChatBot = ({
       ];
     }
 
-    // 治療コースの説明が見つかった場合
+    // 診療内容の説明が見つかった場合
     if (matchedCourses.length > 0 && (lowerMessage.includes('とは') || lowerMessage.includes('について') || 
         lowerMessage.includes('説明') || lowerMessage.includes('教えて') || lowerMessage.includes('詳しく') ||
         lowerMessage.includes('何') || lowerMessage.includes('どんな') || lowerMessage.includes('コース'))) {
-      const course = matchedCourses[0]; // 最も関連性の高いコースを使用
+      const course = matchedCourses[0]; // 最も関連性の高い診療内容を使用
       
       const aiResponse = `${course.name}についてご説明します！😊\n\n【${course.category}】\n\n${course.description}\n\n` +
         `⏱️ 所要時間：${course.duration}\n` +
@@ -369,11 +369,11 @@ export const AIChatBot = ({
         `✨ 特徴：\n${course.features.map(f => `• ${f}`).join('\n')}\n\n` +
         `👥 こんな方におすすめ：\n${course.recommendedFor.map(r => `• ${r}`).join('\n')}\n\n` +
         `📋 治療の流れ：\n${course.flow.map((f, i) => `${i + 1}. ${f}`).join('\n')}\n\n` +
-        `このコースで予約されますか？`;
+        `この診療内容で予約されますか？`;
       
       actions = [
         { type: 'booking', label: `${course.name}を予約`, data: { treatment: course.name } },
-        { type: 'schedule_view', label: '他のコースを見る', data: { action: 'view_schedule' } }
+        { type: 'schedule_view', label: '他の診療内容を見る', data: { action: 'view_schedule' } }
       ];
       
       return {
@@ -409,11 +409,11 @@ export const AIChatBot = ({
         
       case 'consultation':
         if (matchedCourses.length > 0) {
-          aiResponse = `以下の治療コースが見つかりました：\n\n`;
+          aiResponse = `以下の診療内容が見つかりました：\n\n`;
           matchedCourses.slice(0, 3).forEach((course, index) => {
             aiResponse += `${index + 1}. ${course.name}（${course.category}）\n   ${course.price} / ${course.duration}\n\n`;
           });
-          aiResponse += 'どのコースについて詳しく知りたいですか？';
+          aiResponse += 'どの診療内容について詳しく知りたいですか？';
           actions = matchedCourses.slice(0, 3).map(course => ({
             type: 'booking' as const,
             label: course.name,
@@ -568,122 +568,119 @@ export const AIChatBot = ({
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className={`fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 ${className}`}
-          size="icon"
+          className={`fixed bottom-24 right-6 h-32 w-16 rounded-lg shadow-lg z-50 flex flex-col items-center justify-center gap-1 bg-gradient-to-b from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white ${className}`}
         >
           <MessageCircle className="h-6 w-6" />
+          <span className="text-[10px] font-medium leading-tight text-center whitespace-pre-line">相談AI{'\n'}チャット</span>
         </Button>
       )}
 
       {/* チャットウィンドウ */}
       {isOpen && (
-        <Card className={`fixed bottom-6 right-6 w-96 h-[500px] shadow-xl z-50 overflow-hidden ${className}`}>
-          {/* 背景アニメーション */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-40">
-            <div className="absolute top-0 left-0 w-full h-full">
-              {/* 浮遊する歯のアイコン風パターン */}
-              <div className="absolute top-10 left-10 w-8 h-8 rounded-full bg-blue-200 opacity-20 animate-float" style={{animationDelay: '0s'}}></div>
-              <div className="absolute top-32 right-16 w-6 h-6 rounded-full bg-purple-200 opacity-20 animate-float" style={{animationDelay: '1s'}}></div>
-              <div className="absolute bottom-24 left-20 w-10 h-10 rounded-full bg-pink-200 opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
-              <div className="absolute top-48 left-32 w-7 h-7 rounded-full bg-blue-300 opacity-15 animate-float" style={{animationDelay: '1.5s'}}></div>
-              <div className="absolute bottom-40 right-12 w-9 h-9 rounded-full bg-purple-300 opacity-15 animate-float" style={{animationDelay: '0.5s'}}></div>
-              
-              {/* キラキラ効果 */}
-              <div className="absolute top-20 right-24 text-yellow-300 opacity-40 animate-sparkle" style={{animationDelay: '0s'}}>✨</div>
-              <div className="absolute bottom-32 left-16 text-yellow-300 opacity-40 animate-sparkle" style={{animationDelay: '1s'}}>✨</div>
-              <div className="absolute top-64 right-8 text-blue-300 opacity-30 animate-sparkle" style={{animationDelay: '2s'}}>💫</div>
-            </div>
+        <Card className={`fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl border-none z-50 overflow-hidden ${className}`}>
+          {/* 背景 - LINE風 */}
+          <div className="absolute inset-0 bg-[#86C166]">
           </div>
           
           {/* コンテンツ（背景の上） */}
           <div className="relative z-10 h-full flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-white/80 backdrop-blur-sm border-b">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <DentalReceptionistAvatar size={32} />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3 bg-white border-b shadow-sm">
+              <CardTitle className="text-base font-bold flex items-center gap-3">
+                <div className="ring-2 ring-pink-200 rounded-full p-0.5">
+                  <DentalReceptionistAvatar size={40} />
+                </div>
                 <div>
-                  <div className="font-semibold text-primary">AIアシスタント「さくら」</div>
-                  <div className="text-xs text-gray-500 font-normal">いつでもお気軽にどうぞ</div>
+                  <div className="font-bold text-gray-800 text-base">歯科衛生士 さくら 👩‍⚕️</div>
+                  <div className="text-xs text-gray-500 font-normal">オンライン</div>
                 </div>
               </CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
-                className="h-6 w-6"
+                className="h-8 w-8 hover:bg-gray-100 text-gray-600"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             </CardHeader>
           
-          <CardContent className="p-0">
-            <ScrollArea className="h-[400px] p-4">
-              <div className="space-y-4">
+          <CardContent className="p-0 flex flex-col h-[calc(100%-64px)] bg-[#B2D8A8]">
+            <ScrollArea className="flex-1 p-3">
+              <div className="space-y-3">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex items-end gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`flex items-start gap-2 max-w-[85%] ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
-                      {/* アバター表示 */}
-                      {message.type === 'user' ? (
-                        <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-white" />
-                        </div>
-                      ) : (
-                        <div className="flex-shrink-0">
-                          <DentalReceptionistAvatar size={32} />
-                        </div>
-                      )}
-                      
+                    {/* AIの場合、アバターを左に表示 */}
+                    {message.type === 'ai' && (
+                      <div className="flex-shrink-0 mb-1">
+                        <DentalReceptionistAvatar size={32} />
+                      </div>
+                    )}
+                    
+                    <div className={`flex flex-col max-w-[75%] ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
+                      {/* LINE風吹き出し */}
                       <div
-                        className={`rounded-lg p-3 ${
+                        className={`relative px-4 py-2 shadow-sm ${
                           message.type === 'user'
-                            ? 'bg-primary text-primary-foreground'
+                            ? 'bg-[#7DCE5F] rounded-tl-2xl rounded-tr-md rounded-bl-2xl rounded-br-2xl'
                             : message.type === 'ai'
-                            ? 'bg-white/90 backdrop-blur-sm shadow-sm border border-blue-100'
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-white rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl'
+                            : 'bg-yellow-100 rounded-2xl'
                         }`}
                       >
-                        <div className="flex-1">
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {formatTime(message.timestamp)}
-                          </p>
-                          
-                          {/* アクションボタン */}
-                          {message.metadata?.actions && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {message.metadata.actions.map((action, index) => (
-                                <Button
-                                  key={index}
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleActionClick(action)}
-                                  className="text-xs h-6 px-2"
-                                >
-                                  {action.type === 'booking' && <Calendar className="h-3 w-3 mr-1" />}
-                                  {action.type === 'phone' && <Phone className="h-3 w-3 mr-1" />}
-                                  {action.type === 'staff_chat' && <MessageCircle className="h-3 w-3 mr-1" />}
-                                  {action.type === 'schedule_view' && <Clock className="h-3 w-3 mr-1" />}
-                                  {action.label}
-                                </Button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                        {/* LINE風のしっぽ */}
+                        {message.type === 'user' && (
+                          <div className="absolute top-0 -right-2 w-0 h-0 border-l-[10px] border-l-[#7DCE5F] border-t-[10px] border-t-transparent"></div>
+                        )}
+                        {message.type === 'ai' && (
+                          <div className="absolute top-0 -left-2 w-0 h-0 border-r-[10px] border-r-white border-t-[10px] border-t-transparent"></div>
+                        )}
+                        
+                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${message.type === 'user' ? 'text-white' : 'text-gray-800'}`}>
+                          {message.content}
+                        </p>
+                        
+                        {/* アクションボタン */}
+                        {message.metadata?.actions && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {message.metadata.actions.map((action, index) => (
+                              <Button
+                                key={index}
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleActionClick(action)}
+                                className="text-xs h-8 px-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-full shadow-sm"
+                              >
+                                {action.label}
+                              </Button>
+                            ))}
+                          </div>
+                        )}
                       </div>
+                      
+                      {/* タイムスタンプ - LINE風に小さく表示 */}
+                      <p className="text-[10px] text-gray-600 mt-1 px-1">
+                        {formatTime(message.timestamp)}
+                      </p>
                     </div>
+                    
+                    {/* ユーザーの場合、アバターを右に表示しない（LINEはアバター非表示） */}
                   </div>
                 ))}
                 
                 {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start gap-2">
+                  <div className="flex items-end gap-2 justify-start">
+                    <div className="flex-shrink-0 mb-1">
                       <DentalReceptionistAvatar size={32} />
-                      <div className="bg-white/90 backdrop-blur-sm shadow-sm border border-blue-100 rounded-lg p-3">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          <span className="text-sm text-gray-600">さくらが入力中...</span>
+                    </div>
+                    <div className="bg-white rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl shadow-sm px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
                         </div>
                       </div>
                     </div>
@@ -694,31 +691,32 @@ export const AIChatBot = ({
               </div>
             </ScrollArea>
             
-            {/* 入力エリア */}
-            <div className="p-4 border-t bg-white/80 backdrop-blur-sm">
-              <div className="flex gap-2">
+            {/* 入力エリア - LINE風 */}
+            <div className="flex-shrink-0 p-3 bg-white border-t border-gray-200">
+              <div className="flex gap-2 items-center">
+                <Button
+                  onClick={toggleVoiceInput}
+                  variant={isListening ? "destructive" : "ghost"}
+                  size="icon"
+                  disabled={isTyping}
+                  className={`flex-shrink-0 h-9 w-9 rounded-full ${isListening ? "animate-pulse" : "hover:bg-gray-100"}`}
+                  title={isListening ? "音声入力を停止" : "音声入力を開始"}
+                >
+                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5 text-gray-600" />}
+                </Button>
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={isListening ? "音声を認識中..." : "メッセージを入力..."}
+                  placeholder={isListening ? "🎤 音声を認識中..." : "メッセージ"}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   disabled={isTyping || isListening}
-                  className={isListening ? "border-red-500 bg-red-50" : ""}
+                  className={`rounded-full border-gray-300 bg-gray-50 ${isListening ? "border-red-400 bg-red-50" : ""}`}
                 />
-                <Button
-                  onClick={toggleVoiceInput}
-                  variant={isListening ? "destructive" : "outline"}
-                  size="icon"
-                  disabled={isTyping}
-                  className={isListening ? "animate-pulse" : ""}
-                  title={isListening ? "音声入力を停止" : "音声入力を開始"}
-                >
-                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </Button>
                 <Button
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim() || isTyping}
                   size="icon"
+                  className="flex-shrink-0 h-9 w-9 rounded-full bg-[#7DCE5F] hover:bg-[#6DBD4F] shadow-sm"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

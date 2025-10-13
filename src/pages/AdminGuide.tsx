@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminContentHeader } from "@/components/admin/AdminContentHeader";
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -24,9 +25,11 @@ import {
   Monitor
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function AdminGuide() {
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -47,6 +50,10 @@ export default function AdminGuide() {
     checkAdminAuth();
   }, [navigate]);
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-10 flex justify-center items-center min-h-screen">
@@ -59,30 +66,42 @@ export default function AdminGuide() {
   }
 
   return (
-    <>
-      <AdminHeader title="管理者向け使い方ガイド" />
-      <div className="pt-20 min-h-screen bg-gray-50">
-        <div className="container max-w-6xl mx-auto py-8 px-4">
+    <div className="flex h-screen bg-gray-100">
+      {/* サイドバー */}
+      <AdminSidebar 
+        isCollapsed={sidebarCollapsed} 
+        onToggle={toggleSidebar} 
+      />
+      
+      {/* メインコンテンツ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* ヘッダー */}
-        <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
-          <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin")}
-              className="flex items-center gap-2"
-              size={isMobile ? "sm" : "default"}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              管理画面に戻る
-            </Button>
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-blue-600" />
-              <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-                管理者向け使い方ガイド
-              </h1>
+        <AdminContentHeader 
+          title="SmartReserve" 
+          subtitle="管理者向け使い方ガイド" 
+        />
+        
+        {/* コンテンツエリア */}
+        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* ヘッダー */}
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2"
+                size={isMobile ? "sm" : "default"}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                管理画面に戻る
+              </Button>
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+                <h1 className="text-3xl font-bold text-gray-900">
+                  管理者向け使い方ガイド
+                </h1>
+              </div>
             </div>
-          </div>
-        </div>
 
         {/* 概要カード */}
         <Card className="mb-6">
@@ -652,23 +671,27 @@ export default function AdminGuide() {
           </CardContent>
         </Card>
 
-        {/* お問い合わせ */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>お問い合わせ</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">
-              システムに関するご質問やトラブルがございましたら、開発チームまでご連絡ください。
-            </p>
-            <div className="mt-2 text-sm">
-              <p><strong>開発・保守:</strong> 春空開発チーム</p>
-              <p><strong>緊急時連絡先:</strong> システム管理者まで</p>
-            </div>
-          </CardContent>
-        </Card>
+            {/* お問い合わせ */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>お問い合わせ</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">
+                  システムに関するご質問やトラブルがございましたら、開発チームまでご連絡ください。
+                </p>
+                <div className="mt-2 text-sm">
+                  <p><strong>開発・保守:</strong> 春空開発チーム</p>
+                  <p><strong>緊急時連絡先:</strong> システム管理者まで</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </div>
-    </>
   );
 }

@@ -238,16 +238,15 @@ const AppointmentCalendar = ({
                       saturdayOpen: (date) => getDateScheduleType(date) === 'saturday-open',
                       specialOpen: (date) => getDateScheduleType(date) === 'special-open'
                     }}
-                                          modifiersClassNames={{
-                        selected: "bg-primary text-primary-foreground",
-                        otherSelected: "bg-gray-200 text-gray-500",
-                        fullOpen: "bg-white text-gray-900 border-gray-300",
-                        partialOpen: "bg-orange-50 text-orange-800 border-orange-300",
-                        closed: "bg-pink-100 text-pink-800 border-pink-300",
-                        saturdayOpen: "bg-orange-50 text-orange-800 border-orange-300",
-                        specialOpen: "bg-orange-50 text-orange-800 border-orange-300"
-                      }}
-                    
+                    modifiersClassNames={{
+                      selected: "bg-primary text-primary-foreground",
+                      otherSelected: "bg-gray-200 text-gray-500",
+                      fullOpen: "bg-cyan-100 text-cyan-900 border border-cyan-400 font-medium",
+                      partialOpen: "bg-orange-100 text-orange-900 border border-orange-400 font-medium",
+                      closed: "bg-pink-100 text-pink-800 border border-pink-300",
+                      saturdayOpen: "bg-blue-100 text-blue-900 border border-blue-400 font-medium",
+                      specialOpen: "bg-purple-100 text-purple-900 border border-purple-400 font-medium"
+                    }}
                   />
                 </div>
               </div>
@@ -370,22 +369,26 @@ const AppointmentCalendar = ({
         <p className="text-sm text-gray-600 mb-1">
           ※ 予約は2週間後〜6週間後まで選択可能です
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 mt-3">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-white border border-gray-300 rounded"></div>
-            <span>終日営業</span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs text-gray-700 mt-4 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
+            <div className="w-4 h-4 bg-cyan-100 border border-cyan-400 rounded"></div>
+            <span className="font-medium">終日営業</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-orange-50 border border-orange-300 rounded"></div>
-            <span>土曜営業/午前休診</span>
+          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
+            <div className="w-4 h-4 bg-blue-100 border border-blue-400 rounded"></div>
+            <span className="font-medium">土曜営業</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-pink-100 border border-pink-300 rounded"></div>
-            <span>休診</span>
+          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
+            <div className="w-4 h-4 bg-orange-100 border border-orange-400 rounded"></div>
+            <span className="font-medium">午前休診</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-orange-50 border border-orange-300 rounded"></div>
-            <span>特別営業</span>
+          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
+            <div className="w-4 h-4 bg-purple-100 border border-purple-400 rounded"></div>
+            <span className="font-medium">特別営業</span>
+          </div>
+          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
+            <div className="w-4 h-4 bg-pink-100 border border-pink-300 rounded"></div>
+            <span className="font-medium">休診</span>
           </div>
         </div>
       </div>

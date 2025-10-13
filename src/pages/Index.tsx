@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useChatSettings } from "@/hooks/useSystemSettings";
 import { AIChatBot } from "@/components/chat/AIChatBot";
 import { StaffConnectionDialog } from "@/components/chat/StaffConnectionDialog";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -96,6 +97,9 @@ export default function Index() {
           />
         </>
       )}
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { PatientManagementHeader } from "@/components/admin/patient/PatientManag
 import { PatientSearchCard } from "@/components/admin/patient/PatientSearchCard";
 import { PatientStatsCard } from "@/components/admin/patient/PatientStatsCard";
 import { PatientDialogsContainer } from "@/components/admin/patient/PatientDialogsContainer";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function PatientManagement() {
   const { loading, handleLogout, handleBackToAdmin } = usePatientManagementAuth();
@@ -149,6 +150,9 @@ export default function PatientManagement() {
         />
       </div>
     </div>
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </>
   );
 }

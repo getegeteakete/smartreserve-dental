@@ -27,20 +27,26 @@ export const useBookingTimeOperations = (year: number, month: number) => {
     }) => {
       console.log("予約受付時間スケジュール作成:", { year, month, dayOfWeek, startTime, endTime, isAvailable });
 
-      const { data, error } = await supabase.rpc("insert_booking_time_schedule", {
-        p_year: year,
-        p_month: month,
-        p_day_of_week: dayOfWeek,
-        p_start_time: startTime,
-        p_end_time: endTime,
-        p_is_available: isAvailable,
-      });
+      // RPC関数が存在しない場合は直接テーブルに挿入
+      const { data, error } = await supabase
+        .from("booking_time_schedules")
+        .insert({
+          year,
+          month,
+          day_of_week: dayOfWeek,
+          start_time: startTime + ":00",
+          end_time: endTime + ":00",
+          is_available: isAvailable,
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("予約受付時間スケジュール作成エラー:", error);
         throw error;
       }
 
+      console.log("予約受付時間スケジュール作成成功:", data);
       return data;
     },
     onSuccess: () => {
@@ -75,18 +81,24 @@ export const useBookingTimeOperations = (year: number, month: number) => {
     }) => {
       console.log("予約受付時間スケジュール更新:", { scheduleId, startTime, endTime, isAvailable });
 
-      const { data, error } = await supabase.rpc("update_booking_time_schedule", {
-        p_id: scheduleId,
-        p_start_time: startTime,
-        p_end_time: endTime,
-        p_is_available: isAvailable,
-      });
+      const { data, error } = await supabase
+        .from("booking_time_schedules")
+        .update({
+          start_time: startTime + ":00",
+          end_time: endTime + ":00",
+          is_available: isAvailable,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", scheduleId)
+        .select()
+        .single();
 
       if (error) {
         console.error("予約受付時間スケジュール更新エラー:", error);
         throw error;
       }
 
+      console.log("予約受付時間スケジュール更新成功:", data);
       return data;
     },
     onSuccess: () => {
@@ -121,18 +133,23 @@ export const useBookingTimeOperations = (year: number, month: number) => {
     }) => {
       console.log("特別予約受付時間スケジュール作成:", { specificDate, startTime, endTime, isAvailable });
 
-      const { data, error } = await supabase.rpc("insert_special_booking_time_schedule", {
-        p_specific_date: specificDate,
-        p_start_time: startTime,
-        p_end_time: endTime,
-        p_is_available: isAvailable,
-      });
+      const { data, error } = await supabase
+        .from("special_booking_time_schedules")
+        .insert({
+          specific_date: specificDate,
+          start_time: startTime + ":00",
+          end_time: endTime + ":00",
+          is_available: isAvailable,
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("特別予約受付時間スケジュール作成エラー:", error);
         throw error;
       }
 
+      console.log("特別予約受付時間スケジュール作成成功:", data);
       return data;
     },
     onSuccess: () => {
@@ -167,18 +184,24 @@ export const useBookingTimeOperations = (year: number, month: number) => {
     }) => {
       console.log("特別予約受付時間スケジュール更新:", { scheduleId, startTime, endTime, isAvailable });
 
-      const { data, error } = await supabase.rpc("update_special_booking_time_schedule", {
-        p_id: scheduleId,
-        p_start_time: startTime,
-        p_end_time: endTime,
-        p_is_available: isAvailable,
-      });
+      const { data, error } = await supabase
+        .from("special_booking_time_schedules")
+        .update({
+          start_time: startTime + ":00",
+          end_time: endTime + ":00",
+          is_available: isAvailable,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", scheduleId)
+        .select()
+        .single();
 
       if (error) {
         console.error("特別予約受付時間スケジュール更新エラー:", error);
         throw error;
       }
 
+      console.log("特別予約受付時間スケジュール更新成功:", data);
       return data;
     },
     onSuccess: () => {
@@ -203,16 +226,18 @@ export const useBookingTimeOperations = (year: number, month: number) => {
     mutationFn: async (scheduleId: string) => {
       console.log("特別予約受付時間スケジュール削除:", { scheduleId });
 
-      const { data, error } = await supabase.rpc("delete_special_booking_time_schedule", {
-        p_id: scheduleId,
-      });
+      const { error } = await supabase
+        .from("special_booking_time_schedules")
+        .delete()
+        .eq("id", scheduleId);
 
       if (error) {
         console.error("特別予約受付時間スケジュール削除エラー:", error);
         throw error;
       }
 
-      return data;
+      console.log("特別予約受付時間スケジュール削除成功");
+      return true;
     },
     onSuccess: () => {
       toast({
@@ -231,9 +256,45 @@ export const useBookingTimeOperations = (year: number, month: number) => {
     },
   });
 
+  // 通常予約受付時間の削除
+  const deleteBookingTimeSchedule = useMutation({
+    mutationFn: async (scheduleId: string) => {
+      console.log("予約受付時間スケジュール削除:", { scheduleId });
+
+      const { error } = await supabase
+        .from("booking_time_schedules")
+        .delete()
+        .eq("id", scheduleId);
+
+      if (error) {
+        console.error("予約受付時間スケジュール削除エラー:", error);
+        throw error;
+      }
+
+      console.log("予約受付時間スケジュール削除成功");
+      return true;
+    },
+    onSuccess: () => {
+      toast({
+        title: "予約受付時間削除完了",
+        description: "予約受付時間スケジュールが正常に削除されました。",
+      });
+      invalidateQueries();
+    },
+    onError: (error) => {
+      console.error("予約受付時間スケジュール削除失敗:", error);
+      toast({
+        variant: "destructive",
+        title: "予約受付時間削除エラー",
+        description: "予約受付時間スケジュールの削除に失敗しました。",
+      });
+    },
+  });
+
   return {
     insertBookingTimeSchedule,
     updateBookingTimeSchedule,
+    deleteBookingTimeSchedule,
     insertSpecialBookingTimeSchedule,
     updateSpecialBookingTimeSchedule,
     deleteSpecialBookingTimeSchedule,

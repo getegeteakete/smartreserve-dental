@@ -29,14 +29,18 @@ export const useBookingTimeSchedules = (year: number, month: number) => {
     queryFn: async () => {
       console.log("予約受付時間スケジュール取得開始:", { year, month });
 
-      const { data, error } = await supabase.rpc("get_booking_time_schedules", {
-        p_year: year,
-        p_month: month,
-      });
+      const { data, error } = await supabase
+        .from("booking_time_schedules")
+        .select("*")
+        .eq("year", year)
+        .eq("month", month)
+        .order("day_of_week", { ascending: true })
+        .order("start_time", { ascending: true });
 
       if (error) {
         console.error("予約受付時間スケジュール取得エラー:", error);
-        throw error;
+        // エラーでも空配列を返して続行
+        return [] as BookingTimeSchedule[];
       }
 
       console.log("予約受付時間スケジュール取得成功:", data?.length || 0, "件");
@@ -52,14 +56,22 @@ export const useSpecialBookingTimeSchedules = (year: number, month: number) => {
     queryFn: async () => {
       console.log("特別予約受付時間スケジュール取得開始:", { year, month });
 
-      const { data, error } = await supabase.rpc("get_special_booking_time_schedules", {
-        p_year: year,
-        p_month: month,
-      });
+      // 指定された年月の日付範囲を計算
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+      const { data, error } = await supabase
+        .from("special_booking_time_schedules")
+        .select("*")
+        .gte("specific_date", startDate)
+        .lte("specific_date", endDate)
+        .order("specific_date", { ascending: true });
 
       if (error) {
         console.error("特別予約受付時間スケジュール取得エラー:", error);
-        throw error;
+        // エラーでも空配列を返して続行
+        return [] as SpecialBookingTimeSchedule[];
       }
 
       console.log("特別予約受付時間スケジュール取得成功:", data?.length || 0, "件");

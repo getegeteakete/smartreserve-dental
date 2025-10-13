@@ -12,6 +12,10 @@ import CourseDetail from "./pages/CourseDetail";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import AdminSchedule from "./pages/AdminSchedule";
+import AdminTreatments from "./pages/AdminTreatments";
+import AdminPatients from "./pages/AdminPatients";
+import AdminNotifications from "./pages/AdminNotifications";
+import AdminSettings from "./pages/AdminSettings";
 import TreatmentManagement from "./pages/TreatmentManagement";
 import PatientManagement from "./pages/PatientManagement";
 import BusinessCalendarEmbed from "./pages/BusinessCalendarEmbed";
@@ -45,10 +49,14 @@ const App = () => (
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin/guide" element={<AdminGuide />} />
           <Route path="/admin/schedule" element={<AdminSchedule />} />
-          <Route path="/admin/treatments" element={<TreatmentManagement />} />
-          <Route path="/admin/patients" element={<PatientManagement />} />
-          <Route path="/admin/notifications" element={<NotificationSettings />} />
-          <Route path="/admin/settings" element={<SystemSettings />} />
+          <Route path="/admin/treatments" element={<AdminTreatments />} />
+          <Route path="/admin/patients" element={<AdminPatients />} />
+          <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/old-treatments" element={<TreatmentManagement />} />
+          <Route path="/admin/old-patients" element={<PatientManagement />} />
+          <Route path="/admin/old-notifications" element={<NotificationSettings />} />
+          <Route path="/admin/old-settings" element={<SystemSettings />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/calendar-embed" element={<BusinessCalendarEmbed />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useBookingForm } from "@/hooks/useBookingForm";
 import { AIBookingParser } from "@/utils/aiBookingParser";
 import Header from "@/components/Header";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function Booking() {
   const location = useLocation();
@@ -100,6 +101,9 @@ export default function Booking() {
         <Toaster position="bottom-right" />
         </div>
       </div>
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </div>
   );
 }

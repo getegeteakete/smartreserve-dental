@@ -10,6 +10,7 @@ import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { ArrowLeft, CreditCard, MessageCircle, Mail, Smartphone, Calendar, Settings as SettingsIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function SystemSettings() {
   const [loading, setLoading] = useState(true);
@@ -463,6 +464,9 @@ export default function SystemSettings() {
           </Tabs>
         </div>
       </div>
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </>
   );
 }

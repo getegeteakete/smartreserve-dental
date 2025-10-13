@@ -1,16 +1,18 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppointmentList } from "@/components/admin/AppointmentList";
-import { ReservationCalendar } from "@/components/admin/ReservationCalendar";
-import { AdminHeader } from "@/components/admin/AdminHeader";
-import { Calendar, Users, BarChart3, UserCheck, BookOpen, Bell, Settings } from "lucide-react";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminContentHeader } from "@/components/admin/AdminContentHeader";
+import { DashboardCard } from "@/components/admin/DashboardCard";
+import { AlertCard } from "@/components/admin/AlertCard";
+import { StatsCard } from "@/components/admin/StatsCard";
+import { Car, CheckCircle, Wrench, Users as UsersIcon, AlertTriangle, Fuel } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 export default function Admin() {
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -35,10 +37,8 @@ export default function Admin() {
     checkAdminAuth();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_logged_in");
-    localStorage.removeItem("admin_username");
-    navigate("/admin-login");
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   if (loading) {
@@ -52,129 +52,100 @@ export default function Admin() {
     );
   }
 
+  // サンプルデータ
+  const dashboardStats = [
+    { title: "総予約数", value: "48", icon: Car },
+    { title: "今日の予約", value: "42", icon: CheckCircle },
+    { title: "未確定予約", value: "8", icon: Wrench },
+    { title: "患者数", value: "56", icon: UsersIcon },
+  ];
+
+  const alertItems = [
+    {
+      id: "1",
+      title: "田中 太郎",
+      description: "次回予約: 2024年8月1日",
+      badge: { text: "残り15日", color: "red" as const }
+    },
+    {
+      id: "2", 
+      title: "佐藤 花子",
+      description: "定期検診: 2024年9月15日",
+      badge: { text: "残り30日", color: "orange" as const }
+    },
+    {
+      id: "3",
+      title: "山田 次郎",
+      description: "治療完了: 2024年10月20日",
+      badge: { text: "残り45日", color: "blue" as const }
+    }
+  ];
+
+  const statsItems = [
+    { label: "総予約数", value: "2,340 件" },
+    { label: "平均予約時間", value: "45 分" },
+    { label: "月間収益", value: "¥486,720" }
+  ];
+
   return (
-    <>
-      <AdminHeader title="管理画面" />
-      <div className="pt-20 min-h-screen bg-gray-50">
-        <div className="container max-w-6xl mx-auto py-8 px-4">
-        <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
-          <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
-            <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>管理画面</h1>
-            <div className={`${isMobile ? 'grid grid-cols-2 gap-2' : 'flex gap-2'}`}>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/guide")}
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <BookOpen className="h-4 w-4" />
-                {isMobile ? '使い方ガイド' : '使い方ガイド'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/schedule")}
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Calendar className="h-4 w-4" />
-                {isMobile ? 'スケジュール' : 'スケジュール設定'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/treatments")}
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Users className="h-4 w-4" />
-                {isMobile ? '診療管理' : '診療メニュー管理'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/patients")}
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <UserCheck className="h-4 w-4" />
-                {isMobile ? '患者管理' : '患者詳細情報管理'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/notifications")}
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Bell className="h-4 w-4" />
-                {isMobile ? '通知設定' : '通知・リマインダー設定'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/settings")}
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Settings className="h-4 w-4" />
-                {isMobile ? 'システム設定' : 'システム設定'}
-              </Button>
+    <div className="flex h-screen bg-gray-100">
+      {/* サイドバー */}
+      <AdminSidebar 
+        isCollapsed={sidebarCollapsed} 
+        onToggle={toggleSidebar} 
+      />
+      
+      {/* メインコンテンツ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* ヘッダー */}
+        <AdminContentHeader 
+          title="SmartReserve" 
+          subtitle="管理システムの概要" 
+        />
+        
+        {/* コンテンツエリア */}
+        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* タイトル */}
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
+              <p className="text-gray-600 mt-1">SmartReserve管理システムの概要</p>
+            </div>
+
+            {/* ダッシュボードカード */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {dashboardStats.map((stat, index) => (
+                <DashboardCard
+                  key={index}
+                  title={stat.title}
+                  value={stat.value}
+                  icon={stat.icon}
+                />
+              ))}
+            </div>
+
+            {/* 下部カード */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 予約アラート */}
+              <AlertCard
+                title="予約アラート"
+                items={alertItems}
+                icon={AlertTriangle}
+              />
+              
+              {/* 今月の統計 */}
+              <StatsCard
+                title="今月の統計"
+                items={statsItems}
+                trend={{ value: "+5.2%", isPositive: false }}
+              />
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
-            ログアウト
-          </Button>
         </div>
-
-        <Tabs defaultValue="reservations" className="w-full">
-          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-1 h-auto' : 'grid-cols-3'}`}>
-            <TabsTrigger value="reservations" className={`flex items-center gap-2 ${isMobile ? 'text-sm p-3' : ''}`}>
-              <BarChart3 className="h-4 w-4" />
-              予約状況
-            </TabsTrigger>
-            {isMobile && (
-              <div className="grid grid-cols-2 gap-1 mt-1">
-                <TabsTrigger value="management" className="flex items-center gap-2 text-sm p-2">
-                  <Users className="h-4 w-4" />
-                  予約管理
-                </TabsTrigger>
-                <TabsTrigger value="schedule" className="flex items-center gap-2 text-sm p-2">
-                  <Calendar className="h-4 w-4" />
-                  スケジュール
-                </TabsTrigger>
-              </div>
-            )}
-            {!isMobile && (
-              <>
-                <TabsTrigger value="management" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  予約管理
-                </TabsTrigger>
-                <TabsTrigger value="schedule" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  スケジュール設定
-                </TabsTrigger>
-              </>
-            )}
-          </TabsList>
-
-          <TabsContent value="reservations" className="space-y-4">
-            <ReservationCalendar />
-          </TabsContent>
-
-          <TabsContent value="management" className="space-y-4">
-            <AppointmentList />
-          </TabsContent>
-
-          <TabsContent value="schedule" className="space-y-4">
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">
-                スケジュール設定は専用ページで行えます。
-              </p>
-              <Button onClick={() => navigate("/admin/schedule")} size={isMobile ? "sm" : "default"}>
-                スケジュール設定ページへ
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
+
+      {/* ページトップへ戻るボタン */}
+      <ScrollToTopButton />
     </div>
-    </>
   );
 }
