@@ -28,8 +28,6 @@ export const useTreatmentsWithCategories = () => {
     queryKey: ["treatments-with-categories"],
     queryFn: async () => {
       try {
-        console.log("🔍 useTreatmentsWithCategories: データ取得開始");
-        
         // 診療メニューを取得
         const { data, error } = await supabase
           .from("treatments")
@@ -39,27 +37,20 @@ export const useTreatmentsWithCategories = () => {
           `)
           .order("created_at", { ascending: true });
 
-        console.log("🔍 useTreatmentsWithCategories: Supabase レスポンス", { data, error });
-
         if (error) {
-          console.error("🔍 useTreatmentsWithCategories: Supabase エラー", error);
           throw error;
         }
         
         // データが存在しない場合のみデフォルトデータを確保
         if (!data || data.length === 0) {
-          console.log("🔍 useTreatmentsWithCategories: データが空です");
           // デフォルトデータを確保する処理は別の関数で実行
           // この関数内では単純にデータを取得するのみ
           return [];
         }
         
-        console.log("🔍 useTreatmentsWithCategories: データ取得成功", data.length, "件");
-        console.log("🔍 useTreatmentsWithCategories: 取得したデータ", data);
-        
         return data as TreatmentWithCategory[];
       } catch (error) {
-        console.error("🔍 useTreatmentsWithCategories: 診療メニュー取得中にエラーが発生しました:", error);
+        console.error("診療メニュー取得中にエラーが発生しました:", error);
         throw error;
       }
     },

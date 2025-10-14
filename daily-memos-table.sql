@@ -40,3 +40,4 @@ CREATE TRIGGER update_daily_memos_updated_at_trigger
 -- ('2024-12-25', 'クリスマス休診'),
 -- ('2024-12-31', '大晦日短縮営業');
 
+

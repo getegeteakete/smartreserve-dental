@@ -138,3 +138,82 @@
 .animate-sparkle {
   animation: sparkle 2s ease-in-out infinite;
 }
+
+/* カレンダーのサイズとスタイルを改善 */
+.rdp {
+  --rdp-cell-size: 50px;
+  --rdp-accent-color: #0ea5e9;
+  font-size: 16px;
+}
+
+.rdp-months {
+  width: 100%;
+}
+
+.rdp-month {
+  width: 100%;
+}
+
+.rdp-table {
+  width: 100%;
+  max-width: none;
+}
+
+.rdp-cell {
+  width: 50px;
+  height: 50px;
+  padding: 2px;
+}
+
+.rdp-day {
+  width: 46px;
+  height: 46px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.rdp-day:hover:not(.rdp-day_disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rdp-day_selected {
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.rdp-head_cell {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  padding: 8px;
+}
+
+.rdp-caption {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 0;
+}
+
+/* 無効な日付（過去の日など）を暗く */
+.rdp-day_disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+  border: 1px dashed #d1d5db !important;
+}
+
+.rdp-day_disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background-color: #f3f4f6 !important;
+}
+
+.rdp-day_outside {
+  opacity: 0.3;
+  color: #d1d5db !important;
+}
