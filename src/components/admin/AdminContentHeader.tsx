@@ -36,7 +36,12 @@ export const AdminContentHeader = ({ title, subtitle }: AdminContentHeaderProps)
       <div className="flex items-center justify-between">
         {/* 左側 - タイトル */}
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">SmartReserve</h1>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-gray-800">SmartReserve</h1>
+            <span className="text-xs text-gray-500 leading-tight">
+              ©合同会社UMA
+            </span>
+          </div>
           <div className="text-gray-600">
             {formatDate(currentTime)}
           </div>
