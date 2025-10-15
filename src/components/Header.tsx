@@ -39,9 +39,6 @@ const Header = () => {
                   <span className="text-sm md:text-base font-medium text-gray-600 leading-tight">
                     六本松 矯正歯科クリニック とよしま
                   </span>
-                  <span className="text-xs text-gray-500 leading-tight">
-                    ©合同会社UMA
-                  </span>
                 </div>
               </div>
             </div>
