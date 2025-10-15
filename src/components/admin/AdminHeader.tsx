@@ -26,6 +26,9 @@ export const AdminHeader = ({ title, showBackButton = false }: AdminHeaderProps)
                   <span className="text-sm md:text-base font-medium text-gray-600 leading-tight">
                     管理システム
                   </span>
+                  <span className="text-xs text-gray-500 leading-tight">
+                    ©合同会社UMA
+                  </span>
                 </div>
               </div>
             </div>
