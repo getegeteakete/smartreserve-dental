@@ -42,3 +42,5 @@ CREATE TRIGGER update_daily_memos_updated_at_trigger
 
 
 
+
+

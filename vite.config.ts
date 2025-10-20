@@ -7,8 +7,11 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   base: '/', // Always use root path for Vercel - updated
   server: {
-    host: "::",
+    host: "0.0.0.0",
     port: 8080,
+    strictPort: false,
+    open: false,
+    cors: true,
   },
   plugins: [
     react(),
