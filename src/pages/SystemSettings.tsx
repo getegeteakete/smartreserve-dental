@@ -151,6 +151,44 @@ export default function SystemSettings() {
     }
   };
 
+  // 一般設定の保存機能
+  const handleSaveGeneralSettings = async () => {
+    try {
+      console.log('Saving general settings:', generalSettingsForm);
+      
+      await updateSetting('clinic_info', generalSettingsForm);
+      
+      setEditingGeneralSettings(false);
+      
+      toast({
+        title: '保存完了',
+        description: '一般設定が正常に更新されました',
+      });
+    } catch (error) {
+      console.error('General settings save error:', error);
+      toast({
+        title: 'エラー',
+        description: '一般設定の保存に失敗しました',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // 一般設定の編集開始
+  const handleStartEditingGeneralSettings = () => {
+    setEditingGeneralSettings(true);
+  };
+
+  // 一般設定の編集キャンセル
+  const handleCancelEditingGeneralSettings = () => {
+    const settingsByCategory = getSettingsByCategory();
+    const clinicInfo = settingsByCategory.general.find(s => s.setting_key === 'clinic_info');
+    if (clinicInfo && clinicInfo.setting_value) {
+      setGeneralSettingsForm(clinicInfo.setting_value);
+    }
+    setEditingGeneralSettings(false);
+  };
+
   const handleInitializeSettings = async () => {
     try {
       setInitializing(true);
@@ -735,20 +773,224 @@ export default function SystemSettings() {
                     医院名、連絡先、営業時間などの基本情報
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {settingsByCategory.general.map((setting) => (
-                    <div key={setting.id} className="p-4 bg-gray-50 rounded-lg">
-                      <Label className="text-base font-semibold block mb-2">
-                        {setting.description}
-                      </Label>
-                      <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto">
-                        {JSON.stringify(setting.setting_value, null, 2)}
-                      </pre>
+                <CardContent className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold">クリニック基本情報</h3>
+                      <p className="text-sm text-gray-600">医院名、連絡先、営業時間などの基本情報を設定してください</p>
                     </div>
-                  ))}
-                  <p className="text-sm text-gray-600">
-                    ※ 一般設定の編集機能は今後実装予定です
-                  </p>
+                    {!editingGeneralSettings && (
+                      <Button 
+                        onClick={handleStartEditingGeneralSettings}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        編集
+                      </Button>
+                    )}
+                  </div>
+
+                  {editingGeneralSettings ? (
+                    <div className="space-y-6">
+                      {/* 基本情報フォーム */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="clinic_name">医院名</Label>
+                          <Input
+                            id="clinic_name"
+                            value={generalSettingsForm.name}
+                            onChange={(e) => setGeneralSettingsForm({
+                              ...generalSettingsForm,
+                              name: e.target.value
+                            })}
+                            placeholder="医院名を入力"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="clinic_phone">電話番号</Label>
+                          <Input
+                            id="clinic_phone"
+                            value={generalSettingsForm.phone}
+                            onChange={(e) => setGeneralSettingsForm({
+                              ...generalSettingsForm,
+                              phone: e.target.value
+                            })}
+                            placeholder="電話番号を入力"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="clinic_address">住所</Label>
+                        <Input
+                          id="clinic_address"
+                          value={generalSettingsForm.address}
+                          onChange={(e) => setGeneralSettingsForm({
+                            ...generalSettingsForm,
+                            address: e.target.value
+                          })}
+                          placeholder="住所を入力"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="clinic_email">メールアドレス</Label>
+                        <Input
+                          id="clinic_email"
+                          type="email"
+                          value={generalSettingsForm.email}
+                          onChange={(e) => setGeneralSettingsForm({
+                            ...generalSettingsForm,
+                            email: e.target.value
+                          })}
+                          placeholder="メールアドレスを入力"
+                        />
+                      </div>
+
+                      {/* 営業時間設定 */}
+                      <div className="space-y-4">
+                        <h4 className="text-md font-semibold">営業時間設定</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(generalSettingsForm.business_hours).map(([day, hours]) => (
+                            <div key={day} className="flex items-center space-x-4 p-3 border rounded-lg">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`${day}_available`}
+                                  checked={hours.available}
+                                  onChange={(e) => setGeneralSettingsForm(prev => ({
+                                    ...prev,
+                                    business_hours: {
+                                      ...prev.business_hours,
+                                      [day]: {
+                                        ...prev.business_hours[day],
+                                        available: e.target.checked
+                                      }
+                                    }
+                                  }))}
+                                  className="rounded"
+                                />
+                                <Label htmlFor={`${day}_available`} className="text-sm font-medium w-16">
+                                  {day === 'monday' ? '月曜日' :
+                                   day === 'tuesday' ? '火曜日' :
+                                   day === 'wednesday' ? '水曜日' :
+                                   day === 'thursday' ? '木曜日' :
+                                   day === 'friday' ? '金曜日' :
+                                   day === 'saturday' ? '土曜日' :
+                                   day === 'sunday' ? '日曜日' : day}
+                                </Label>
+                              </div>
+                              {hours.available && (
+                                <div className="flex items-center space-x-2">
+                                  <Input
+                                    type="time"
+                                    value={hours.start}
+                                    onChange={(e) => setGeneralSettingsForm(prev => ({
+                                      ...prev,
+                                      business_hours: {
+                                        ...prev.business_hours,
+                                        [day]: {
+                                          ...prev.business_hours[day],
+                                          start: e.target.value
+                                        }
+                                      }
+                                    }))}
+                                    className="w-24 text-sm"
+                                  />
+                                  <span className="text-sm">〜</span>
+                                  <Input
+                                    type="time"
+                                    value={hours.end}
+                                    onChange={(e) => setGeneralSettingsForm(prev => ({
+                                      ...prev,
+                                      business_hours: {
+                                        ...prev.business_hours,
+                                        [day]: {
+                                          ...prev.business_hours[day],
+                                          end: e.target.value
+                                        }
+                                      }
+                                    }))}
+                                    className="w-24 text-sm"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 保存・キャンセルボタン */}
+                      <div className="flex justify-end space-x-2 pt-4 border-t">
+                        <Button
+                          onClick={handleCancelEditingGeneralSettings}
+                          variant="outline"
+                        >
+                          キャンセル
+                        </Button>
+                        <Button
+                          onClick={handleSaveGeneralSettings}
+                          className="flex items-center gap-2"
+                        >
+                          <Save className="h-4 w-4" />
+                          保存
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {settingsByCategory.general.map((setting) => (
+                        <div key={setting.id} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">医院名</Label>
+                            <p className="text-sm bg-gray-50 p-3 rounded border">
+                              {setting.setting_value?.name || '未設定'}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">電話番号</Label>
+                            <p className="text-sm bg-gray-50 p-3 rounded border">
+                              {setting.setting_value?.phone || '未設定'}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">住所</Label>
+                            <p className="text-sm bg-gray-50 p-3 rounded border">
+                              {setting.setting_value?.address || '未設定'}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">メールアドレス</Label>
+                            <p className="text-sm bg-gray-50 p-3 rounded border">
+                              {setting.setting_value?.email || '未設定'}
+                            </p>
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">営業時間</Label>
+                            <div className="text-sm bg-gray-50 p-3 rounded border">
+                              {setting.setting_value?.business_hours && Object.entries(setting.setting_value.business_hours).map(([day, hours]: [string, any]) => (
+                                <div key={day} className="flex justify-between py-1">
+                                  <span>
+                                    {day === 'monday' ? '月曜日' :
+                                     day === 'tuesday' ? '火曜日' :
+                                     day === 'wednesday' ? '水曜日' :
+                                     day === 'thursday' ? '木曜日' :
+                                     day === 'friday' ? '金曜日' :
+                                     day === 'saturday' ? '土曜日' :
+                                     day === 'sunday' ? '日曜日' : day}
+                                  </span>
+                                  <span>
+                                    {hours.available ? `${hours.start} - ${hours.end}` : '定休日'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
