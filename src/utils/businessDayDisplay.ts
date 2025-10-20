@@ -1,4 +1,4 @@
-import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isToday, isTomorrow } from 'date-fns';
+import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isAfter } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 export interface BusinessDayInfo {
@@ -10,6 +10,15 @@ export interface BusinessDayInfo {
     border: string;
   };
   days: number[]; // その月の該当する日にちの配列
+}
+
+interface BusinessHour {
+  start: number;
+  end: number;
+  isOpen: boolean;
+  breakStart?: number;
+  breakEnd?: number;
+  isMorningClosed?: boolean;
 }
 
 export const getBusinessDayColors = () => ({
@@ -152,62 +161,139 @@ export const getCalendarModifierStyles = () => {
 };
 
 // 営業状況を判定する関数
-export interface BusinessStatus {
-  isOpen: boolean;
-  message: string;
-  nextOpenMessage?: string;
-}
-
-export const getCurrentBusinessStatus = (): BusinessStatus => {
-  const now = new Date();
-  const today = now;
-  const tomorrow = addDays(today, 1);
+export const getTodayBusinessStatus = () => {
+  const today = new Date();
   const dayOfWeek = getDay(today);
+  const currentHour = today.getHours();
   
-  // 現在の営業状況を判定
-  let isCurrentlyOpen = false;
-  let todayMessage = '';
-  
-  // 今日の営業状況
-  if (dayOfWeek === 0) { // 日曜日
-    todayMessage = '本日はお休み';
-    isCurrentlyOpen = false;
-  } else if (dayOfWeek === 6) { // 土曜日
-    todayMessage = '本日は土曜営業（9:00〜12:30 / 14:00〜17:30）';
-    isCurrentlyOpen = true;
-  } else if (dayOfWeek === 1) { // 月曜日
-    todayMessage = '本日は午前休診（15:00〜19:00）';
-    isCurrentlyOpen = true;
-  } else if ([2, 3, 5].includes(dayOfWeek)) { // 火・水・金曜日
-    todayMessage = '本日は営業中（10:00〜13:30 / 15:00〜19:00）';
-    isCurrentlyOpen = true;
-  } else if (dayOfWeek === 4) { // 木曜日
-    todayMessage = '本日はお休み';
-    isCurrentlyOpen = false;
+  // 基本の営業時間設定（型を統一）
+
+  const businessHours: Record<string, BusinessHour> = {
+    monday: { start: 15, end: 19, isOpen: true, isMorningClosed: true },
+    tuesday: { start: 10, end: 19.5, isOpen: true, breakStart: 13.5, breakEnd: 15 },
+    wednesday: { start: 10, end: 19.5, isOpen: true, breakStart: 13.5, breakEnd: 15 },
+    thursday: { start: 10, end: 19.5, isOpen: true, breakStart: 13.5, breakEnd: 15 },
+    friday: { start: 10, end: 19.5, isOpen: true, breakStart: 13.5, breakEnd: 15 },
+    saturday: { start: 9, end: 17.5, isOpen: true, breakStart: 12.5, breakEnd: 14 },
+    sunday: { start: 0, end: 0, isOpen: false }
+  };
+
+  const getDayName = (dayOfWeek: number) => {
+    switch (dayOfWeek) {
+      case 0: return 'sunday';
+      case 1: return 'monday';
+      case 2: return 'tuesday';
+      case 3: return 'wednesday';
+      case 4: return 'thursday';
+      case 5: return 'friday';
+      case 6: return 'saturday';
+      default: return 'sunday';
+    }
+  };
+
+  const todayKey = getDayName(dayOfWeek) as keyof typeof businessHours;
+  const todayHours = businessHours[todayKey];
+
+  // 日曜日は基本休診
+  if (dayOfWeek === 0) {
+    return { isOpen: false, message: '本日はお休み', nextOpen: getNextOpenMessage() };
   }
+
+  // 木曜日は基本休診（祝日週除く）
+  if (dayOfWeek === 4 && !checkHolidayInWeek(today)) {
+    return { isOpen: false, message: '本日はお休み', nextOpen: getNextOpenMessage() };
+  }
+
+  // 営業時間内かチェック
+  if (todayHours.isOpen) {
+    let isCurrentlyOpen = false;
+    
+    if (todayKey === 'monday') {
+      // 月曜日は午後のみ
+      isCurrentlyOpen = currentHour >= todayHours.start && currentHour < todayHours.end;
+    } else if (todayKey === 'saturday') {
+      // 土曜日は午前と午後に分かれる
+      const breakStart = todayHours.breakStart || 12.5;
+      const breakEnd = todayHours.breakEnd || 14;
+      isCurrentlyOpen = (currentHour >= todayHours.start && currentHour < breakStart) ||
+                       (currentHour >= breakEnd && currentHour < todayHours.end);
+    } else {
+      // 火水金は午前と午後に分かれる
+      const breakStart = todayHours.breakStart || 13.5;
+      const breakEnd = todayHours.breakEnd || 15;
+      isCurrentlyOpen = (currentHour >= todayHours.start && currentHour < breakStart) ||
+                       (currentHour >= breakEnd && currentHour < todayHours.end);
+    }
+
+    if (isCurrentlyOpen) {
+      return { isOpen: true, message: '本日は営業中', nextOpen: null };
+    } else {
+      // 営業時間外だが営業日
+      const nextOpen = getNextOpenTime(today, todayHours, todayKey);
+      return { isOpen: false, message: '本日は営業中', nextOpen };
+    }
+  }
+
+  return { isOpen: false, message: '本日はお休み', nextOpen: getNextOpenMessage() };
+};
+
+// 次の営業時間を取得
+const getNextOpenTime = (today: Date, todayHours: BusinessHour, todayKey: string): string => {
+  const currentHour = today.getHours();
   
-  // 明日の営業状況
-  const tomorrowDayOfWeek = getDay(tomorrow);
-  let nextOpenMessage = '';
-  
-  if (!isCurrentlyOpen) {
-    if (tomorrowDayOfWeek === 0) { // 明日が日曜日
-      nextOpenMessage = '次は明日営業（月曜日 15:00〜19:00）';
-    } else if (tomorrowDayOfWeek === 6) { // 明日が土曜日
-      nextOpenMessage = '次は明日営業（土曜日 9:00〜12:30）';
-    } else if (tomorrowDayOfWeek === 1) { // 明日が月曜日
-      nextOpenMessage = '次は明日営業（月曜日 15:00〜19:00）';
-    } else if ([2, 3, 5].includes(tomorrowDayOfWeek)) { // 明日が火・水・金曜日
-      nextOpenMessage = '次は明日営業（10:00〜13:30 / 15:00〜19:00）';
-    } else if (tomorrowDayOfWeek === 4) { // 明日が木曜日
-      // 明後日が金曜日なので
-      nextOpenMessage = '次はあさって営業（金曜日 10:00〜13:30）';
+  if (todayKey === 'monday') {
+    if (currentHour < 15) {
+      return '次は15:00から営業';
+    }
+  } else if (todayKey === 'saturday') {
+    if (currentHour < 9) {
+      return '次は9:00から営業';
+    } else if (currentHour >= 12.5 && currentHour < 14) {
+      return '次は14:00から営業';
+    }
+  } else {
+    // 火水金
+    if (currentHour < 10) {
+      return '次は10:00から営業';
+    } else if (currentHour >= 13.5 && currentHour < 15) {
+      return '次は15:00から営業';
     }
   }
   
-  return {
-    isOpen: isCurrentlyOpen,
-    message: todayMessage,
-    nextOpenMessage: !isCurrentlyOpen ? nextOpenMessage : undefined
-  };
+  return getNextOpenMessage();
+};
+
+// 次の営業日メッセージを取得
+const getNextOpenMessage = (): string => {
+  const today = new Date();
+  let nextDay = addDays(today, 1);
+  
+  // 最大7日先までチェック
+  for (let i = 1; i <= 7; i++) {
+    const dayOfWeek = getDay(nextDay);
+    
+    if (dayOfWeek === 0) {
+      // 日曜日は基本休診
+      nextDay = addDays(nextDay, 1);
+      continue;
+    }
+    
+    if (dayOfWeek === 4 && !checkHolidayInWeek(nextDay)) {
+      // 木曜日は基本休診
+      nextDay = addDays(nextDay, 1);
+      continue;
+    }
+    
+    // 営業日を見つけた
+    const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+    const nextDayName = dayNames[dayOfWeek];
+    
+    if (dayOfWeek === 1) {
+      return `次は${nextDayName}曜日15:00から営業`;
+    } else {
+      return `次は${nextDayName}曜日10:00から営業`;
+    }
+  }
+  
+  return '次回営業は未定です';
 };
