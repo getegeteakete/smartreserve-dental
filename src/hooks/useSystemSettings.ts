@@ -27,9 +27,11 @@ export const useSystemSettings = () => {
   const { toast } = useToast();
 
   // 全設定を取得
-  const fetchSettings = async () => {
+  const fetchSettings = async (updateLoadingState: boolean = true) => {
     try {
-      setLoading(true);
+      if (updateLoadingState) {
+        setLoading(true);
+      }
       const { data, error } = await supabase
         .from('system_settings')
         .select('*')
@@ -47,7 +49,9 @@ export const useSystemSettings = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      if (updateLoadingState) {
+        setLoading(false);
+      }
     }
   };
 
@@ -119,11 +123,8 @@ export const useSystemSettings = () => {
         description: `設定「${key}」が更新されました`,
       });
 
-      // fetchSettingsはバックグラウンドで実行し、エラーが発生してもページ遷移を防ぐ
-      fetchSettings().catch(err => {
-        console.error('Background fetch failed after update:', err);
-        // エラーが発生してもユーザーには通知しない（既に更新は完了している）
-      });
+      // ローカル状態の更新のみで処理完了（サーバーからの再取得は行わない）
+      console.log('Setting update completed locally');
     } catch (error) {
       console.error('Error updating setting:', error);
       toast({

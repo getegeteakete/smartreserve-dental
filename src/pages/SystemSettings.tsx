@@ -62,17 +62,28 @@ export default function SystemSettings() {
     checkAdminAuth();
   }, [navigate]);
 
+  // 一般設定の読み込み
+  useEffect(() => {
+    const loadGeneralSettings = () => {
+      const settingsByCategory = getSettingsByCategory();
+      const clinicInfo = settingsByCategory.general.find(s => s.setting_key === 'clinic_info');
+      if (clinicInfo && clinicInfo.setting_value) {
+        setGeneralSettingsForm(clinicInfo.setting_value);
+      }
+    };
+
+    if (settings.length > 0) {
+      loadGeneralSettings();
+    }
+  }, [settings, getSettingsByCategory]);
+
   const handleLogout = () => {
     localStorage.removeItem("admin_logged_in");
     localStorage.removeItem("admin_username");
     navigate("/admin-login");
   };
 
-  const handleToggleSetting = async (key: string, currentValue: any, event?: React.MouseEvent) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
+  const handleToggleSetting = async (key: string, currentValue: any, checked?: boolean) => {
     
     const setting = settings.find(s => s.setting_key === key);
     if (!setting) {
@@ -81,10 +92,10 @@ export default function SystemSettings() {
     }
     
     try {
-      console.log('Toggle setting start:', { key, currentValue, currentIsEnabled: setting.is_enabled });
+      console.log('Toggle setting start:', { key, currentValue, currentIsEnabled: setting.is_enabled, checked });
       
-      // is_enabled をトグルする
-      const newIsEnabled = !setting.is_enabled;
+      // checked パラメータがある場合はそれを使用、そうでなければ現在の値を反転
+      const newIsEnabled = checked !== undefined ? checked : !setting.is_enabled;
       
       // setting_value の enabled も更新
       const newSettingValue = {
@@ -111,6 +122,32 @@ export default function SystemSettings() {
     const setting = settings.find(s => s.setting_key === key);
     if (setting) {
       await updateSetting(key, setting.setting_value, !currentIsEnabled);
+    }
+  };
+
+  // 決済設定専用のハンドラー
+  const handlePaymentToggle = async (setting: any, checked: boolean) => {
+    try {
+      console.log('Payment toggle:', { key: setting.setting_key, checked, currentValue: setting.setting_value });
+      
+      const newSettingValue = {
+        ...setting.setting_value,
+        enabled: checked
+      };
+      
+      console.log('Updating payment setting:', { key: setting.setting_key, newSettingValue, checked });
+      
+      // is_enabled と setting_value.enabled の両方を更新
+      await updateSetting(setting.setting_key, newSettingValue, checked);
+      
+      console.log('Payment setting update completed');
+    } catch (error) {
+      console.error('Payment toggle error:', error);
+      toast({
+        title: 'エラー',
+        description: '決済設定の更新に失敗しました',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -354,7 +391,13 @@ export default function SystemSettings() {
                   ) : (
                     settingsByCategory.payment.map((setting) => (
                     <div key={setting.id} className="space-y-3">
-                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div 
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
                         <div className="flex-1">
                           <Label htmlFor={setting.setting_key} className="text-base font-semibold">
                             {setting.setting_key === 'payment_enabled' ? '決済機能を有効にする' : '決済方法の選択'}
@@ -363,10 +406,14 @@ export default function SystemSettings() {
                         </div>
                         <Switch
                           id={setting.setting_key}
-                          checked={setting.is_enabled}
+                          checked={setting.is_enabled && setting.setting_value?.enabled !== false}
                           onCheckedChange={(checked) => {
-                            console.log('Payment Switch onCheckedChange:', { key: setting.setting_key, checked });
-                            handleToggleSetting(setting.setting_key, setting.setting_value);
+                            console.log('Payment Switch onCheckedChange:', { key: setting.setting_key, checked, currentIsEnabled: setting.is_enabled, currentValueEnabled: setting.setting_value?.enabled });
+                            handlePaymentToggle(setting, checked);
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                           }}
                         />
                       </div>
