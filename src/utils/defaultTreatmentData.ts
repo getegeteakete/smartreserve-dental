@@ -120,17 +120,26 @@ export const forceUpdateDefaultTreatments = async () => {
       }
     }
     
-    // 既存の治療を削除
-    const { error: deleteError } = await supabase
+    // 既存の治療を確認
+    const { data: existingTreatments } = await supabase
       .from("treatments")
-      .delete()
-      .neq("id", "00000000-0000-0000-0000-000000000000"); // 全件削除の回避策
-    
-    if (deleteError) {
-      console.error("既存データ削除エラー:", deleteError);
+      .select("id, name");
+
+    // 既存の治療を削除
+    if (existingTreatments && existingTreatments.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("treatments")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // 全件削除の回避策
+      
+      if (deleteError) {
+        console.error("既存データ削除エラー:", deleteError);
+      } else {
+        console.log("既存の治療データを削除しました:", existingTreatments.length, "件");
+      }
     }
     
-    // 新しい治療データを挿入
+    // 新しい治療データを挿入（重複チェック付き）
     const treatmentsWithCategoryIds = defaultTreatments.map(treatment => ({
       name: treatment.name,
       description: treatment.description,
@@ -138,10 +147,17 @@ export const forceUpdateDefaultTreatments = async () => {
       duration: treatment.duration,
       category_id: categoryMap[treatment.category_name] || null
     }));
+
+    // 重複をさらにチェック
+    const uniqueTreatments = treatmentsWithCategoryIds.filter((treatment, index, self) => 
+      index === self.findIndex(t => t.name === treatment.name)
+    );
+    
+    console.log("挿入する治療データ:", uniqueTreatments.length, "件");
     
     const { data: insertedData, error: insertError } = await supabase
       .from("treatments")
-      .insert(treatmentsWithCategoryIds)
+      .insert(uniqueTreatments)
       .select();
     
     if (insertError) {

@@ -40,15 +40,20 @@ export const useTreatmentsWithCategories = () => {
         if (error) {
           throw error;
         }
+
+        // 重複を除去してから返す
+        const uniqueTreatments = data ? data.filter((treatment, index, self) => 
+          index === self.findIndex(t => t.id === treatment.id)
+        ) : [];
         
         // データが存在しない場合のみデフォルトデータを確保
-        if (!data || data.length === 0) {
+        if (!uniqueTreatments || uniqueTreatments.length === 0) {
           // デフォルトデータを確保する処理は別の関数で実行
           // この関数内では単純にデータを取得するのみ
           return [];
         }
         
-        return data as TreatmentWithCategory[];
+        return uniqueTreatments as TreatmentWithCategory[];
       } catch (error) {
         console.error("診療メニュー取得中にエラーが発生しました:", error);
         throw error;

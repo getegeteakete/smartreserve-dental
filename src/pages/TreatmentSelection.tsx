@@ -38,10 +38,18 @@ const TreatmentSelection = () => {
   const categorizeByCategory = (treatments: TreatmentWithCategory[]) => {
     console.log("🔍 TreatmentSelection: カテゴリ化開始", treatments);
     
-    // 重複を除去
-    const uniqueTreatments = treatments.filter((treatment, index, self) => 
-      index === self.findIndex(t => t.id === treatment.id)
-    );
+    // より強力な重複除去: IDと名前の組み合わせで重複をチェック
+    const seenTreatments = new Set<string>();
+    const uniqueTreatments = treatments.filter((treatment) => {
+      const key = `${treatment.id}-${treatment.name}`;
+      if (seenTreatments.has(key)) {
+        console.log("🚫 重複を検出してスキップ:", treatment.name);
+        return false;
+      }
+      seenTreatments.add(key);
+      return true;
+    });
+    
     console.log("🔍 TreatmentSelection: 重複除去後", uniqueTreatments);
 
     const categorized: { [key: string]: TreatmentWithCategory[] } = {};
@@ -51,7 +59,17 @@ const TreatmentSelection = () => {
       if (!categorized[category]) {
         categorized[category] = [];
       }
-      categorized[category].push(treatment);
+      
+      // カテゴリー内でも重複をチェック
+      const alreadyExists = categorized[category].some(
+        existingTreatment => existingTreatment.id === treatment.id || existingTreatment.name === treatment.name
+      );
+      
+      if (!alreadyExists) {
+        categorized[category].push(treatment);
+      } else {
+        console.log("🚫 カテゴリー内重複を検出してスキップ:", treatment.name, "in", category);
+      }
     });
 
     console.log("🔍 TreatmentSelection: カテゴリ化結果", categorized);
@@ -223,11 +241,15 @@ const TreatmentSelection = () => {
                 {/* カテゴリーヘッダー */}
                 <div className="text-center py-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-2 border-blue-200">
+                    <div className="w-full h-[300px] mx-auto mb-4 rounded-lg overflow-hidden border-2 border-blue-200">
                       <img
                         src={categoryImages[category as keyof typeof categoryImages]}
                         alt={category}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error(`画像読み込みエラー: ${categoryImages[category as keyof typeof categoryImages]}`);
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     </div>
                   )}
