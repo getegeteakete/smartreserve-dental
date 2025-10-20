@@ -7,13 +7,15 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
-import { ArrowLeft, CreditCard, MessageCircle, Mail, Smartphone, Calendar, Settings as SettingsIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, MessageCircle, Mail, Smartphone, Calendar, Settings as SettingsIcon, RefreshCw } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import { ensureSystemSettings, forceUpdateSystemSettings } from "@/utils/defaultSystemSettings";
 
 export default function SystemSettings() {
   const [loading, setLoading] = useState(true);
+  const [initializing, setInitializing] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -23,6 +25,7 @@ export default function SystemSettings() {
     getSettingsByCategory,
     updateSetting,
     isFeatureEnabled,
+    refetch,
   } = useSystemSettings();
 
   useEffect(() => {
@@ -30,7 +33,7 @@ export default function SystemSettings() {
       const isAdminLoggedIn = localStorage.getItem("admin_logged_in");
       const adminUsername = localStorage.getItem("admin_username");
       
-      if (!isAdminLoggedIn || adminUsername !== "sup@ei-life.co.jp") {
+      if (isAdminLoggedIn !== "true" || adminUsername !== "sup@ei-life.co.jp") {
         navigate("/admin-login");
         return;
       }
@@ -59,6 +62,68 @@ export default function SystemSettings() {
     }
   };
 
+  const handleInitializeSettings = async () => {
+    try {
+      setInitializing(true);
+      console.log('システム設定の初期化を開始');
+      
+      const result = await ensureSystemSettings();
+      if (result) {
+        toast({
+          title: '初期化完了',
+          description: 'システム設定が正常に初期化されました',
+        });
+        await refetch();
+      } else {
+        toast({
+          title: '初期化失敗',
+          description: 'システム設定の初期化に失敗しました。データベースの確認が必要です。',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('初期化エラー:', error);
+      toast({
+        title: 'エラー',
+        description: 'システム設定の初期化中にエラーが発生しました',
+        variant: 'destructive',
+      });
+    } finally {
+      setInitializing(false);
+    }
+  };
+
+  const handleForceUpdateSettings = async () => {
+    try {
+      setInitializing(true);
+      console.log('システム設定の強制更新を開始');
+      
+      const result = await forceUpdateSystemSettings();
+      if (result) {
+        toast({
+          title: '更新完了',
+          description: 'システム設定が強制更新されました',
+        });
+        await refetch();
+      } else {
+        toast({
+          title: '更新失敗',
+          description: 'システム設定の更新に失敗しました',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('強制更新エラー:', error);
+      toast({
+        title: 'エラー',
+        description: 'システム設定の更新中にエラーが発生しました',
+        variant: 'destructive',
+      });
+    } finally {
+      setInitializing(false);
+    }
+  };
+
   if (loading || settingsLoading) {
     return (
       <div className="container mx-auto py-10 flex justify-center items-center min-h-screen">
@@ -71,6 +136,76 @@ export default function SystemSettings() {
   }
 
   const settingsByCategory = getSettingsByCategory();
+
+  // 設定が空の場合の表示
+  if (settings.length === 0) {
+    return (
+      <>
+        <AdminHeader title="システム設定" />
+        <div className="pt-20 min-h-screen bg-gray-50">
+          <div className={`container ${isMobile ? 'max-w-full px-2' : 'max-w-6xl'} mx-auto py-8 px-4`}>
+            <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'} mb-6`}>
+              <div className={`${isMobile ? 'space-y-2' : 'flex items-center gap-4'}`}>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/admin")}
+                  className="flex items-center gap-2"
+                  size={isMobile ? "sm" : "default"}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  {isMobile ? '戻る' : '管理画面に戻る'}
+                </Button>
+                <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold flex items-center gap-2`}>
+                  <SettingsIcon className="h-6 w-6" />
+                  システム設定
+                </h1>
+              </div>
+            </div>
+
+            <Card className="max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <SettingsIcon className="h-5 w-5 text-orange-600" />
+                  システム設定が未初期化です
+                </CardTitle>
+                <CardDescription>
+                  システム設定が初期化されていません。下記のボタンを押して初期化してください。
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <Button 
+                    onClick={handleInitializeSettings}
+                    disabled={initializing}
+                    className="w-full flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${initializing ? 'animate-spin' : ''}`} />
+                    {initializing ? '初期化中...' : 'システム設定を初期化'}
+                  </Button>
+                  <Button 
+                    onClick={handleForceUpdateSettings}
+                    disabled={initializing}
+                    variant="outline"
+                    className="w-full flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${initializing ? 'animate-spin' : ''}`} />
+                    {initializing ? '更新中...' : '設定を強制更新'}
+                  </Button>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <p className="text-sm text-yellow-900">
+                    <strong>注意：</strong> システム設定の初期化に失敗する場合は、データベースに「system_settings」テーブルが存在しない可能性があります。
+                    <code className="block mt-2 bg-yellow-100 px-2 py-1 rounded">create-system-settings-table.sql</code> をSupabase SQL Editorで実行してください。
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        <ScrollToTopButton />
+      </>
+    );
+  }
 
   return (
     <>
@@ -93,9 +228,21 @@ export default function SystemSettings() {
                 システム設定
               </h1>
             </div>
-            <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
-              ログアウト
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleInitializeSettings}
+                disabled={initializing}
+                size={isMobile ? "sm" : "default"}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${initializing ? 'animate-spin' : ''}`} />
+                {initializing ? '初期化中' : '初期化'}
+              </Button>
+              <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
+                ログアウト
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="payment" className="w-full">
