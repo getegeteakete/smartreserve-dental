@@ -62,18 +62,18 @@ const TreatmentSelection = () => {
       // カテゴリが設定されていない場合は名前から推測
       const name = treatment.name;
       if (name.includes('初診') || name.includes('初心')) {
-        categoryName = '初診';
+        categoryName = '初めての方';
       } else if (name.includes('精密検査')) {
-        categoryName = '精密検査';
+        categoryName = '精密検査予約';
       } else if (name.includes('ホワイトニング')) {
-        categoryName = 'ホワイトニング';
+        categoryName = 'ホワイトニング予約';
       } else if (name.includes('PMTC') || name.includes('クリーニング')) {
-        categoryName = 'PMTC';
+        categoryName = 'PMTC予約';
       } else if (name.includes('矯正')) {
         categoryName = '矯正歯科';
       } else {
-        // どのカテゴリにも当てはまらない場合は「初診」として分類
-        categoryName = '初診';
+        // どのカテゴリにも当てはまらない場合は「初めての方」として分類
+        categoryName = '初めての方';
       }
       }
       
