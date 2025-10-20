@@ -13,6 +13,7 @@ import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { useAppointmentManagement } from "@/hooks/useAppointmentManagement";
 import { format, isToday, addDays } from "date-fns";
 import { ja } from "date-fns/locale";
+import { SystemTestPanel } from "@/components/SystemTestPanel";
 
 export default function Admin() {
   const [loading, setLoading] = useState(true);
@@ -280,6 +281,11 @@ export default function Admin() {
                 items={statsItems}
                 trend={{ value: "+5.2%", isPositive: false }}
               />
+            </div>
+
+            {/* システムテストパネル */}
+            <div className="mt-8">
+              <SystemTestPanel />
             </div>
           </div>
         </div>
