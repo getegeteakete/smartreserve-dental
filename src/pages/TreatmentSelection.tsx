@@ -29,7 +29,7 @@ const TreatmentSelection = () => {
         treatmentFee: treatment.fee,
         treatmentDuration: treatment.duration,
         treatmentDescription: treatment.description,
-        categoryName: treatment.category_name,
+        categoryName: treatment.category?.name || "その他",
       },
     });
   };
@@ -47,7 +47,7 @@ const TreatmentSelection = () => {
     const categorized: { [key: string]: TreatmentWithCategory[] } = {};
     
     uniqueTreatments.forEach(treatment => {
-      const category = treatment.category_name || "その他";
+      const category = treatment.category?.name || "その他";
       if (!categorized[category]) {
         categorized[category] = [];
       }
@@ -295,7 +295,7 @@ const TreatmentSelection = () => {
         {/* 営業状況バナー（モバイルのみ） - 一時的に無効化 */}
         {/* <BusinessStatusBanner /> */}
       </div>
-    );
+    </div>
   );
 };
 
