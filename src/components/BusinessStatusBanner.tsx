@@ -1,34 +1,13 @@
-import { useState, useEffect } from "react";
-import { getTodayBusinessStatus } from "@/utils/businessDayDisplay";
 import { Clock, Phone } from "lucide-react";
-
-interface BusinessStatus {
-  isOpen: boolean;
-  message: string;
-  nextOpen: string | null;
-}
+import { Button } from "@/components/ui/button";
 
 const BusinessStatusBanner = () => {
-  const [businessStatus, setBusinessStatus] = useState<BusinessStatus | null>(null);
-
-  useEffect(() => {
-    const updateStatus = () => {
-      const status = getTodayBusinessStatus();
-      setBusinessStatus(status);
-    };
-
-    // 初期表示
-    updateStatus();
-
-    // 1分ごとに更新
-    const interval = setInterval(updateStatus, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  if (!businessStatus) {
-    return null;
-  }
+  // 一時的にシンプルな表示に変更
+  const businessStatus = {
+    isOpen: true,
+    message: '本日は営業中',
+    nextOpen: null
+  };
 
   return (
     <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">

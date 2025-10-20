@@ -355,11 +355,11 @@ const TreatmentSelection = () => {
         </div>
       )}
       
-      {/* 固定メニューバナー */}
-      <FixedMenuBanner />
+      {/* 固定メニューバナー - 一時的に無効化 */}
+      {/* <FixedMenuBanner /> */}
       
-      {/* 営業状況バナー（モバイルのみ） */}
-      <BusinessStatusBanner />
+      {/* 営業状況バナー（モバイルのみ） - 一時的に無効化 */}
+      {/* <BusinessStatusBanner /> */}
     </div>
   );
 };
