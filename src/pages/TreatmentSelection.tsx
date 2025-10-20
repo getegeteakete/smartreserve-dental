@@ -90,7 +90,7 @@ const TreatmentSelection = () => {
   console.log("🔍 TreatmentSelection: カテゴリ化結果", categorizedTreatments);
 
   // カテゴリーの表示順序を固定
-  const categoryOrder = ["初診", "精密検査", "ホワイトニング", "PMTC"];
+  const categoryOrder = ["初めての方", "精密検査予約", "ホワイトニング予約", "PMTC予約"];
   
   // 存在するカテゴリのみを順序通りに取得
   const orderedCategories = categoryOrder.filter(category => categorizedTreatments[category]);

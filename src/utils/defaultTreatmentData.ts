@@ -79,6 +79,84 @@ export const defaultTreatments = [
   }
 ];
 
+// 強制的にデフォルトデータを更新する関数
+export const forceUpdateDefaultTreatments = async () => {
+  const { supabase } = await import("@/integrations/supabase/client");
+  
+  try {
+    console.log("強制的にデフォルト診療メニューを更新します");
+    
+    // 既存のカテゴリを確認
+    const { data: existingCategories, error: categorySelectError } = await supabase
+      .from("treatment_categories")
+      .select("name, id");
+    
+    if (categorySelectError) {
+      throw categorySelectError;
+    }
+    
+    // カテゴリマップを作成
+    const categoryMap: Record<string, string> = {};
+    
+    // 新しいカテゴリを作成
+    for (const category of defaultCategories) {
+      const existingCategory = existingCategories?.find(cat => cat.name === category.name);
+      
+      if (existingCategory) {
+        categoryMap[category.name] = existingCategory.id;
+      } else {
+        const { data: insertedCategory, error: categoryInsertError } = await supabase
+          .from("treatment_categories")
+          .insert(category)
+          .select("id, name")
+          .single();
+        
+        if (categoryInsertError) {
+          console.error("カテゴリ作成エラー:", categoryInsertError);
+          continue;
+        }
+        
+        categoryMap[category.name] = insertedCategory.id;
+      }
+    }
+    
+    // 既存の治療を削除
+    const { error: deleteError } = await supabase
+      .from("treatments")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000"); // 全件削除の回避策
+    
+    if (deleteError) {
+      console.error("既存データ削除エラー:", deleteError);
+    }
+    
+    // 新しい治療データを挿入
+    const treatmentsWithCategoryIds = defaultTreatments.map(treatment => ({
+      name: treatment.name,
+      description: treatment.description,
+      fee: treatment.fee,
+      duration: treatment.duration,
+      category_id: categoryMap[treatment.category_name] || null
+    }));
+    
+    const { data: insertedData, error: insertError } = await supabase
+      .from("treatments")
+      .insert(treatmentsWithCategoryIds)
+      .select();
+    
+    if (insertError) {
+      throw insertError;
+    }
+    
+    console.log("デフォルト診療メニューの強制更新が完了しました");
+    return true;
+    
+  } catch (error) {
+    console.error("forceUpdateDefaultTreatments エラー:", error);
+    return false;
+  }
+};
+
 export const ensureDefaultTreatments = async () => {
   const { supabase } = await import("@/integrations/supabase/client");
   

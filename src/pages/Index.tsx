@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
 import Header from "@/components/Header";
 import TreatmentSelection from "@/pages/TreatmentSelection";
-import { ensureDefaultTreatments } from "@/utils/defaultTreatmentData";
+import { ensureDefaultTreatments, forceUpdateDefaultTreatments } from "@/utils/defaultTreatmentData";
 import { ensureDefaultSchedule } from "@/utils/defaultScheduleData";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useChatSettings } from "@/hooks/useSystemSettings";
@@ -21,8 +21,18 @@ export default function Index() {
 
   useEffect(() => {
     // アプリ起動時にデフォルトデータを確保
-    ensureDefaultTreatments();
-    ensureDefaultSchedule();
+    const initializeData = async () => {
+      await ensureDefaultTreatments();
+      await ensureDefaultSchedule();
+      
+      // 5秒後に診療メニューが表示されていない場合は強制更新を試す
+      setTimeout(async () => {
+        console.log("診療メニューの強制更新を試行します");
+        await forceUpdateDefaultTreatments();
+      }, 5000);
+    };
+    
+    initializeData();
   }, []);
 
   const handleBookingRequest = (data: any) => {
