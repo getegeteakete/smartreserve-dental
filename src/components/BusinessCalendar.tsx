@@ -122,6 +122,9 @@ export const BusinessCalendar = () => {
                 if (modifiers.business.some(d => d.getDate() === dayNumber)) {
                   dayType = 'business';
                   dayLabel = '営業日';
+                } else if (modifiers.saturday.some(d => d.getDate() === dayNumber)) {
+                  dayType = 'saturday';
+                  dayLabel = '土曜営業';
                 } else if (modifiers.closed.some(d => d.getDate() === dayNumber)) {
                   dayType = 'closed';
                   dayLabel = '休み';
@@ -165,6 +168,7 @@ export const BusinessCalendar = () => {
                 <div className={`w-4 h-4 rounded-full ${color.bg} ${color.border} border-2`} />
                 <span className="text-sm text-gray-700">
                   {type === 'business' && '営業日'}
+                  {type === 'saturday' && '土曜営業'}
                   {type === 'closed' && '休み'}
                 </span>
               </div>

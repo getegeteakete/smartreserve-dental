@@ -2,7 +2,7 @@ import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'dat
 import { ja } from 'date-fns/locale';
 
 export interface BusinessDayInfo {
-  type: 'business' | 'closed';
+  type: 'business' | 'saturday' | 'closed';
   label: string;
   color: {
     bg: string;
@@ -18,6 +18,11 @@ export const getBusinessDayColors = () => ({
     text: 'text-blue-700',
     border: 'border-blue-400'
   },
+  'saturday': {
+    bg: 'bg-orange-50',
+    text: 'text-orange-700',
+    border: 'border-orange-400'
+  },
   'closed': {
     bg: 'bg-red-50',
     text: 'text-red-700',
@@ -27,6 +32,7 @@ export const getBusinessDayColors = () => ({
 
 export const getBusinessDayLabels = () => ({
   'business': '営業日',
+  'saturday': '土曜営業',
   'closed': '休み'
 });
 
@@ -37,6 +43,7 @@ export const getMonthlyBusinessDays = (year: number, month: number) => {
 
   const businessDays: { [key: string]: number[] } = {
     'business': [],
+    'saturday': [],
     'closed': []
   };
 
@@ -44,8 +51,12 @@ export const getMonthlyBusinessDays = (year: number, month: number) => {
     const dayOfWeek = getDay(day);
     const dayNumber = day.getDate();
 
-    // 営業日判定（土曜日も含む）
-    if ([1, 2, 3, 5, 6].includes(dayOfWeek)) {
+    // 土曜日は特別に分離
+    if (dayOfWeek === 6) {
+      businessDays['saturday'].push(dayNumber);
+    }
+    // 営業日判定（月、火、水、金）
+    else if ([1, 2, 3, 5].includes(dayOfWeek)) {
       businessDays['business'].push(dayNumber);
     }
     // 日曜日は休み
@@ -96,6 +107,7 @@ export const getCalendarModifiers = (year: number, month: number) => {
 
   const modifiers: { [key: string]: Date[] } = {
     business: [],
+    saturday: [],
     closed: []
   };
 
@@ -104,6 +116,8 @@ export const getCalendarModifiers = (year: number, month: number) => {
 
     if (businessDays['business'].includes(dayNumber)) {
       modifiers.business.push(day);
+    } else if (businessDays['saturday'].includes(dayNumber)) {
+      modifiers.saturday.push(day);
     } else if (businessDays['closed'].includes(dayNumber)) {
       modifiers.closed.push(day);
     }
@@ -120,6 +134,12 @@ export const getCalendarModifierStyles = () => {
       backgroundColor: '#dbeafe',
       color: '#1e40af',
       border: '2px solid #3b82f6',
+      fontWeight: 'bold'
+    },
+    saturday: {
+      backgroundColor: '#fed7aa',
+      color: '#c2410c',
+      border: '2px solid #fb923c',
       fontWeight: 'bold'
     },
     closed: {

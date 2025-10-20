@@ -217,17 +217,21 @@ export const InteractiveBusinessCalendar = ({
     const monthDays = eachDayOfInterval({ start: currentMonth, end: endMonth });
 
     const businessDays: Date[] = [];
+    const saturdayDays: Date[] = [];
     const closedDays: Date[] = [];
 
     monthDays.forEach(day => {
       const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
       console.log(`${format(day, 'MM/dd')}のスケジュール情報:`, scheduleInfo);
       
-      // 営業日（special-open, full-open, partial-open, saturday-open, morning-closed等）
-      if (scheduleInfo.type === 'special-open' || 
+      // 土曜営業を分離
+      if (scheduleInfo.type === 'saturday-open') {
+        saturdayDays.push(day);
+      }
+      // 通常営業日（special-open, full-open, partial-open, morning-closed等）
+      else if (scheduleInfo.type === 'special-open' || 
           scheduleInfo.type === 'full-open' || 
           scheduleInfo.type === 'partial-open' ||
-          scheduleInfo.type === 'saturday-open' ||
           scheduleInfo.type === 'morning-closed') {
         businessDays.push(day);
       } else {
@@ -235,7 +239,7 @@ export const InteractiveBusinessCalendar = ({
       }
     });
 
-    return { businessDays, closedDays };
+    return { businessDays, saturdayDays, closedDays };
   };
 
   const handleDateClick = (date: Date | undefined) => {
@@ -525,7 +529,7 @@ export const InteractiveBusinessCalendar = ({
     setShowDailyEditor(false);
   };
 
-  const { businessDays, closedDays } = getDayModifiers();
+  const { businessDays, saturdayDays, closedDays } = getDayModifiers();
 
   if (loading) {
     return <div className="text-center py-4">カレンダーを読み込み中...</div>;
@@ -582,6 +586,7 @@ export const InteractiveBusinessCalendar = ({
             locale={ja}
             modifiers={{
               business: businessDays,
+              saturday: saturdayDays,
               closed: closedDays,
             }}
             modifiersStyles={{
@@ -589,6 +594,12 @@ export const InteractiveBusinessCalendar = ({
                 backgroundColor: '#dbeafe',
                 color: '#1e40af',
                 border: '2px solid #3b82f6',
+                fontWeight: 'bold'
+              },
+              saturday: { 
+                backgroundColor: '#fed7aa',
+                color: '#c2410c',
+                border: '2px solid #fb923c',
                 fontWeight: 'bold'
               },
               closed: { 

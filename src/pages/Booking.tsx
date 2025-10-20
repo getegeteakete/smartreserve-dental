@@ -6,6 +6,7 @@ import AppointmentCalendar from "@/components/appointment/AppointmentCalendar";
 import AppointmentForm from "@/components/appointment/AppointmentForm";
 import AppointmentInfo from "@/components/appointment/AppointmentInfo";
 import BookingHeader from "@/components/appointment/BookingHeader";
+import BookingInfo from "@/components/appointment/BookingInfo";
 import TreatmentDisplay from "@/components/appointment/TreatmentDisplay";
 import { Toaster } from "@/components/ui/sonner";
 import { useBookingForm } from "@/hooks/useBookingForm";
@@ -58,6 +59,8 @@ export default function Booking() {
       <div className="flex-1 pt-16 bg-gray-50 py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <BookingHeader />
+          
+          <BookingInfo />
           
           <TreatmentDisplay treatmentData={selectedTreatmentData} />
 

@@ -238,10 +238,14 @@ const AppointmentCalendar = ({
                         const selectedIndex = getSelectedDateIndex(date, index);
                         return selectedIndex !== -1;
                       },
-                      // 営業日の種類を2種類に統合
+                      // 営業日の種類を3種類に統合
                       business: (date) => {
                         const scheduleType = getDateScheduleType(date);
-                        return ['full-open', 'partial-open', 'saturday-open', 'special-open'].includes(scheduleType);
+                        return ['full-open', 'partial-open', 'special-open'].includes(scheduleType);
+                      },
+                      saturday: (date) => {
+                        const scheduleType = getDateScheduleType(date);
+                        return scheduleType === 'saturday-open';
                       },
                       closed: (date) => {
                         const scheduleType = getDateScheduleType(date);
@@ -252,6 +256,7 @@ const AppointmentCalendar = ({
                       selected: "bg-primary text-primary-foreground",
                       otherSelected: "bg-gray-200 text-gray-500",
                       business: "bg-blue-50 text-blue-700 border border-blue-400 font-medium",
+                      saturday: "bg-orange-50 text-orange-700 border border-orange-400 font-medium",
                       closed: "bg-red-50 text-red-700 border border-red-400"
                     }}
                   />
