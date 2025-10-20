@@ -176,6 +176,35 @@ export default function SystemSettings() {
 
   // 一般設定の編集開始
   const handleStartEditingGeneralSettings = () => {
+    console.log('編集モード開始');
+    
+    // 現在の設定値を確実にフォームに読み込み
+    const settingsByCategory = getSettingsByCategory();
+    const clinicInfo = settingsByCategory.general.find(s => s.setting_key === 'clinic_info');
+    
+    if (clinicInfo && clinicInfo.setting_value) {
+      console.log('設定値読み込み:', clinicInfo.setting_value);
+      setGeneralSettingsForm(clinicInfo.setting_value);
+    } else {
+      console.log('デフォルト設定値を使用');
+      // デフォルト値でフォームを初期化
+      setGeneralSettingsForm({
+        name: '',
+        phone: '',
+        address: '',
+        email: '',
+        business_hours: {
+          monday: { start: '09:00', end: '18:00', available: true },
+          tuesday: { start: '09:00', end: '18:00', available: true },
+          wednesday: { start: '09:00', end: '18:00', available: true },
+          thursday: { start: '09:00', end: '18:00', available: true },
+          friday: { start: '09:00', end: '18:00', available: true },
+          saturday: { start: '09:00', end: '17:00', available: true },
+          sunday: { start: '', end: '', available: false },
+        }
+      });
+    }
+    
     setEditingGeneralSettings(true);
   };
 
@@ -779,16 +808,22 @@ export default function SystemSettings() {
                       <h3 className="text-lg font-semibold">クリニック基本情報</h3>
                       <p className="text-sm text-gray-600">医院名、連絡先、営業時間などの基本情報を設定してください</p>
                     </div>
-                    {!editingGeneralSettings && (
-                      <Button 
-                        onClick={handleStartEditingGeneralSettings}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                      >
-                        <Edit className="h-4 w-4" />
-                        編集
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {!editingGeneralSettings ? (
+                        <Button 
+                          onClick={handleStartEditingGeneralSettings}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          編集する
+                        </Button>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-blue-600">
+                          <Edit className="h-4 w-4" />
+                          編集中
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {editingGeneralSettings ? (
@@ -940,55 +975,75 @@ export default function SystemSettings() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {settingsByCategory.general.map((setting) => (
-                        <div key={setting.id} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">医院名</Label>
-                            <p className="text-sm bg-gray-50 p-3 rounded border">
-                              {setting.setting_value?.name || '未設定'}
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">電話番号</Label>
-                            <p className="text-sm bg-gray-50 p-3 rounded border">
-                              {setting.setting_value?.phone || '未設定'}
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">住所</Label>
-                            <p className="text-sm bg-gray-50 p-3 rounded border">
-                              {setting.setting_value?.address || '未設定'}
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">メールアドレス</Label>
-                            <p className="text-sm bg-gray-50 p-3 rounded border">
-                              {setting.setting_value?.email || '未設定'}
-                            </p>
-                          </div>
-                          <div className="md:col-span-2 space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">営業時間</Label>
-                            <div className="text-sm bg-gray-50 p-3 rounded border">
-                              {setting.setting_value?.business_hours && Object.entries(setting.setting_value.business_hours).map(([day, hours]: [string, any]) => (
-                                <div key={day} className="flex justify-between py-1">
-                                  <span>
-                                    {day === 'monday' ? '月曜日' :
-                                     day === 'tuesday' ? '火曜日' :
-                                     day === 'wednesday' ? '水曜日' :
-                                     day === 'thursday' ? '木曜日' :
-                                     day === 'friday' ? '金曜日' :
-                                     day === 'saturday' ? '土曜日' :
-                                     day === 'sunday' ? '日曜日' : day}
-                                  </span>
-                                  <span>
-                                    {hours.available ? `${hours.start} - ${hours.end}` : '定休日'}
-                                  </span>
-                                </div>
-                              ))}
+                      {settingsByCategory.general.length > 0 ? (
+                        settingsByCategory.general.map((setting) => (
+                          <div key={setting.id} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">医院名</Label>
+                              <p className="text-sm bg-gray-50 p-3 rounded border">
+                                {setting.setting_value?.name || '未設定'}
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">電話番号</Label>
+                              <p className="text-sm bg-gray-50 p-3 rounded border">
+                                {setting.setting_value?.phone || '未設定'}
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">住所</Label>
+                              <p className="text-sm bg-gray-50 p-3 rounded border">
+                                {setting.setting_value?.address || '未設定'}
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">メールアドレス</Label>
+                              <p className="text-sm bg-gray-50 p-3 rounded border">
+                                {setting.setting_value?.email || '未設定'}
+                              </p>
+                            </div>
+                            <div className="md:col-span-2 space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">営業時間</Label>
+                              <div className="text-sm bg-gray-50 p-3 rounded border">
+                                {setting.setting_value?.business_hours && Object.entries(setting.setting_value.business_hours).map(([day, hours]: [string, any]) => (
+                                  <div key={day} className="flex justify-between py-1">
+                                    <span>
+                                      {day === 'monday' ? '月曜日' :
+                                       day === 'tuesday' ? '火曜日' :
+                                       day === 'wednesday' ? '水曜日' :
+                                       day === 'thursday' ? '木曜日' :
+                                       day === 'friday' ? '金曜日' :
+                                       day === 'saturday' ? '土曜日' :
+                                       day === 'sunday' ? '日曜日' : day}
+                                    </span>
+                                    <span>
+                                      {hours.available ? `${hours.start} - ${hours.end}` : '定休日'}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <p>システム設定が初期化されていません。</p>
+                          <p className="text-sm mt-2">上部の「初期化」ボタンを押して設定を初期化してください。</p>
                         </div>
-                      ))}
+                      )}
+                      
+                      {!editingGeneralSettings && (
+                        <div className="flex justify-center pt-4">
+                          <Button 
+                            onClick={handleStartEditingGeneralSettings}
+                            className="flex items-center gap-2"
+                            size="lg"
+                          >
+                            <Edit className="h-4 w-4" />
+                            編集する
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>

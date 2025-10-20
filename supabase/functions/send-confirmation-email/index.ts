@@ -210,9 +210,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // 患者様への確定メール送信
-    console.log("患者様メール送信開始:", { to: patientEmail, from: "六本松矯正歯科クリニックとよしま <info@489.toyoshima-do.com>" });
+    console.log("患者様メール送信開始:", { to: patientEmail, from: "六本松矯正歯科クリニックとよしま <489@489.toyoshima-do.com>" });
     const patientEmailResponse = await resend.emails.send({
-      from: "六本松矯正歯科クリニックとよしま <info@489.toyoshima-do.com>",
+      from: "六本松矯正歯科クリニックとよしま <489@489.toyoshima-do.com>",
       to: [patientEmail],
       subject: `予約確定 - ${patientName}様の予約が確定いたしました`,
       html: confirmationEmailHtml,
@@ -225,10 +225,10 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     // 管理者への確定メール送信
-    console.log("管理者メール送信開始:", { to: "info@489.toyoshima-do.com", from: "六本松矯正歯科クリニックとよしま予約システム <info@489.toyoshima-do.com>" });
+    console.log("管理者メール送信開始:", { to: "489@489.toyoshima-do.com", from: "六本松矯正歯科クリニックとよしま予約システム <489@489.toyoshima-do.com>" });
     const adminEmailResponse = await resend.emails.send({
-      from: "六本松矯正歯科クリニックとよしま予約システム <info@489.toyoshima-do.com>",
-      to: ["info@489.toyoshima-do.com"],
+      from: "六本松矯正歯科クリニックとよしま予約システム <489@489.toyoshima-do.com>",
+      to: ["489@489.toyoshima-do.com"],
       subject: `予約確定 - ${patientName}様の予約が確定されました`,
       html: adminNotificationHtml,
     });

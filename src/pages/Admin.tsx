@@ -101,31 +101,28 @@ export default function Admin() {
     { title: "承認待ち", value: pendingAppointments.length.toString(), icon: Wrench },
   ];
 
-  const alertItems = [
-    {
-      id: "1",
-      title: "田中 太郎",
-      description: "次回予約: 2024年8月1日",
-      badge: { text: "残り15日", color: "red" as const }
-    },
-    {
-      id: "2", 
-      title: "佐藤 花子",
-      description: "定期検診: 2024年9月15日",
-      badge: { text: "残り30日", color: "orange" as const }
-    },
-    {
-      id: "3",
-      title: "山田 次郎",
-      description: "治療完了: 2024年10月20日",
-      badge: { text: "残り45日", color: "blue" as const }
-    }
-  ];
+  // 実際の予約データに基づくアラートアイテム
+  const alertItems = appointments
+    .filter(app => app.status === 'pending')
+    .slice(0, 3)
+    .map(appointment => ({
+      id: appointment.id,
+      title: appointment.patient_name,
+      description: `${appointment.treatment_name || '診療予約'}: ${appointment.appointment_date}`,
+      badge: { text: "承認待ち", color: "red" as const }
+    }));
+
+  // 実際の統計情報
+  const totalRevenue = appointments
+    .filter(app => app.status === 'confirmed')
+    .reduce((sum, app) => sum + (app.fee || 0), 0);
+  
+  const avgDuration = 45; // 平均診療時間（今後は実際のデータから計算可能）
 
   const statsItems = [
-    { label: "総予約数", value: "2,340 件" },
-    { label: "平均予約時間", value: "45 分" },
-    { label: "月間収益", value: "¥486,720" }
+    { label: "総予約数", value: `${appointments.length} 件` },
+    { label: "平均予約時間", value: `${avgDuration} 分` },
+    { label: "確定済み収益", value: `¥${totalRevenue.toLocaleString()}` }
   ];
 
   return (

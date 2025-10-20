@@ -29,7 +29,7 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
 
   // 患者様への確認メール送信
   const patientEmailResponse = await resend.emails.send({
-    from: "六本松矯正歯科クリニックとよしま <info@489.toyoshima-do.com>",
+    from: "六本松矯正歯科クリニックとよしま <489@489.toyoshima-do.com>",
     to: [data.patientEmail],
     subject: `予約受付完了 - ${data.patientName}様の予約を受け付けました`,
     html: confirmationEmailHtml,
@@ -39,8 +39,8 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
 
   // 管理者への通知メール送信
   const adminEmailResponse = await resend.emails.send({
-    from: "六本松矯正歯科クリニックとよしま予約システム <info@489.toyoshima-do.com>",
-    to: ["info@489.toyoshima-do.com"],
+    from: "六本松矯正歯科クリニックとよしま予約システム <489@489.toyoshima-do.com>",
+    to: ["489@489.toyoshima-do.com"],
     subject: `新規予約 - ${data.patientName}様からの予約申込み`,
     html: adminNotificationHtml,
   });
