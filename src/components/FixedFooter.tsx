@@ -145,6 +145,13 @@ export default function FixedFooter() {
               </Button>
               
               <button
+                onClick={() => navigate('/contact')}
+                className="text-gray-500 hover:text-gray-700 underline"
+              >
+                お問い合わせ
+              </button>
+              
+              <button
                 onClick={() => navigate('/privacy-policy')}
                 className="text-gray-500 hover:text-gray-700 underline"
               >
@@ -206,6 +213,13 @@ export default function FixedFooter() {
                   <Shield className="h-3 w-3" />
                   管理者
                 </Button>
+                
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline"
+                >
+                  お問い合わせ
+                </button>
                 
                 <button
                   onClick={() => navigate('/privacy-policy')}

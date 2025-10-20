@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarHeader } from "./calendar/CalendarHeader";
 import { CalendarLegend } from "./calendar/CalendarLegend";
 import { ScheduleDialog } from "./calendar/ScheduleDialog";
@@ -12,6 +14,13 @@ import { DailyScheduleEditor } from "./calendar/DailyScheduleEditor";
 import { CalendarDay } from "./calendar/CalendarDay";
 import { getScheduleInfo, generateTimeSlots, getBasicTimeSlots } from "./calendar/utils/scheduleUtils";
 import { useSundayScheduleOperations } from "@/hooks/schedule/useSundayScheduleOperations";
+import { 
+  getMonthlyBusinessDays, 
+  formatBusinessDaysDisplay, 
+  getCalendarModifiers, 
+  getCalendarModifierStyles,
+  getBusinessDayColors 
+} from "@/utils/businessDayDisplay";
 
 interface ScheduleData {
   id?: string;
@@ -53,6 +62,7 @@ export const InteractiveBusinessCalendar = ({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(selectedYear, selectedMonth - 1));
   const [specialSchedules, setSpecialScheduleData] = useState<SpecialScheduleData[]>([]);
   const [dailyMemos, setDailyMemos] = useState<Array<{date: string, memo: string}>>([]);
+  const [businessDaysInfo, setBusinessDaysInfo] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [clickedDate, setClickedDate] = useState<Date | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
@@ -146,6 +156,13 @@ export const InteractiveBusinessCalendar = ({
     setSelectedDate(newDate);
     fetchSpecialSchedules();
     fetchDailyMemos();
+  }, [selectedYear, selectedMonth]);
+
+  // 営業日情報を更新
+  useEffect(() => {
+    const businessDays = getMonthlyBusinessDays(selectedYear, selectedMonth);
+    const formattedInfo = formatBusinessDaysDisplay(businessDays);
+    setBusinessDaysInfo(formattedInfo);
   }, [selectedYear, selectedMonth]);
 
   const handleSpecialScheduleToggle = async (scheduleId: string, isAvailable: boolean) => {
@@ -526,6 +543,29 @@ export const InteractiveBusinessCalendar = ({
         }}
       />
       
+      {/* 営業日一覧 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>今月の営業日</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {businessDaysInfo.map((info) => (
+              <div key={info.type} className="flex items-center gap-3 p-3 rounded-lg border">
+                <div className={`w-4 h-4 rounded-full ${info.color.bg} ${info.color.border} border-2`} />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">{info.label}</div>
+                  <div className="text-sm text-gray-600">{info.displayText}</div>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {info.days.length}日
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      
       <CalendarLegend />
       
       <Card>
@@ -548,10 +588,30 @@ export const InteractiveBusinessCalendar = ({
               specialOpen: specialOpenDays,
             }}
             modifiersStyles={{
-              fullOpen: { backgroundColor: '#10B981', color: 'white' },
-              partialOpen: { backgroundColor: '#F59E0B', color: 'white' },
-              closed: { backgroundColor: '#EF4444', color: 'white' },
-              specialOpen: { backgroundColor: '#8B5CF6', color: 'white' },
+              fullOpen: { 
+                backgroundColor: '#dbeafe',
+                color: '#1e40af',
+                border: '2px solid #3b82f6',
+                fontWeight: 'bold'
+              },
+              partialOpen: { 
+                backgroundColor: '#fef3c7',
+                color: '#d97706',
+                border: '2px solid #f59e0b',
+                fontWeight: 'bold'
+              },
+              closed: { 
+                backgroundColor: '#fee2e2',
+                color: '#dc2626',
+                border: '2px solid #ef4444',
+                fontWeight: 'bold'
+              },
+              specialOpen: { 
+                backgroundColor: '#f3e8ff',
+                color: '#7c3aed',
+                border: '2px solid #8b5cf6',
+                fontWeight: 'bold'
+              },
             }}
             components={{
               Day: ({ date, ...props }) => {

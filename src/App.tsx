@@ -29,6 +29,7 @@ import NotificationSettings from "./pages/NotificationSettings";
 import SystemSettings from "./pages/SystemSettings";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminChatHistory from "./pages/AdminChatHistory";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/calendar-embed" element={<BusinessCalendarEmbed />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/cancel" element={<AppointmentCancel />} />
           <Route path="/rebook" element={<AppointmentRebook />} />
           <Route path="*" element={<NotFound />} />

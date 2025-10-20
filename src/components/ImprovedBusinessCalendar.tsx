@@ -1,36 +1,23 @@
-
-import { useState, useEffect } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from "date-fns";
-import { ja } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { 
   getMonthlyBusinessDays, 
   formatBusinessDaysDisplay, 
   getCalendarModifiers, 
   getCalendarModifierStyles,
   getBusinessDayColors 
-} from "@/utils/businessDayDisplay";
+} from '@/utils/businessDayDisplay';
 
-interface DatabaseScheduleData {
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-  is_available: boolean;
+interface ImprovedBusinessCalendarProps {
+  className?: string;
 }
 
-interface SpecialScheduleData {
-  id: string;
-  specific_date: string;
-  start_time: string;
-  end_time: string;
-  is_available: boolean;
-}
-
-export const BusinessCalendar = () => {
+export const ImprovedBusinessCalendar = ({ className }: ImprovedBusinessCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [businessDaysInfo, setBusinessDaysInfo] = useState<any[]>([]);
 
@@ -53,13 +40,12 @@ export const BusinessCalendar = () => {
   const modifierStyles = getCalendarModifierStyles();
   const colors = getBusinessDayColors();
 
-
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 space-y-6">
+    <div className={`space-y-6 ${className}`}>
       {/* カレンダーヘッダー */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">
-          {format(selectedDate, 'yyyy年MM月', { locale: ja })} 営業日カレンダー
+          {format(selectedDate, 'yyyy年MM月', { locale: ja })}
         </h2>
         <div className="flex items-center gap-2">
           <button
@@ -81,6 +67,9 @@ export const BusinessCalendar = () => {
       <Card>
         <CardHeader>
           <CardTitle>今月の営業日</CardTitle>
+          <CardDescription>
+            {format(selectedDate, 'yyyy年MM月', { locale: ja })}の営業日一覧
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

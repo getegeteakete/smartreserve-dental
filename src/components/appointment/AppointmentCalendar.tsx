@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Clock, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getScheduleInfo } from "@/components/admin/calendar/utils/scheduleInfoUtils";
+import { 
+  getMonthlyBusinessDays, 
+  formatBusinessDaysDisplay, 
+  getCalendarModifiers, 
+  getCalendarModifierStyles,
+  getBusinessDayColors 
+} from "@/utils/businessDayDisplay";
 
 interface AppointmentCalendarProps {
   preferredDates: any[];
