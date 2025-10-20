@@ -1,4 +1,4 @@
-import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isToday, isTomorrow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 export interface BusinessDayInfo {
@@ -148,5 +148,66 @@ export const getCalendarModifierStyles = () => {
       border: '2px solid #ef4444',
       fontWeight: 'bold'
     }
+  };
+};
+
+// 営業状況を判定する関数
+export interface BusinessStatus {
+  isOpen: boolean;
+  message: string;
+  nextOpenMessage?: string;
+}
+
+export const getCurrentBusinessStatus = (): BusinessStatus => {
+  const now = new Date();
+  const today = now;
+  const tomorrow = addDays(today, 1);
+  const dayOfWeek = getDay(today);
+  
+  // 現在の営業状況を判定
+  let isCurrentlyOpen = false;
+  let todayMessage = '';
+  
+  // 今日の営業状況
+  if (dayOfWeek === 0) { // 日曜日
+    todayMessage = '本日はお休み';
+    isCurrentlyOpen = false;
+  } else if (dayOfWeek === 6) { // 土曜日
+    todayMessage = '本日は土曜営業（9:00〜12:30 / 14:00〜17:30）';
+    isCurrentlyOpen = true;
+  } else if (dayOfWeek === 1) { // 月曜日
+    todayMessage = '本日は午前休診（15:00〜19:00）';
+    isCurrentlyOpen = true;
+  } else if ([2, 3, 5].includes(dayOfWeek)) { // 火・水・金曜日
+    todayMessage = '本日は営業中（10:00〜13:30 / 15:00〜19:00）';
+    isCurrentlyOpen = true;
+  } else if (dayOfWeek === 4) { // 木曜日
+    todayMessage = '本日はお休み';
+    isCurrentlyOpen = false;
+  }
+  
+  // 明日の営業状況
+  const tomorrowDayOfWeek = getDay(tomorrow);
+  let nextOpenMessage = '';
+  
+  if (!isCurrentlyOpen) {
+    if (tomorrowDayOfWeek === 0) { // 明日が日曜日
+      nextOpenMessage = '次は明日営業（月曜日 15:00〜19:00）';
+    } else if (tomorrowDayOfWeek === 6) { // 明日が土曜日
+      nextOpenMessage = '次は明日営業（土曜日 9:00〜12:30）';
+    } else if (tomorrowDayOfWeek === 1) { // 明日が月曜日
+      nextOpenMessage = '次は明日営業（月曜日 15:00〜19:00）';
+    } else if ([2, 3, 5].includes(tomorrowDayOfWeek)) { // 明日が火・水・金曜日
+      nextOpenMessage = '次は明日営業（10:00〜13:30 / 15:00〜19:00）';
+    } else if (tomorrowDayOfWeek === 4) { // 明日が木曜日
+      // 明後日が金曜日なので
+      nextOpenMessage = '次はあさって営業（金曜日 10:00〜13:30）';
+    }
+  }
+  
+  return {
+    isOpen: isCurrentlyOpen,
+    message: todayMessage,
+    nextOpenMessage: !isCurrentlyOpen ? nextOpenMessage : undefined
   };
 };
