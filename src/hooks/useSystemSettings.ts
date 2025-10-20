@@ -100,12 +100,30 @@ export const useSystemSettings = () => {
 
       console.log('Update successful:', data);
 
+      // ローカル状態を即座に更新してUIの反応性を向上
+      setSettings(prevSettings => 
+        prevSettings.map(setting => 
+          setting.setting_key === key 
+            ? {
+                ...setting,
+                is_enabled: isEnabled !== undefined ? isEnabled : setting.is_enabled,
+                setting_value: value,
+                updated_at: new Date().toISOString()
+              }
+            : setting
+        )
+      );
+
       toast({
         title: '更新完了',
         description: `設定「${key}」が更新されました`,
       });
 
-      await fetchSettings();
+      // fetchSettingsはバックグラウンドで実行し、エラーが発生してもページ遷移を防ぐ
+      fetchSettings().catch(err => {
+        console.error('Background fetch failed after update:', err);
+        // エラーが発生してもユーザーには通知しない（既に更新は完了している）
+      });
     } catch (error) {
       console.error('Error updating setting:', error);
       toast({
@@ -113,6 +131,7 @@ export const useSystemSettings = () => {
         description: `設定「${key}」の更新に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
+      throw error; // エラーを再スローして呼び出し元でも処理できるようにする
     }
   };
 

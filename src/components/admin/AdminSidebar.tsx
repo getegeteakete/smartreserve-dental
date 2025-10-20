@@ -9,7 +9,8 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -59,6 +60,13 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
       label: "通知設定",
       icon: Bell,
       path: "/admin/notifications",
+      badge: null
+    },
+    {
+      id: "chat-history",
+      label: "チャット履歴",
+      icon: MessageCircle,
+      path: "/admin/chat-history",
       badge: null
     },
     {

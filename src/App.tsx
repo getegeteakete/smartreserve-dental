@@ -28,6 +28,7 @@ import AdminGuide from "./pages/AdminGuide";
 import NotificationSettings from "./pages/NotificationSettings";
 import SystemSettings from "./pages/SystemSettings";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AdminChatHistory from "./pages/AdminChatHistory";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/admin/treatments" element={<AdminTreatments />} />
           <Route path="/admin/patients" element={<AdminPatients />} />
           <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/chat-history" element={<AdminChatHistory />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/old-treatments" element={<TreatmentManagement />} />
           <Route path="/admin/old-patients" element={<PatientManagement />} />

@@ -22,6 +22,7 @@ import { DentalReceptionistAvatar } from './DentalReceptionistAvatar';
 import { searchTreatmentCourse, TreatmentCourse } from '@/utils/treatmentCourseData';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { useChatMessages } from '@/hooks/useChatMessages';
 
 interface Message {
   id: string;
@@ -74,6 +75,9 @@ export const AIChatBot = ({
   className = "" 
 }: AIChatBotProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
+  const { generateSessionId, saveMessage } = useChatMessages();
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -110,6 +114,14 @@ export const AIChatBot = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // チャット開始時にセッションIDを生成
+  useEffect(() => {
+    if (isOpen && !sessionId) {
+      const newSessionId = generateSessionId();
+      setSessionId(newSessionId);
+    }
+  }, [isOpen, sessionId, generateSessionId]);
 
   // 音声認識の初期化
   useEffect(() => {
@@ -456,7 +468,7 @@ export const AIChatBot = ({
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !sessionId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -466,12 +478,40 @@ export const AIChatBot = ({
     };
 
     setMessages(prev => [...prev, userMessage]);
+    
+    // ユーザーメッセージをデータベースに保存
+    try {
+      await saveMessage({
+        session_id: sessionId,
+        message_type: 'user',
+        content: inputValue,
+        metadata: null,
+        is_read: false
+      });
+    } catch (error) {
+      console.error('Error saving user message:', error);
+    }
+
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
     try {
-      const aiResponse = await processUserMessage(inputValue);
+      const aiResponse = await processUserMessage(currentInput);
       setMessages(prev => [...prev, aiResponse]);
+      
+      // AIレスポンスをデータベースに保存
+      try {
+        await saveMessage({
+          session_id: sessionId,
+          message_type: 'ai',
+          content: aiResponse.content,
+          metadata: aiResponse.metadata,
+          is_read: true
+        });
+      } catch (error) {
+        console.error('Error saving AI response:', error);
+      }
     } catch (error) {
       console.error('Error processing message:', error);
       toast({

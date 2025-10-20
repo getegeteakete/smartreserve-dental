@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
-import { ArrowLeft, CreditCard, MessageCircle, Mail, Smartphone, Calendar, Settings as SettingsIcon, RefreshCw } from "lucide-react";
+import { ArrowLeft, CreditCard, MessageCircle, Mail, Smartphone, Calendar, Settings as SettingsIcon, RefreshCw, Edit, Save, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
@@ -16,6 +18,22 @@ import { ensureSystemSettings, forceUpdateSystemSettings } from "@/utils/default
 export default function SystemSettings() {
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(false);
+  const [editingGeneralSettings, setEditingGeneralSettings] = useState(false);
+  const [generalSettingsForm, setGeneralSettingsForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    email: '',
+    business_hours: {
+      monday: { start: '', end: '', available: true },
+      tuesday: { start: '', end: '', available: true },
+      wednesday: { start: '', end: '', available: true },
+      thursday: { start: '', end: '', available: true },
+      friday: { start: '', end: '', available: true },
+      saturday: { start: '', end: '', available: true },
+      sunday: { start: '', end: '', available: false },
+    }
+  });
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -50,11 +68,21 @@ export default function SystemSettings() {
     navigate("/admin-login");
   };
 
-  const handleToggleSetting = async (key: string, currentValue: any) => {
+  const handleToggleSetting = async (key: string, currentValue: any, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     const setting = settings.find(s => s.setting_key === key);
-    if (!setting) return;
+    if (!setting) {
+      console.error('Setting not found:', key);
+      return;
+    }
     
     try {
+      console.log('Toggle setting start:', { key, currentValue, currentIsEnabled: setting.is_enabled });
+      
       // is_enabled をトグルする
       const newIsEnabled = !setting.is_enabled;
       
@@ -64,7 +92,11 @@ export default function SystemSettings() {
         enabled: newIsEnabled
       };
       
+      console.log('About to update setting:', { key, newSettingValue, newIsEnabled });
+      
       await updateSetting(key, newSettingValue, newIsEnabled);
+      
+      console.log('Setting update completed for:', key);
     } catch (error) {
       console.error('設定の切り替えエラー:', error);
       toast({
@@ -332,7 +364,10 @@ export default function SystemSettings() {
                         <Switch
                           id={setting.setting_key}
                           checked={setting.is_enabled}
-                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                          onCheckedChange={(checked) => {
+                            console.log('Payment Switch onCheckedChange:', { key: setting.setting_key, checked });
+                            handleToggleSetting(setting.setting_key, setting.setting_value);
+                          }}
                         />
                       </div>
                       
@@ -428,7 +463,10 @@ export default function SystemSettings() {
                         <Switch
                           id={setting.setting_key}
                           checked={setting.is_enabled}
-                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                          onCheckedChange={(checked) => {
+                            console.log('Chat Switch onCheckedChange:', { key: setting.setting_key, checked });
+                            handleToggleSetting(setting.setting_key, setting.setting_value);
+                          }}
                         />
                       </div>
                       
@@ -501,7 +539,10 @@ export default function SystemSettings() {
                         <Switch
                           id={setting.setting_key}
                           checked={setting.is_enabled}
-                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                          onCheckedChange={(checked) => {
+                            console.log('Notification Switch onCheckedChange:', { key: setting.setting_key, checked });
+                            handleToggleSetting(setting.setting_key, setting.setting_value);
+                          }}
                         />
                       </div>
                       
@@ -584,7 +625,10 @@ export default function SystemSettings() {
                         <Switch
                           id={setting.setting_key}
                           checked={setting.is_enabled}
-                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                          onCheckedChange={(checked) => {
+                            console.log('Email Switch onCheckedChange:', { key: setting.setting_key, checked });
+                            handleToggleSetting(setting.setting_key, setting.setting_value);
+                          }}
                         />
                       </div>
                     </div>
@@ -620,7 +664,10 @@ export default function SystemSettings() {
                         <Switch
                           id={setting.setting_key}
                           checked={setting.is_enabled}
-                          onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
+                          onCheckedChange={(checked) => {
+                            console.log('Booking Switch onCheckedChange:', { key: setting.setting_key, checked });
+                            handleToggleSetting(setting.setting_key, setting.setting_value);
+                          }}
                         />
                       </div>
                     </div>
