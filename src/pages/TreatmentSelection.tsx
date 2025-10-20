@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,131 +22,71 @@ const TreatmentSelection = () => {
   }, [error]);
 
   const handleBookingClick = (treatment: TreatmentWithCategory) => {
-    // 診療データを確実に渡すためのオブジェクト作成
-    const treatmentData = {
-      id: treatment.id,
-      name: treatment.name,
-      fee: treatment.fee,
-      duration: treatment.duration,
-      description: treatment.description,
-      category: treatment.category
-    };
-    
-    // stateを確実に渡す
-    navigate("/booking", { 
-      state: { 
-        selectedTreatment: treatment.id,
-        treatmentData: treatmentData
+    navigate("/booking", {
+      state: {
+        treatmentId: treatment.id,
+        treatmentName: treatment.name,
+        treatmentFee: treatment.fee,
+        treatmentDuration: treatment.duration,
+        treatmentDescription: treatment.description,
+        categoryName: treatment.category_name,
       },
-      replace: false
     });
   };
 
-  // カテゴリー別にグループ化する関数
+  // カテゴリー別に診療メニューを分類
   const categorizeByCategory = (treatments: TreatmentWithCategory[]) => {
     console.log("🔍 TreatmentSelection: カテゴリ化開始", treatments);
     
-    // 重複を除去（名前ベースで判定）
+    // 重複を除去
     const uniqueTreatments = treatments.filter((treatment, index, self) => 
-      index === self.findIndex(t => t.name === treatment.name)
+      index === self.findIndex(t => t.id === treatment.id)
     );
-    
     console.log("🔍 TreatmentSelection: 重複除去後", uniqueTreatments);
+
+    const categorized: { [key: string]: TreatmentWithCategory[] } = {};
     
-    return uniqueTreatments.reduce((acc: Record<string, TreatmentWithCategory[]>, treatment) => {
-      let categoryName: string;
-      
-      // カテゴリが設定されている場合はそれを使用
-      if (treatment.category?.name) {
-        categoryName = treatment.category.name;
-      } else {
-      // カテゴリが設定されていない場合は名前から推測
-      const name = treatment.name;
-      if (name.includes('初診') || name.includes('初心')) {
-        categoryName = '初めての方';
-      } else if (name.includes('精密検査')) {
-        categoryName = '精密検査予約';
-      } else if (name.includes('ホワイトニング')) {
-        categoryName = 'ホワイトニング予約';
-      } else if (name.includes('PMTC') || name.includes('クリーニング')) {
-        categoryName = 'PMTC予約';
-      } else if (name.includes('矯正')) {
-        categoryName = '矯正歯科';
-      } else {
-        // どのカテゴリにも当てはまらない場合は「初めての方」として分類
-        categoryName = '初めての方';
+    uniqueTreatments.forEach(treatment => {
+      const category = treatment.category_name || "その他";
+      if (!categorized[category]) {
+        categorized[category] = [];
       }
-      }
-      
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(treatment);
-      return acc;
-    }, {});
+      categorized[category].push(treatment);
+    });
+
+    console.log("🔍 TreatmentSelection: カテゴリ化結果", categorized);
+    return categorized;
   };
 
-  // カテゴリー別に診療メニューをグループ化
-  const categorizedTreatments = categorizeByCategory(treatments);
-  console.log("🔍 TreatmentSelection: カテゴリ化結果", categorizedTreatments);
-
-  // カテゴリーの表示順序を固定
+  const categorizedTreatments = categorizeByCategory(treatments || []);
+  
+  // 表示するカテゴリーの順序を定義
   const categoryOrder = ["初めての方", "精密検査予約", "ホワイトニング予約", "PMTC予約"];
   
-  // 存在するカテゴリのみを順序通りに取得
-  const orderedCategories = categoryOrder.filter(category => categorizedTreatments[category]);
-  console.log("🔍 TreatmentSelection: 表示対象カテゴリ", orderedCategories);
+  // 表示対象のカテゴリーを取得（順序を保持）
+  const displayCategories = categoryOrder.filter(category => 
+    categorizedTreatments[category] && categorizedTreatments[category].length > 0
+  );
+  
+  console.log("🔍 TreatmentSelection: 表示対象カテゴリ", displayCategories);
 
-  // カテゴリーセクションにスクロールする関数
-  const scrollToCategory = (category: string) => {
-    const element = document.getElementById(`category-${category}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  // エラー状態の処理
-  if (error) {
-    console.error("TreatmentSelection - エラー表示:", error);
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">診療メニューの取得中にエラーが発生しました。</p>
-          <p className="text-sm text-gray-500">{error.message || "不明なエラーです。"}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            className="mt-4"
-          >
-            再読み込み
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ローディング状態の処理
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">診療メニューを読み込み中...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">診療メニューを読み込み中...</p>
         </div>
       </div>
     );
   }
 
-  // データが空の場合の処理
-  if (!treatments || treatments.length === 0) {
+  if (error) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">診療メニューが見つかりません。</p>
-          <p className="text-sm text-gray-500 mt-2">管理者にお問い合わせください。</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            className="mt-4"
-          >
+          <p className="text-red-600 mb-4">診療メニューの読み込みに失敗しました</p>
+          <Button onClick={() => window.location.reload()}>
             再読み込み
           </Button>
         </div>
@@ -157,10 +96,10 @@ const TreatmentSelection = () => {
 
   // カテゴリー画像のマッピング
   const categoryImages = {
-    "初診": "/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png",
-    "精密検査": "/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png", 
-    "ホワイトニング": "/lovable-uploads/b3452854-e2f9-4414-b8fd-41f432c466ff.png",
-    "PMTC": "/lovable-uploads/87d8b2fd-ead0-49b4-bb0e-89abad0f0380.png"
+    "初めての方": "/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png",
+    "精密検査予約": "/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png", 
+    "ホワイトニング予約": "/lovable-uploads/b3452854-e2f9-4414-b8fd-41f432c466ff.png",
+    "PMTC予約": "/lovable-uploads/87d8b2fd-ead0-49bd-ba4b-f6b20d984c28.png"
   };
 
 
@@ -172,13 +111,18 @@ const TreatmentSelection = () => {
         <div className="sticky top-16 z-40 bg-white border-b border-gray-200 shadow-sm">
           <div className="px-4 py-3">
             <div className="flex flex-wrap justify-center gap-2">
-              {orderedCategories.map((category) => (
+              {displayCategories.map((category) => (
                 <Button
                   key={category}
                   variant="outline"
-                  onClick={() => scrollToCategory(category)}
                   size="sm"
                   className="text-xs"
+                  onClick={() => {
+                    const element = document.getElementById(`category-${category}`);
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                 >
                   {category}
                 </Button>
@@ -187,16 +131,15 @@ const TreatmentSelection = () => {
           </div>
         </div>
 
-        {/* スクロール可能なコンテンツ部分 */}
-        <ScrollArea className="flex-1 px-4">
-          <div className="pb-32">
-            {/* カテゴリーごとの表示 */}
-            {orderedCategories.map((category) => (
-              <div key={category} id={`category-${category}`} className="mb-8">
-                {/* カテゴリーの見出し画像とタイトル */}
-                <div className="text-center mb-6">
+        {/* 診療メニュー一覧 */}
+        <ScrollArea className="flex-1 px-4 py-6">
+          <div className="space-y-8">
+            {displayCategories.map((category) => (
+              <div key={category} id={`category-${category}`} className="space-y-4">
+                {/* カテゴリーヘッダー */}
+                <div className="text-center py-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
-                    <div className="w-full max-w-lg mx-auto h-48 mb-4 overflow-hidden rounded-lg">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden border-2 border-blue-200">
                       <img
                         src={categoryImages[category as keyof typeof categoryImages]}
                         alt={category}
@@ -252,115 +195,107 @@ const TreatmentSelection = () => {
                 </div>
               </div>
             ))}
-
-            {orderedCategories.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-600 mb-4">現在、診療メニューを準備中です。</p>
-                <p className="text-sm text-gray-500">
-                  お急ぎの場合は、お電話にてお問い合わせください。
-                </p>
-              </div>
-            )}
           </div>
         </ScrollArea>
+        
+        {/* 固定メニューバナー - 一時的に無効化 */}
+        {/* <FixedMenuBanner /> */}
+        
+        {/* 営業状況バナー（モバイルのみ） - 一時的に無効化 */}
+        {/* <BusinessStatusBanner /> */}
       </div>
     );
   }
 
+  // デスクトップ表示
   return (
-    <div className="container mx-auto py-8 px-4">
-      {/* 固定カテゴリー選択ヘッダー */}
-      <div className="sticky top-16 z-40 bg-white border-b border-gray-200 shadow-sm -mx-4 px-4 py-4 mb-8">
-        <div className="flex flex-wrap justify-center gap-2">
-          {orderedCategories.map((category) => (
-            <Button
-              key={category}
-              variant="outline"
-              onClick={() => scrollToCategory(category)}
-            >
-              {category}
-            </Button>
-          ))}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">診療メニュー</h1>
+          <p className="text-gray-600">ご希望の診療メニューを選択してください</p>
         </div>
-      </div>
 
-      {/* カテゴリーごとの表示 */}
-      {orderedCategories.map((category) => (
-        <div key={category} id={`category-${category}`} className="mb-12">
-          {/* カテゴリーの見出し画像とタイトル */}
-          <div className="text-center mb-8">
-            {categoryImages[category as keyof typeof categoryImages] && (
-              <div className="w-full max-w-2xl mx-auto h-64 mb-6 overflow-hidden rounded-lg">
-                <img
-                  src={categoryImages[category as keyof typeof categoryImages]}
-                  alt={category}
-                  className="w-full h-full object-cover"
-                />
+        {displayCategories.length > 0 ? (
+          <div className="space-y-12">
+            {displayCategories.map((category) => (
+              <div key={category} className="space-y-6">
+                {/* カテゴリーヘッダー */}
+                <div className="text-center py-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  {categoryImages[category as keyof typeof categoryImages] && (
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-2 border-blue-200">
+                      <img
+                        src={categoryImages[category as keyof typeof categoryImages]}
+                        alt={category}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    {category}
+                  </h2>
+                </div>
+                
+                {/* 診療メニュー表示 */}
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {categorizedTreatments[category].map((treatment) => (
+                    <Card key={treatment.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 leading-tight">
+                          {treatment.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <CardDescription className="text-sm text-gray-600">
+                          {treatment.description || "詳細な説明はお問い合わせください。"}
+                        </CardDescription>
+                        
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{treatment.duration}分</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <BadgeJapaneseYen className="h-4 w-4" />
+                            <span className="font-semibold">
+                              {treatment.fee === 0 ? "無料" : `¥${treatment.fee.toLocaleString()}`}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleBookingClick(treatment)}
+                            className="w-full flex items-center gap-1"
+                          >
+                            <Calendar className="h-4 w-4" />
+                            予約する
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            )}
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {category}
-            </h2>
-          </div>
-          
-          {/* 診療メニュー表示 */}
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {categorizedTreatments[category].map((treatment) => (
-              <Card key={treatment.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xl font-semibold text-gray-900 leading-tight">
-                    {treatment.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <CardDescription className="text-base text-gray-600">
-                    {treatment.description || "詳細な説明はお問い合わせください。"}
-                  </CardDescription>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{treatment.duration}分</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <BadgeJapaneseYen className="h-4 w-4" />
-                      <span className="font-semibold">
-                        {treatment.fee === 0 ? "無料" : `¥${treatment.fee.toLocaleString()}`}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <Button
-                      onClick={() => handleBookingClick(treatment)}
-                      className="w-full flex items-center gap-1"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      予約する
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
             ))}
           </div>
-        </div>
-      ))}
-
-      {orderedCategories.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-600 mb-4">現在、診療メニューを準備中です。</p>
-          <p className="text-sm text-gray-500">
-            お急ぎの場合は、お電話にてお問い合わせください。
-          </p>
-        </div>
-      )}
-      
-      {/* 固定メニューバナー - 一時的に無効化 */}
-      {/* <FixedMenuBanner /> */}
-      
-      {/* 営業状況バナー（モバイルのみ） - 一時的に無効化 */}
-      {/* <BusinessStatusBanner /> */}
-    </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">現在、診療メニューを準備中です。</p>
+            <p className="text-sm text-gray-500">
+              お急ぎの場合は、お電話にてお問い合わせください。
+            </p>
+          </div>
+        )}
+        
+        {/* 固定メニューバナー - 一時的に無効化 */}
+        {/* <FixedMenuBanner /> */}
+        
+        {/* 営業状況バナー（モバイルのみ） - 一時的に無効化 */}
+        {/* <BusinessStatusBanner /> */}
+      </div>
+    );
   );
 };
 
