@@ -202,51 +202,59 @@ export default function SystemSettings() {
 
   // 一般設定の編集開始
   const handleStartEditingGeneralSettings = () => {
-    console.log('編集モード開始');
+    console.log('編集モード開始 - 現在のeditingGeneralSettings:', editingGeneralSettings);
     
     // 現在の設定値を確実にフォームに読み込み
     try {
       const settingsByCategory = getSettingsByCategory();
       const clinicInfo = settingsByCategory.general.find(s => s.setting_key === 'clinic_info');
       
+      console.log('Clinic info found:', clinicInfo);
+      
       if (clinicInfo && clinicInfo.setting_value) {
         console.log('設定値読み込み:', clinicInfo.setting_value);
         setGeneralSettingsForm(clinicInfo.setting_value);
       } else {
-        console.log('データベースに設定がないため、現在のフォーム値またはデフォルト値を使用');
-        // 現在のgeneralSettingsFormの値を使用、またはデフォルト値を設定
-        if (!generalSettingsForm.name) {
-          setGeneralSettingsForm(prev => ({
-            ...prev,
-            name: prev.name || '六本松 矯正歯科クリニック とよしま予約ページ',
-            phone: prev.phone || '092-406-2119',
-            address: prev.address || '福岡県福岡市中央区六本松',
-            email: prev.email || '489@489.toyoshima-do.com',
-            business_hours: prev.business_hours || {
-              monday: { start: '10:00', end: '13:30', available: true },
-              tuesday: { start: '10:00', end: '13:30', available: true },
-              wednesday: { start: '10:00', end: '13:30', available: true },
-              thursday: { start: '10:00', end: '13:30', available: true },
-              friday: { start: '10:00', end: '13:30', available: true },
-              saturday: { start: '09:00', end: '12:30', available: true },
-              sunday: { start: '', end: '', available: false },
-            }
-          }));
-        }
+        console.log('データベースに設定がないため、デフォルト値を使用');
+        // デフォルト値を確実に設定
+        const defaultSettings = {
+          name: '六本松 矯正歯科クリニック とよしま予約ページ',
+          phone: '092-406-2119',
+          address: '福岡県福岡市中央区六本松',
+          email: '489@489.toyoshima-do.com',
+          business_hours: {
+            monday: { start: '10:00', end: '13:30', available: true },
+            tuesday: { start: '10:00', end: '13:30', available: true },
+            wednesday: { start: '10:00', end: '13:30', available: true },
+            thursday: { start: '10:00', end: '13:30', available: true },
+            friday: { start: '10:00', end: '13:30', available: true },
+            saturday: { start: '09:00', end: '12:30', available: true },
+            sunday: { start: '', end: '', available: false },
+          }
+        };
+        setGeneralSettingsForm(defaultSettings);
       }
     } catch (error) {
       console.error('編集開始時のエラー:', error);
     }
     
+    // 編集モードを確実にONにする
+    console.log('settingEditingGeneralSettings to true');
     setEditingGeneralSettings(true);
   };
 
   // 一般設定の編集キャンセル
   const handleCancelEditingGeneralSettings = () => {
-    const settingsByCategory = getSettingsByCategory();
-    const clinicInfo = settingsByCategory.general.find(s => s.setting_key === 'clinic_info');
-    if (clinicInfo && clinicInfo.setting_value) {
-      setGeneralSettingsForm(clinicInfo.setting_value);
+    console.log('編集キャンセル');
+    try {
+      const settingsByCategory = getSettingsByCategory();
+      const clinicInfo = settingsByCategory.general.find(s => s.setting_key === 'clinic_info');
+      if (clinicInfo && clinicInfo.setting_value) {
+        console.log('設定値を元に戻す:', clinicInfo.setting_value);
+        setGeneralSettingsForm(clinicInfo.setting_value);
+      }
+    } catch (error) {
+      console.error('キャンセル時のエラー:', error);
     }
     setEditingGeneralSettings(false);
   };
@@ -331,6 +339,8 @@ export default function SystemSettings() {
   console.log('SystemSettings - settingsByCategory:', settingsByCategory);
   console.log('SystemSettings - payment settings:', settingsByCategory.payment);
   console.log('SystemSettings - chat settings:', settingsByCategory.chat);
+  console.log('SystemSettings - editingGeneralSettings:', editingGeneralSettings);
+  console.log('SystemSettings - generalSettingsForm:', generalSettingsForm);
 
   // 設定が空の場合の表示
   if (settings.length === 0) {
@@ -434,9 +444,9 @@ export default function SystemSettings() {
                 <RefreshCw className={`h-4 w-4 ${initializing ? 'animate-spin' : ''}`} />
                 {initializing ? '初期化中' : '初期化'}
               </Button>
-              <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
-                ログアウト
-              </Button>
+            <Button variant="outline" onClick={handleLogout} size={isMobile ? "sm" : "default"}>
+              ログアウト
+            </Button>
             </div>
           </div>
 
@@ -844,14 +854,20 @@ export default function SystemSettings() {
                     <div className="flex items-center gap-2">
                       {!editingGeneralSettings ? (
                         <Button 
-                          onClick={handleStartEditingGeneralSettings}
-                          className="flex items-center gap-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('編集ボタンクリック - 現在の状態:', editingGeneralSettings);
+                            handleStartEditingGeneralSettings();
+                          }}
+                          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                          type="button"
                         >
                           <Edit className="h-4 w-4" />
                           編集する
                         </Button>
                       ) : (
-                        <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded border">
                           <Edit className="h-4 w-4" />
                           編集中
                         </div>
@@ -947,7 +963,7 @@ export default function SystemSettings() {
                                    day === 'friday' ? '金曜日' :
                                    day === 'saturday' ? '土曜日' :
                                    day === 'sunday' ? '日曜日' : day}
-                                </Label>
+                      </Label>
                               </div>
                               {hours.available && (
                                 <div className="flex items-center space-x-2">
@@ -1051,23 +1067,31 @@ export default function SystemSettings() {
                                 <span>
                                   {hours.available ? `${hours.start} - ${hours.end}` : '定休日'}
                                 </span>
-                              </div>
-                            ))}
+                    </div>
+                  ))}
                           </div>
                         </div>
                       </div>
                       
                       {/* 編集ボタン - 常に表示 */}
-                      <div className="flex justify-center pt-4">
-                        <Button 
-                          onClick={handleStartEditingGeneralSettings}
-                          className="flex items-center gap-2"
-                          size="lg"
-                        >
-                          <Edit className="h-4 w-4" />
-                          編集する
-                        </Button>
-                      </div>
+                      {!editingGeneralSettings && (
+                        <div className="flex justify-center pt-4">
+                          <Button 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('下部編集ボタンクリック - 現在の状態:', editingGeneralSettings);
+                              handleStartEditingGeneralSettings();
+                            }}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                            size="lg"
+                            type="button"
+                          >
+                            <Edit className="h-4 w-4" />
+                            編集する
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
