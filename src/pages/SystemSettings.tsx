@@ -51,8 +51,28 @@ export default function SystemSettings() {
   };
 
   const handleToggleSetting = async (key: string, currentValue: any) => {
-    const newEnabled = !(currentValue?.enabled ?? false);
-    await updateSetting(key, { ...currentValue, enabled: newEnabled }, newEnabled);
+    const setting = settings.find(s => s.setting_key === key);
+    if (!setting) return;
+    
+    try {
+      // is_enabled をトグルする
+      const newIsEnabled = !setting.is_enabled;
+      
+      // setting_value の enabled も更新
+      const newSettingValue = {
+        ...currentValue,
+        enabled: newIsEnabled
+      };
+      
+      await updateSetting(key, newSettingValue, newIsEnabled);
+    } catch (error) {
+      console.error('設定の切り替えエラー:', error);
+      toast({
+        title: 'エラー',
+        description: '設定の切り替えに失敗しました',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleToggleIsEnabled = async (key: string, currentIsEnabled: boolean) => {
@@ -136,6 +156,12 @@ export default function SystemSettings() {
   }
 
   const settingsByCategory = getSettingsByCategory();
+
+  // デバッグ情報を出力
+  console.log('SystemSettings - settings:', settings);
+  console.log('SystemSettings - settingsByCategory:', settingsByCategory);
+  console.log('SystemSettings - payment settings:', settingsByCategory.payment);
+  console.log('SystemSettings - chat settings:', settingsByCategory.chat);
 
   // 設定が空の場合の表示
   if (settings.length === 0) {
@@ -282,7 +308,19 @@ export default function SystemSettings() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {settingsByCategory.payment.map((setting) => (
+                  {settingsByCategory.payment.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>決済設定が読み込まれていません。</p>
+                      <Button 
+                        onClick={handleInitializeSettings}
+                        className="mt-4"
+                        variant="outline"
+                      >
+                        設定を初期化
+                      </Button>
+                    </div>
+                  ) : (
+                    settingsByCategory.payment.map((setting) => (
                     <div key={setting.id} className="space-y-3">
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex-1">
@@ -293,7 +331,7 @@ export default function SystemSettings() {
                         </div>
                         <Switch
                           id={setting.setting_key}
-                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          checked={setting.is_enabled}
                           onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
                         />
                       </div>
@@ -339,7 +377,7 @@ export default function SystemSettings() {
                         </div>
                       )}
                     </div>
-                  ))}
+                  )))}
                   
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <p className="text-sm text-blue-900">
@@ -364,7 +402,19 @@ export default function SystemSettings() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {settingsByCategory.chat.map((setting) => (
+                  {settingsByCategory.chat.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>チャット設定が読み込まれていません。</p>
+                      <Button 
+                        onClick={handleInitializeSettings}
+                        className="mt-4"
+                        variant="outline"
+                      >
+                        設定を初期化
+                      </Button>
+                    </div>
+                  ) : (
+                    settingsByCategory.chat.map((setting) => (
                     <div key={setting.id} className="space-y-3">
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex-1">
@@ -377,7 +427,7 @@ export default function SystemSettings() {
                         </div>
                         <Switch
                           id={setting.setting_key}
-                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          checked={setting.is_enabled}
                           onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
                         />
                       </div>
@@ -411,7 +461,7 @@ export default function SystemSettings() {
                         </div>
                       )}
                     </div>
-                  ))}
+                  )))}
                   
                   <div className="bg-green-50 p-4 rounded-lg">
                     <p className="text-sm text-green-900">
@@ -450,7 +500,7 @@ export default function SystemSettings() {
                         </div>
                         <Switch
                           id={setting.setting_key}
-                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          checked={setting.is_enabled}
                           onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
                         />
                       </div>
@@ -533,7 +583,7 @@ export default function SystemSettings() {
                         </div>
                         <Switch
                           id={setting.setting_key}
-                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          checked={setting.is_enabled}
                           onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
                         />
                       </div>
@@ -569,7 +619,7 @@ export default function SystemSettings() {
                         </div>
                         <Switch
                           id={setting.setting_key}
-                          checked={setting.is_enabled && (setting.setting_value?.enabled !== false)}
+                          checked={setting.is_enabled}
                           onCheckedChange={() => handleToggleSetting(setting.setting_key, setting.setting_value)}
                         />
                       </div>

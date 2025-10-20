@@ -74,6 +74,8 @@ export const useSystemSettings = () => {
   // 設定を更新
   const updateSetting = async (key: string, value: any, isEnabled?: boolean) => {
     try {
+      console.log('Setting update request:', { key, value, isEnabled });
+      
       const updateData: any = {
         setting_value: value,
         updated_at: new Date().toISOString(),
@@ -83,16 +85,24 @@ export const useSystemSettings = () => {
         updateData.is_enabled = isEnabled;
       }
 
-      const { error } = await supabase
+      console.log('Update data:', updateData);
+
+      const { data, error } = await supabase
         .from('system_settings')
         .update(updateData)
-        .eq('setting_key', key);
+        .eq('setting_key', key)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+
+      console.log('Update successful:', data);
 
       toast({
         title: '更新完了',
-        description: '設定が更新されました',
+        description: `設定「${key}」が更新されました`,
       });
 
       await fetchSettings();
@@ -100,7 +110,7 @@ export const useSystemSettings = () => {
       console.error('Error updating setting:', error);
       toast({
         title: 'エラー',
-        description: '設定の更新に失敗しました',
+        description: `設定「${key}」の更新に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     }
