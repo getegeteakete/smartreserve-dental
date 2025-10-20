@@ -29,15 +29,12 @@ const Header = () => {
               <div className="flex items-center gap-3">
                 <img 
                   src="/lovable-uploads/ortho-toyoshima-logo.png" 
-                  alt="ORTHO TOYOSHIMA" 
+                  alt="六本松 矯正歯科クリニック とよしま" 
                   className="h-12 w-auto"
                 />
                 <div className="flex flex-col">
                   <span className="text-xl md:text-2xl font-bold text-primary leading-tight">
-                    ORTHO TOYOSHIMA
-                  </span>
-                  <span className="text-sm md:text-base font-medium text-gray-600 leading-tight">
-                    六本松 矯正歯科クリニック とよしま
+                    六本松 矯正歯科クリニック とよしま予約ページ
                   </span>
                 </div>
               </div>
