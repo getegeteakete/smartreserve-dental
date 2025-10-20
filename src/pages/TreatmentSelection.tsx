@@ -117,7 +117,7 @@ const TreatmentSelection = () => {
     "初めての方": "/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png",
     "精密検査予約": "/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png", 
     "ホワイトニング予約": "/lovable-uploads/b3452854-e2f9-4414-b8fd-41f432c466ff.png",
-    "PMTC予約": "/lovable-uploads/87d8b2fd-ead0-49bd-ba4b-f6b20d984c28.png"
+    "PMTC予約": "http://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/wp-content/uploads/2024/03/touin10.jpg"
   };
 
 
@@ -155,7 +155,7 @@ const TreatmentSelection = () => {
             {displayCategories.map((category) => (
               <div key={category} id={`category-${category}`} className="space-y-4">
                 {/* カテゴリーヘッダー */}
-                <div className="text-center py-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="text-center py-4 bg-gray-100 rounded-sm border border-gray-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
                     <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden border-2 border-blue-200">
                       <img
@@ -239,7 +239,7 @@ const TreatmentSelection = () => {
             {displayCategories.map((category) => (
               <div key={category} className="space-y-6">
                 {/* カテゴリーヘッダー */}
-                <div className="text-center py-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="text-center py-6 bg-gray-100 rounded-sm border border-gray-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
                     <div className="w-full h-[300px] mx-auto mb-4 rounded-lg overflow-hidden border-2 border-blue-200">
                       <img
