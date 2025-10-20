@@ -216,27 +216,26 @@ export const InteractiveBusinessCalendar = ({
     const endMonth = endOfMonth(selectedDate);
     const monthDays = eachDayOfInterval({ start: currentMonth, end: endMonth });
 
-    const fullOpenDays: Date[] = [];
-    const partialOpenDays: Date[] = [];
+    const businessDays: Date[] = [];
     const closedDays: Date[] = [];
-    const specialOpenDays: Date[] = [];
 
     monthDays.forEach(day => {
       const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
       console.log(`${format(day, 'MM/dd')}のスケジュール情報:`, scheduleInfo);
       
-      if (scheduleInfo.type === 'special-open') {
-        specialOpenDays.push(day);
-      } else if (scheduleInfo.type === 'full-open') {
-        fullOpenDays.push(day);
-      } else if (scheduleInfo.type === 'partial-open') {
-        partialOpenDays.push(day);
+      // 営業日（special-open, full-open, partial-open, saturday-open, morning-closed等）
+      if (scheduleInfo.type === 'special-open' || 
+          scheduleInfo.type === 'full-open' || 
+          scheduleInfo.type === 'partial-open' ||
+          scheduleInfo.type === 'saturday-open' ||
+          scheduleInfo.type === 'morning-closed') {
+        businessDays.push(day);
       } else {
         closedDays.push(day);
       }
     });
 
-    return { fullOpenDays, partialOpenDays, closedDays, specialOpenDays };
+    return { businessDays, closedDays };
   };
 
   const handleDateClick = (date: Date | undefined) => {
@@ -526,7 +525,7 @@ export const InteractiveBusinessCalendar = ({
     setShowDailyEditor(false);
   };
 
-  const { fullOpenDays, partialOpenDays, closedDays, specialOpenDays } = getDayModifiers();
+  const { businessDays, closedDays } = getDayModifiers();
 
   if (loading) {
     return <div className="text-center py-4">カレンダーを読み込み中...</div>;
@@ -582,34 +581,20 @@ export const InteractiveBusinessCalendar = ({
             }}
             locale={ja}
             modifiers={{
-              fullOpen: fullOpenDays,
-              partialOpen: partialOpenDays,
+              business: businessDays,
               closed: closedDays,
-              specialOpen: specialOpenDays,
             }}
             modifiersStyles={{
-              fullOpen: { 
+              business: { 
                 backgroundColor: '#dbeafe',
                 color: '#1e40af',
                 border: '2px solid #3b82f6',
-                fontWeight: 'bold'
-              },
-              partialOpen: { 
-                backgroundColor: '#fef3c7',
-                color: '#d97706',
-                border: '2px solid #f59e0b',
                 fontWeight: 'bold'
               },
               closed: { 
                 backgroundColor: '#fee2e2',
                 color: '#dc2626',
                 border: '2px solid #ef4444',
-                fontWeight: 'bold'
-              },
-              specialOpen: { 
-                backgroundColor: '#f3e8ff',
-                color: '#7c3aed',
-                border: '2px solid #8b5cf6',
                 fontWeight: 'bold'
               },
             }}

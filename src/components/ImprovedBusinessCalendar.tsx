@@ -106,23 +106,14 @@ export const ImprovedBusinessCalendar = ({ className }: ImprovedBusinessCalendar
                 const dayNumber = date.getDate();
                 
                 let dayType = 'closed';
-                let dayLabel = '休診';
+                let dayLabel = '休み';
                 
-                if (modifiers.fullOpen.some(d => d.getDate() === dayNumber)) {
-                  dayType = 'full-open';
-                  dayLabel = '終日営業';
-                } else if (modifiers.saturdayOpen.some(d => d.getDate() === dayNumber)) {
-                  dayType = 'saturday-open';
-                  dayLabel = '土曜営業';
-                } else if (modifiers.morningClosed.some(d => d.getDate() === dayNumber)) {
-                  dayType = 'morning-closed';
-                  dayLabel = '午前休診';
-                } else if (modifiers.specialOpen.some(d => d.getDate() === dayNumber)) {
-                  dayType = 'special-open';
-                  dayLabel = '特別営業';
+                if (modifiers.business.some(d => d.getDate() === dayNumber)) {
+                  dayType = 'business';
+                  dayLabel = '営業日';
                 } else if (modifiers.closed.some(d => d.getDate() === dayNumber)) {
                   dayType = 'closed';
-                  dayLabel = '休診';
+                  dayLabel = '休み';
                 }
 
                 const colorClass = colors[dayType as keyof typeof colors];
@@ -162,11 +153,8 @@ export const ImprovedBusinessCalendar = ({ className }: ImprovedBusinessCalendar
               <div key={type} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded-full ${color.bg} ${color.border} border-2`} />
                 <span className="text-sm text-gray-700">
-                  {type === 'full-open' && '終日営業'}
-                  {type === 'saturday-open' && '土曜営業'}
-                  {type === 'morning-closed' && '午前休診'}
-                  {type === 'special-open' && '特別営業'}
-                  {type === 'closed' && '休診'}
+                  {type === 'business' && '営業日'}
+                  {type === 'closed' && '休み'}
                 </span>
               </div>
             ))}
