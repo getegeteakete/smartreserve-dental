@@ -157,7 +157,7 @@ const TreatmentSelection = () => {
                 {/* カテゴリーヘッダー */}
                 <div className="text-center py-4 bg-gray-100 rounded-sm border border-gray-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden border-2 border-blue-200">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
                       <img
                         src={categoryImages[category as keyof typeof categoryImages]}
                         alt={category}
@@ -241,7 +241,7 @@ const TreatmentSelection = () => {
                 {/* カテゴリーヘッダー */}
                 <div className="text-center py-6 bg-gray-100 rounded-sm border border-gray-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
-                    <div className="w-full h-[300px] mx-auto mb-4 rounded-lg overflow-hidden border-2 border-blue-200">
+                    <div className="w-full h-[300px] mx-auto mb-4 rounded-lg overflow-hidden">
                       <img
                         src={categoryImages[category as keyof typeof categoryImages]}
                         alt={category}

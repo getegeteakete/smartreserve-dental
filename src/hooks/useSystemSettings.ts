@@ -71,8 +71,17 @@ export const useSystemSettings = () => {
     const setting = getSetting(key);
     if (!setting) return false;
     
-    // is_enabledとsetting_value.enabledの両方をチェック
-    return setting.is_enabled && (setting.setting_value?.enabled !== false);
+    // is_enabledとsetting_value.enabledの両方をチェック（より厳密に）
+    const isEnabled = setting.is_enabled === true;
+    const configEnabled = setting.setting_value?.enabled !== false;
+    
+    console.log(`isFeatureEnabled(${key}):`, {
+      is_enabled: setting.is_enabled,
+      setting_value: setting.setting_value,
+      result: isEnabled && configEnabled
+    });
+    
+    return isEnabled && configEnabled;
   };
 
   // 設定を更新

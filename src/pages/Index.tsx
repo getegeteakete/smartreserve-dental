@@ -19,7 +19,12 @@ export default function Index() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showStaffDialog, setShowStaffDialog] = useState(false);
-  const { isChatEnabled } = useChatSettings();
+  const { isChatEnabled, chatConfig } = useChatSettings();
+  
+  // チャット設定のデバッグログ
+  useEffect(() => {
+    console.log("チャット設定チェック:", { isChatEnabled, chatConfig });
+  }, [isChatEnabled, chatConfig]);
 
   useEffect(() => {
     // アプリ起動時にデフォルトデータを確保
@@ -91,7 +96,7 @@ export default function Index() {
       </div>
 
       {/* AIチャットボット（設定で有効な場合のみ表示） */}
-      {isChatEnabled && (
+      {isChatEnabled === true && chatConfig?.enabled !== false && (
         <>
           <AIChatBot
             onBookingRequest={handleBookingRequest}
