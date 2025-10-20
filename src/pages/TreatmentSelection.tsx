@@ -241,7 +241,7 @@ const TreatmentSelection = () => {
                 {/* カテゴリーヘッダー */}
                 <div className="text-center py-6 bg-gray-100 rounded-sm border border-gray-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
-                    <div className="w-full h-[300px] mx-auto mb-4 rounded-lg overflow-hidden">
+                    <div className="w-full h-[300px] mx-auto mb-4 rounded-none overflow-hidden">
                       <img
                         src={categoryImages[category as keyof typeof categoryImages]}
                         alt={category}
