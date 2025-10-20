@@ -12,6 +12,8 @@ import { useChatSettings } from "@/hooks/useSystemSettings";
 import { AIChatBot } from "@/components/chat/AIChatBot";
 import { StaffConnectionDialog } from "@/components/chat/StaffConnectionDialog";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import FixedMenuBanner from "@/components/FixedMenuBanner";
+import BusinessStatusBanner from "@/components/BusinessStatusBanner";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -110,6 +112,12 @@ export default function Index() {
 
       {/* ページトップへ戻るボタン */}
       <ScrollToTopButton />
+      
+      {/* 固定メニューバナー */}
+      <FixedMenuBanner />
+      
+      {/* 営業状況バナー（モバイルのみ） */}
+      <BusinessStatusBanner />
     </div>
   );
 }

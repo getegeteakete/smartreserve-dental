@@ -8,6 +8,8 @@ import { useTreatmentsWithCategories } from "@/hooks/useTreatmentsWithCategories
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TreatmentWithCategory } from "@/hooks/useTreatmentsWithCategories";
+import FixedMenuBanner from "@/components/FixedMenuBanner";
+import BusinessStatusBanner from "@/components/BusinessStatusBanner";
 
 const TreatmentSelection = () => {
   const navigate = useNavigate();
@@ -352,6 +354,12 @@ const TreatmentSelection = () => {
           </p>
         </div>
       )}
+      
+      {/* 固定メニューバナー */}
+      <FixedMenuBanner />
+      
+      {/* 営業状況バナー（モバイルのみ） */}
+      <BusinessStatusBanner />
     </div>
   );
 };

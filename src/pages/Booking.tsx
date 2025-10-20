@@ -13,6 +13,8 @@ import { useBookingForm } from "@/hooks/useBookingForm";
 import { AIBookingParser } from "@/utils/aiBookingParser";
 import Header from "@/components/Header";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import FixedMenuBanner from "@/components/FixedMenuBanner";
+import BusinessStatusBanner from "@/components/BusinessStatusBanner";
 
 export default function Booking() {
   const location = useLocation();
@@ -107,6 +109,12 @@ export default function Booking() {
 
       {/* ページトップへ戻るボタン */}
       <ScrollToTopButton />
+      
+      {/* 固定メニューバナー */}
+      <FixedMenuBanner />
+      
+      {/* 営業状況バナー（モバイルのみ） */}
+      <BusinessStatusBanner />
     </div>
   );
 }
