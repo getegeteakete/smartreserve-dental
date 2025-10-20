@@ -238,21 +238,21 @@ const AppointmentCalendar = ({
                         const selectedIndex = getSelectedDateIndex(date, index);
                         return selectedIndex !== -1;
                       },
-                      // 営業日の種類を判定
-                      fullOpen: (date) => getDateScheduleType(date) === 'full-open',
-                      partialOpen: (date) => getDateScheduleType(date) === 'partial-open',
-                      closed: (date) => ['basic-closed', 'custom-closed', 'special-closed'].includes(getDateScheduleType(date)),
-                      saturdayOpen: (date) => getDateScheduleType(date) === 'saturday-open',
-                      specialOpen: (date) => getDateScheduleType(date) === 'special-open'
+                      // 営業日の種類を2種類に統合
+                      business: (date) => {
+                        const scheduleType = getDateScheduleType(date);
+                        return ['full-open', 'partial-open', 'saturday-open', 'special-open'].includes(scheduleType);
+                      },
+                      closed: (date) => {
+                        const scheduleType = getDateScheduleType(date);
+                        return ['basic-closed', 'custom-closed', 'special-closed'].includes(scheduleType);
+                      }
                     }}
                     modifiersClassNames={{
                       selected: "bg-primary text-primary-foreground",
                       otherSelected: "bg-gray-200 text-gray-500",
-                      fullOpen: "bg-cyan-100 text-cyan-900 border border-cyan-400 font-medium",
-                      partialOpen: "bg-orange-100 text-orange-900 border border-orange-400 font-medium",
-                      closed: "bg-pink-100 text-pink-800 border border-pink-300",
-                      saturdayOpen: "bg-blue-100 text-blue-900 border border-blue-400 font-medium",
-                      specialOpen: "bg-purple-100 text-purple-900 border border-purple-400 font-medium"
+                      business: "bg-blue-50 text-blue-700 border border-blue-400 font-medium",
+                      closed: "bg-red-50 text-red-700 border border-red-400"
                     }}
                   />
                 </div>
