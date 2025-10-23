@@ -103,8 +103,8 @@ export default function Index() {
         </div>
       </div>
 
-      {/* AIチャットボット（設定で有効な場合のみ表示） */}
-      {isChatEnabled === true && chatConfig?.enabled !== false && (
+      {/* AIチャットボット（非表示） */}
+      {false && (
         <>
           <AIChatBot
             onBookingRequest={handleBookingRequest}
