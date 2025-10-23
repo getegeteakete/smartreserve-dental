@@ -4,6 +4,13 @@ import { format } from "date-fns";
 
 export const useAppointmentCreation = () => {
   const createAppointment = async (formData: any, selectedTreatment: string, selectedTreatmentData: any, fee: number, preferredDates: any[]) => {
+    console.log("📝 予約作成開始:", {
+      email: formData.email,
+      treatment: selectedTreatment,
+      treatmentData: selectedTreatmentData?.name,
+      preferredDatesCount: preferredDates.length
+    });
+    
     // 診療内容名を正しく取得
     const treatmentName = selectedTreatmentData?.name || selectedTreatment;
     

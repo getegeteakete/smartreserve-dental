@@ -62,22 +62,48 @@ export const useBookingValidation = () => {
         treatmentName: selectedTreatment
       });
 
-      // 個人の重複チェック
-      const { canConfirm, error: conflictError } = await checkAppointmentTimeConflict(
-        formData.email,
-        dateString,
-        actualTimeSlot
-      );
-
-      if (conflictError || !canConfirm) {
-        console.error("個人重複チェックエラー:", { conflictError, canConfirm });
+      // 個人の重複チェック（新規予約の場合は希望日時のみチェック）
+      console.log("🔍 重複チェック開始 - 希望日時:", { dateString, actualTimeSlot });
+      
+      // 既存の確定済み予約との重複をチェック
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: conflictingAppointments, error: queryError } = await supabase
+        .from('appointments')
+        .select('id, treatment_name, status, confirmed_date, confirmed_time_slot')
+        .eq('email', formData.email)
+        .eq('confirmed_date', dateString)
+        .eq('confirmed_time_slot', actualTimeSlot)
+        .in('status', ['confirmed']); // pendingは除外（まだ確定していないため）
+      
+      console.log("📋 重複チェック結果:", { 
+        conflictingCount: conflictingAppointments?.length || 0,
+        conflictingAppointments 
+      });
+      
+      if (queryError) {
+        console.error("❌ 重複チェッククエリエラー:", queryError);
         toast({
           variant: "destructive",
-          title: "予約重複エラー",
-          description: `選択された日時（${dateString} ${actualTimeSlot}）は既に別の予約があります。別の日時を選択してください。`,
+          title: "エラーが発生しました",
+          description: "予約の確認中にエラーが発生しました。もう一度お試しください。",
+          duration: 5000,
         });
         return false;
       }
+      
+      // 確定済み予約との重複がある場合のみエラー
+      if (conflictingAppointments && conflictingAppointments.length > 0) {
+        console.error("⚠️ 確定済み予約との重複:", conflictingAppointments);
+        toast({
+          variant: "destructive",
+          title: "予約が重複しています",
+          description: `選択された日時に既に確定済みのご予約がございます。\n日時: ${dateString} ${actualTimeSlot}\n診療内容: ${conflictingAppointments[0].treatment_name}\n\n別の日時をご選択ください。`,
+          duration: 7000,
+        });
+        return false;
+      }
+      
+      console.log("✅ 重複なし: この日時は予約可能です");
 
       // 時間枠の容量チェック
       const { canReserve: hasCapacity, currentCount, maxCapacity, error: capacityError } = await checkTimeSlotCapacity(
@@ -90,8 +116,9 @@ export const useBookingValidation = () => {
         console.error("容量チェックエラー:", { capacityError, hasCapacity, currentCount, maxCapacity });
         toast({
           variant: "destructive",
-          title: "予約枠満員エラー",
-          description: `選択された日時（${dateString} ${actualTimeSlot}）は予約枠が満員です（${currentCount}/${maxCapacity}名）。別の日時を選択してください。`,
+          title: "予約枠が満員です",
+          description: `選択された日時は予約枠が満員となっております。\n日時: ${dateString} ${actualTimeSlot}\n現在の予約状況: ${currentCount}/${maxCapacity}名\n\nお手数ですが、別の日時をご選択ください。`,
+          duration: 7000,
         });
         return false;
       }
@@ -103,16 +130,67 @@ export const useBookingValidation = () => {
   };
 
   const validateTreatmentLimit = async (email: string, treatmentName: string) => {
+    // デバッグ: 既存の予約を確認
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: existingAppointments, error: checkError } = await supabase
+      .from("appointments")
+      .select("id, treatment_name, status, appointment_date, created_at")
+      .eq("email", email)
+      .eq("treatment_name", treatmentName)
+      .in("status", ["pending", "confirmed"]);
+    
+    console.log("🔍 診療制限チェック - 既存予約:", {
+      email,
+      treatmentName,
+      existingCount: existingAppointments?.length || 0,
+      existingAppointments
+    });
+
     const { canReserve, error: limitError } = await checkTreatmentReservationLimit(
       email,
       treatmentName
     );
 
     if (limitError || !canReserve) {
+      // より詳しいエラーメッセージを表示
+      let errorMessage = "この診療内容は既に予約上限に達しています。";
+      let suggestions = "";
+      
+      // 既存予約の情報を追加
+      let existingInfo = "";
+      if (existingAppointments && existingAppointments.length > 0) {
+        existingInfo = `\n\n【既存の予約】\n`;
+        existingAppointments.forEach((apt, index) => {
+          const statusText = apt.status === 'pending' ? '承認待ち' : '確定済み';
+          const dateText = apt.appointment_date ? new Date(apt.appointment_date).toLocaleDateString('ja-JP') : '未定';
+          existingInfo += `${index + 1}. ${apt.treatment_name} (${statusText}) - ${dateText}\n`;
+        });
+      }
+
+      // 診療内容別に異なるメッセージを表示
+      const normalizedTreatmentName = treatmentName.toLowerCase();
+      
+      if (normalizedTreatmentName.includes('初診') || normalizedTreatmentName.includes('相談')) {
+        errorMessage = "初診・相談のご予約は、お一人様1回までとなっております。";
+        suggestions = "既に初診予約がございます。別の診療内容をご選択いただくか、既存の予約をキャンセルしてから再度お申し込みください。";
+      } else if (normalizedTreatmentName.includes('精密検査')) {
+        errorMessage = "精密検査のご予約は、お一人様1回までとなっております。";
+        suggestions = "既に精密検査の予約がございます。別の診療内容をご選択いただくか、既存の予約をキャンセルしてから再度お申し込みください。";
+      } else if (normalizedTreatmentName.includes('pmtc') || normalizedTreatmentName.includes('クリーニング')) {
+        errorMessage = "PMTC・クリーニングのご予約は、お一人様2件の予約申し込みまでとなっております。";
+        suggestions = "既に2件の予約申し込みがございます。\n\n新しい予約を作成すると、既存の予約申し込み（承認待ち）が自動的にキャンセルされ、新しい内容で置き換えられます。\n\n※ 確定済み(confirmed)の予約は自動キャンセルされません。";
+      } else if (normalizedTreatmentName.includes('ホワイトニング')) {
+        errorMessage = "ホワイトニングのご予約は、お一人様2件の予約申し込みまでとなっております。";
+        suggestions = "既に2件の予約申し込みがございます。\n\n新しい予約を作成すると、既存の予約申し込み（承認待ち）が自動的にキャンセルされ、新しい内容で置き換えられます。\n\n※ 確定済み(confirmed)の予約は自動キャンセルされません。";
+      } else {
+        suggestions = "新しい予約を作成すると、既存の予約申し込み（承認待ち）が自動的にキャンセルされ、新しい内容で置き換えられます。";
+      }
+
       toast({
         variant: "destructive",
-        title: "予約制限エラー",
-        description: "この診療内容は既に予約上限に達しています。",
+        title: "予約上限に達しています",
+        description: `${errorMessage}\n\n${suggestions}${existingInfo}\n\n※ 第1希望・第2希望・第3希望は候補日時であり、予約は1件のみ作成されます\n※ キャンセルは予約確認メールのリンクから可能です`,
+        duration: 10000, // 長めに表示
       });
       return false;
     }

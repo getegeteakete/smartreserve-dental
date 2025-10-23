@@ -15,6 +15,7 @@ import AdminSchedule from "./pages/AdminSchedule";
 import AdminTreatments from "./pages/AdminTreatments";
 import AdminPatients from "./pages/AdminPatients";
 import AdminNotifications from "./pages/AdminNotifications";
+import AdminChatHistory from "./pages/AdminChatHistory";
 import AdminSettings from "./pages/AdminSettings";
 import TreatmentManagement from "./pages/TreatmentManagement";
 import PatientManagement from "./pages/PatientManagement";
@@ -28,7 +29,6 @@ import AdminGuide from "./pages/AdminGuide";
 import NotificationSettings from "./pages/NotificationSettings";
 import SystemSettings from "./pages/SystemSettings";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import AdminChatHistory from "./pages/AdminChatHistory";
 import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();

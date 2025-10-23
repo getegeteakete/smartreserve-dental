@@ -75,14 +75,14 @@ export const checkTimeSlotCapacity = async (
       maxCapacity = 4; // ホワイトニング・PMTCは4件まで
     }
 
-    // 確定済み予約と承認待ち予約の両方をチェック
+    // 確定済み予約のみをチェック（pending予約は希望日時であり確定ではないため除外）
     const { data: confirmedAppointments, error: confirmedError } = await supabase
       .from('appointments')
       .select('id, treatment_name, status')
       .eq('confirmed_date', date)
       .eq('confirmed_time_slot', timeSlot)
       .eq('treatment_name', treatmentName)
-      .in('status', ['confirmed', 'pending']);
+      .in('status', ['confirmed']); // pendingを除外して、確定済み予約のみカウント
 
     if (confirmedError) {
       console.error("確定済み予約数取得エラー:", confirmedError);
@@ -94,7 +94,8 @@ export const checkTimeSlotCapacity = async (
       };
     }
 
-    // 同一時間枠での希望日時も考慮（pendingの場合）
+    // 同一時間枠での希望日時は参考程度にカウント（確定ではないため厳格にチェックしない）
+    // 注: 希望日時は複数の候補の1つであり、実際にその時間に予約されるとは限らない
     const { data: pendingPreferences, error: preferencesError } = await supabase
       .from('appointment_preferences')
       .select(`
@@ -112,11 +113,19 @@ export const checkTimeSlotCapacity = async (
       console.error("希望日時予約数取得エラー:", preferencesError);
     }
 
-    // 同じ診療内容の希望日時数をカウント
+    // 同じ診療内容の希望日時数をカウント（参考値）
     const matchingPreferences = pendingPreferences?.filter(pref => 
       pref.appointments?.treatment_name === treatmentName &&
       pref.appointments?.status === 'pending'
     ) || [];
+    
+    console.log("📊 時間枠チェック詳細:", {
+      date,
+      timeSlot,
+      treatmentName,
+      confirmedCount: confirmedAppointments?.length || 0,
+      pendingPreferencesCount: matchingPreferences.length
+    });
 
     // 除外する予約IDがある場合はフィルタリング
     let confirmedCount = confirmedAppointments.length;
@@ -129,16 +138,19 @@ export const checkTimeSlotCapacity = async (
       ).length;
     }
 
-    // 総予約数（確定 + 希望日時）
-    const totalCount = confirmedCount + preferenceCount;
+    // 新規予約の場合は、確定済み予約のみをカウント
+    // 希望日時は参考値としてログに出力するが、容量チェックには含めない
+    // （希望日時は複数の候補の1つで、実際にその時間に確定するとは限らないため）
+    const totalCount = confirmedCount;
 
-    console.log("強化版時間枠容量チェック結果:", { 
+    console.log("✅ 時間枠容量チェック結果:", { 
       confirmedCount,
-      preferenceCount,
+      preferenceCount: `${preferenceCount}（参考値、カウントに含めない）`,
       totalCount,
       maxCapacity, 
       canReserve: totalCount < maxCapacity,
-      treatmentName
+      treatmentName,
+      判定: totalCount < maxCapacity ? "予約可能" : "満員"
     });
 
     return {

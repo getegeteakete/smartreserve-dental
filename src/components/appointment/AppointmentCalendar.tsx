@@ -107,6 +107,7 @@ const AppointmentCalendar = ({
   const handleDateSelect = (date: Date | undefined, index: number) => {
     if (date) {
       onDateSelect(index, date);
+      // 日付選択時は自動スクロールしない（ユーザーが選択中のため）
     }
   };
 
@@ -131,7 +132,7 @@ const AppointmentCalendar = ({
         // 第3希望の時間選択後、名前入力欄へスクロール
         onScrollToPatientForm();
       }
-    }, 300); // 選択アニメーション後にスクロール
+    }, 500); // 選択アニメーションと他の処理の完了を待つ
   };
 
   const getPreferenceLabel = (index: number) => {

@@ -114,9 +114,9 @@ const TreatmentSelection = () => {
 
   // カテゴリー画像のマッピング
   const categoryImages = {
-    "初めての方": "/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png",
-    "精密検査予約": "/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png", 
-    "ホワイトニング予約": "/lovable-uploads/b3452854-e2f9-4414-b8fd-41f432c466ff.png",
+    "初めての方": "/images/first-time-bg.jpg",
+    "精密検査予約": "/images/precision-examination-bg.jpg", 
+    "ホワイトニング予約": "/images/whitening-bg.jpg",
     "PMTC予約": "http://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/wp-content/uploads/2024/03/touin10.jpg"
   };
 

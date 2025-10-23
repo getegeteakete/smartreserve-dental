@@ -17,9 +17,9 @@ const CourseDetail = () => {
 
   // コース分類と対応する画像（TreatmentSelectionと同じ画像を使用）
   const courseImages = {
-    "初診": "/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png",
-    "精密検査": "/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png",
-    "ホワイトニング": "/lovable-uploads/b3452854-e2f9-4414-b8fd-41f432c466ff.png",
+    "初診": "/images/first-time-bg.jpg",
+    "精密検査": "/images/precision-examination-bg.jpg",
+    "ホワイトニング": "/images/whitening-bg.jpg",
     "PMTC": "/lovable-uploads/87d8b2fd-ead0-49b4-bb0e-89abad0f0380.png"
   };
 

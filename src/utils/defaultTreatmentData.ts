@@ -5,19 +5,19 @@ export const defaultCategories = [
     name: "初めての方",
     description: "初診の方【無料相談・有料相談】スタッフが丁寧にサポート まずはお悩みをお聞かせください",
     display_order: 1,
-    image_url: "/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png"
+    image_url: "/images/first-time-bg.jpg"
   },
   {
     name: "精密検査予約",
     description: "初診相談済みで、精密検査を希望される方へ。精密検査の結果を元に、あなたに最適な治療法をご提案します",
     display_order: 2,
-    image_url: "/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png"
+    image_url: "/images/precision-examination-bg.jpg"
   },
   {
     name: "ホワイトニング予約",
     description: "ホワイトニングを受けたい方へ。白く輝く歯で、自信あふれる笑顔に",
     display_order: 3,
-    image_url: "/lovable-uploads/b3452854-e2f9-4414-b8fd-41f432c466ff.png"
+    image_url: "/images/whitening-bg.jpg"
   },
   {
     name: "PMTC予約",

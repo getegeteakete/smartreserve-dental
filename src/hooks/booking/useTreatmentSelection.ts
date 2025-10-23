@@ -16,6 +16,10 @@ export const useTreatmentSelection = () => {
     if (stateData?.treatmentData) {
       setSelectedTreatment(stateData.treatmentData.id);
       setFee(stateData.treatmentData.fee);
+    } else if (stateData?.treatmentId) {
+      // TreatmentSelectionページからの遷移の場合
+      setSelectedTreatment(stateData.treatmentId);
+      setFee(stateData.treatmentFee || 0);
     }
   }, [stateData]);
 
@@ -94,6 +98,14 @@ export const useTreatmentSelection = () => {
   };
 
   const selectedTreatmentData = stateData?.treatmentData || 
+    (stateData?.treatmentId ? {
+      id: stateData.treatmentId,
+      name: stateData.treatmentName || '',
+      fee: stateData.treatmentFee || 0,
+      duration: stateData.treatmentDuration || 30,
+      description: stateData.treatmentDescription || '',
+      category: stateData.categoryName ? { name: stateData.categoryName } : undefined
+    } : null) ||
     (selectedTreatment && treatments.find((t: TreatmentWithCategory) => t.id === selectedTreatment));
 
   return {

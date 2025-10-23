@@ -95,6 +95,58 @@ export const useBookingFormSubmit = ({
       // 診療内容別予約制限チェック
       console.log("ステップ5: 診療制限チェック開始");
       const treatmentName = selectedTreatmentData?.name || selectedTreatment;
+      const normalizedTreatmentName = treatmentName.toLowerCase();
+      
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      // 既存のpending予約を取得
+      const { data: existingPendingAppointments } = await supabase
+        .from("appointments")
+        .select("id, treatment_name, created_at")
+        .eq("email", formData.email)
+        .eq("treatment_name", treatmentName)
+        .eq("status", "pending")
+        .order("created_at", { ascending: true });
+      
+      const existingCount = existingPendingAppointments?.length || 0;
+      console.log(`📊 既存のpending予約数: ${existingCount}件`);
+      
+      // 診療内容別の制限数を決定
+      let maxAllowed = 1; // デフォルト
+      if (normalizedTreatmentName.includes('ホワイトニング') || 
+          normalizedTreatmentName.includes('pmtc') || 
+          normalizedTreatmentName.includes('クリーニング')) {
+        maxAllowed = 2; // ホワイトニング・PMTCは2件まで
+      }
+      
+      console.log(`📋 この診療の予約上限: ${maxAllowed}件`);
+      
+      // 既存予約が上限に達している場合、自動キャンセル処理
+      if (existingCount >= maxAllowed) {
+        console.log(`⚠️ 予約上限(${maxAllowed}件)に達しているため、既存のpending予約を自動キャンセル`);
+        
+        // 上限に達している場合は全てのpending予約をキャンセル
+        // （新しい予約で置き換える）
+        const appointmentIds = existingPendingAppointments!.map(apt => apt.id);
+        await supabase
+          .from("appointments")
+          .update({ 
+            status: "cancelled", 
+            updated_at: new Date().toISOString(),
+            notes: "新しい予約申し込みにより自動キャンセルされました"
+          })
+          .in("id", appointmentIds);
+        
+        console.log(`✅ 既存のpending予約 ${existingCount}件をキャンセルしました`);
+        
+        toast({
+          title: "既存の予約申し込みをキャンセルしました",
+          description: `同じ診療内容の既存予約申し込み ${existingCount}件を自動的にキャンセルし、新しい予約を作成します。`,
+          duration: 5000,
+        });
+      }
+      
+      // 制限チェック（自動キャンセル後なので通過するはず）
       const treatmentLimitValid = await validateTreatmentLimit(formData.email, treatmentName);
       if (!treatmentLimitValid) {
         console.log("診療制限チェック失敗");
