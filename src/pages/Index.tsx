@@ -14,8 +14,6 @@ import { StaffConnectionDialog } from "@/components/chat/StaffConnectionDialog";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import FixedMenuBanner from "@/components/FixedMenuBanner";
 import BusinessStatusBanner from "@/components/BusinessStatusBanner";
-import { TestimonialsSection } from "@/components/TestimonialsSection";
-import { BlogSection } from "@/components/BlogSection";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -79,12 +77,6 @@ export default function Index() {
       
       <div className="flex-1 pt-16">
         <TreatmentSelection />
-        
-        {/* お客様の声セクション */}
-        <TestimonialsSection />
-        
-        {/* 歯科ブログセクション */}
-        <BlogSection />
       </div>
       
       {/* 管理者ログインボタン */}
