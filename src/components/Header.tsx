@@ -19,7 +19,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-slate-800 shadow-lg border-b border-slate-700">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* ロゴエリア */}
@@ -47,7 +47,7 @@ const Header = () => {
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/")}
-                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                    className="flex items-center gap-2 text-white hover:text-blue-300 hover:bg-slate-700"
                   >
                     <Home className="h-4 w-4" />
                     HOME
@@ -59,7 +59,7 @@ const Header = () => {
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/guide")}
-                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                    className="flex items-center gap-2 text-white hover:text-blue-300 hover:bg-slate-700"
                   >
                     <BookOpen className="h-4 w-4" />
                     使い方ガイド
