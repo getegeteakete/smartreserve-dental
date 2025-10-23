@@ -81,7 +81,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - コメントアウト: Viteプロジェクトで必要なアセットを含むため
 
 # Storybook build outputs
 .out
@@ -169,7 +169,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - コメントアウト: Viteプロジェクトで必要なアセットを含むため
 
 # Storybook build outputs
 .out
