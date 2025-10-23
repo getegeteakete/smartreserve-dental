@@ -23,6 +23,24 @@ export const useAppointmentConflictCheck = () => {
 
   const checkTreatmentLimits = async (email: string, treatmentName: string) => {
     console.log("診療内容別予約制限チェック中...");
+    
+    // 既存予約を確認
+    const { data: existingAppointments } = await supabase
+      .from("appointments")
+      .select("id")
+      .eq("email", email)
+      .eq("treatment_name", treatmentName)
+      .in("status", ["pending", "confirmed"]);
+    
+    const existingCount = existingAppointments?.length || 0;
+    console.log(`既存予約数: ${existingCount}件`);
+    
+    // 初回予約（既存予約が0件）の場合は制限をスキップして許可
+    if (existingCount === 0) {
+      console.log("✅ 初回予約のため制限チェックをスキップ");
+      return true;
+    }
+    
     const { canReserve, error: limitError } = await checkTreatmentReservationLimit(
       email,
       treatmentName

@@ -139,12 +139,20 @@ export const useBookingValidation = () => {
       .eq("treatment_name", treatmentName)
       .in("status", ["pending", "confirmed"]);
     
+    const existingCount = existingAppointments?.length || 0;
+    
     console.log("🔍 診療制限チェック - 既存予約:", {
       email,
       treatmentName,
-      existingCount: existingAppointments?.length || 0,
+      existingCount,
       existingAppointments
     });
+
+    // 初回予約（既存予約が0件）の場合は制限をスキップして許可
+    if (existingCount === 0) {
+      console.log("✅ 初回予約のため制限チェックをスキップ");
+      return true;
+    }
 
     const { canReserve, error: limitError } = await checkTreatmentReservationLimit(
       email,
