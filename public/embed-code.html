@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>埋め込みコード - 今週の診療カレンダー</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2563eb;
+      margin-bottom: 10px;
+    }
+    h2 {
+      color: #1e40af;
+      margin-top: 30px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    pre {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      position: relative;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .copy-button:hover {
+      background: #2563eb;
+    }
+    .preview {
+      border: 2px dashed #d1d5db;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .step {
+      background: #f9fafb;
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 3px solid #10b981;
+    }
+    ol li {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📅 WordPress埋め込みコード</h1>
+    <p>今週の診療カレンダーをWordPressサイトに埋め込むためのコード</p>
+    
+    <h2>方法1: iframeで埋め込み（推奨）</h2>
+    
+    <div class="info-box">
+      <strong>⚠️ 本番URLを取得後、以下のコード内の<code>YOUR_VERCEL_URL</code>を実際のURLに置き換えてください</strong>
+    </div>
+    
+    <div style="position: relative;">
+      <pre id="code1"><!-- WordPressカスタムHTMLブロックに貼り付けるコード -->
+&lt;div style="width: 100%; margin: 20px auto;"&gt;
+  &lt;iframe 
+    src="https://YOUR_VERCEL_URL.vercel.app/calendar-embed" 
+    width="100%" 
+    height="280" 
+    frameborder="0" 
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+    scrolling="no"
+    loading="lazy"&gt;
+  &lt;/iframe&gt;
+&lt;/div&gt;
+</pre>
+      <button class="copy-button" onclick="copyCode('code1')">コピー</button>
+    </div>
+    
+    <h2>設定手順</h2>
+    
+    <div class="step">
+      <ol>
+        <li>WordPressダッシュボードにログイン</li>
+        <li>投稿または固定ページを編集</li>
+        <li>「+」ボタンで「カスタムHTML」ブロックを追加</li>
+        <li>上記のコードを貼り付け</li>
+        <li><code>YOUR_VERCEL_URL</code>を実際のVercelのURLに置き換え</li>
+        <li>「公開」ボタンをクリック</li>
+      </ol>
+    </div>
+    
+    <h2>プレビュー</h2>
+    
+    <div class="preview">
+      <p><strong>カレンダーの表示例：</strong></p>
+      <p style="color: #6b7280;">実際のサイトでは、ここに診療カレンダーが表示されます</p>
+    </div>
+    
+    <h2>サイズ調整</h2>
+    
+    <p>カレンダーの高さを調整したい場合は、<code>height="280"</code>の値を変更してください：</p>
+    
+    <ul>
+      <li><strong>小さいサイズ:</strong> <code>height="220"</code></li>
+      <li><strong>標準サイズ:</strong> <code>height="280"</code>（推奨）</li>
+      <li><strong>大きいサイズ:</strong> <code>height="350"</code></li>
+    </ul>
+    
+    <h2>レスポンシブ対応</h2>
+    
+    <p>モバイル対応のコード（オプション）：</p>
+    
+    <div style="position: relative;">
+      <pre id="code2"><!-- レスポンシブ対応版 -->
+&lt;div style="width: 100%; margin: 20px auto;"&gt;
+  &lt;div style="position: relative; padding-bottom: 150%; height: 0; overflow: hidden; max-width: 100%;"&gt;
+    &lt;iframe 
+      src="https://YOUR_VERCEL_URL.vercel.app/calendar-embed" 
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+      frameborder="0" 
+      scrolling="no"
+      loading="lazy"&gt;
+    &lt;/iframe&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+      <button class="copy-button" onclick="copyCode('code2')">コピー</button>
+    </div>
+    
+    <h2>本番URL</h2>
+    
+    <div class="info-box">
+      <p>✅ Vercelへのデプロイが完了後、以下のURLが利用可能になります：</p>
+      <p><strong>URL:</strong> <code id="url">準備中...</code></p>
+      <p>デプロイ完了まで少々お待ちください。</p>
+    </div>
+  </div>
+  
+  <script>
+    function copyCode(id) {
+      const codeElement = document.getElementById(id);
+      const text = codeElement.textContent || codeElement.innerText;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('コードをコピーしました！');
+      }).catch(err => {
+        console.error('コピーに失敗しました:', err);
+      });
+    }
+    
+    // VercelのURLを取得する（実際のデプロイ後に更新）
+    // const vercelUrl = 'YOUR_VERCEL_URL.vercel.app';
+    // document.getElementById('url').textContent = vercelUrl;
+  </script>
+</body>
+</html>
+
