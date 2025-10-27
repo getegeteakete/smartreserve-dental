@@ -45,20 +45,20 @@ export default function Booking() {
     window.scrollTo(0, 0);
   }, []);
 
-  // 診療メニューページから遷移してきた場合、カレンダーへスクロール（1回だけ）
-  useEffect(() => {
-    const stateData = location.state;
-    // treatmentDataがある場合（診療メニューページから遷移）かつまだスクロールしていない場合
-    if (stateData && (stateData.treatmentId || stateData.treatmentData) && selectedTreatmentData && !hasScrolledToCalendar) {
-      // 少し遅延させてから、カレンダーへスクロール
-      const timer = setTimeout(() => {
-        scrollToCalendar();
-        setHasScrolledToCalendar(true); // スクロール完了をマーク
-      }, 800);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [selectedTreatmentData, location.state, hasScrolledToCalendar]);
+  // 診療メニューページから遷移してきた場合、自動スクロールを無効化
+  // useEffect(() => {
+  //   const stateData = location.state;
+  //   // treatmentDataがある場合（診療メニューページから遷移）かつまだスクロールしていない場合
+  //   if (stateData && (stateData.treatmentId || stateData.treatmentData) && selectedTreatmentData && !hasScrolledToCalendar) {
+  //     // 少し遅延させてから、カレンダーへスクロール
+  //     const timer = setTimeout(() => {
+  //       scrollToCalendar();
+  //       setHasScrolledToCalendar(true); // スクロール完了をマーク
+  //     }, 800);
+  //     
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [selectedTreatmentData, location.state, hasScrolledToCalendar]);
 
   // 名前入力欄へスクロールする関数
   const scrollToPatientForm = () => {
