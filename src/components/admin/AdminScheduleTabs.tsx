@@ -214,7 +214,7 @@ export const AdminScheduleTabs = ({
   <iframe 
     src="https://489.toyoshima-do.com/calendar-month-embed" 
     width="100%" 
-    height="280" 
+    height="650" 
     frameborder="0" 
     style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
     scrolling="no"
@@ -229,7 +229,7 @@ export const AdminScheduleTabs = ({
   <iframe 
     src="https://489.toyoshima-do.com/calendar-month-embed" 
     width="100%" 
-    height="280" 
+    height="650" 
     frameborder="0" 
     style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
     scrolling="no"
