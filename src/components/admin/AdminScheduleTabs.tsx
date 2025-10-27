@@ -201,6 +201,49 @@ export const AdminScheduleTabs = ({
                     <WeeklyBusinessCalendar />
                   </div>
                   
+                  {/* WordPress埋め込みコード */}
+                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                      📋 WordPress用埋め込みコード
+                    </h4>
+                    <p className="text-sm text-blue-700 mb-3">
+                      以下のコードをコピーして、WordPressのカスタムHTMLブロックに貼り付けてください。
+                    </p>
+                    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
+                      <code>{`<div style="width: 100%; margin: 20px auto;">
+  <iframe 
+    src="https://your-app-url.vercel.app/calendar-embed" 
+    width="100%" 
+    height="280" 
+    frameborder="0" 
+    style="border: 1px solid #e0e0e0; border-radius: 8px;"
+    scrolling="no">
+  </iframe>
+</div>`}</code>
+                    </pre>
+                    <div className="mt-3">
+                      <button
+                        onClick={() => {
+                          const code = `<div style="width: 100%; margin: 20px auto;">
+  <iframe 
+    src="https://your-app-url.vercel.app/calendar-embed" 
+    width="100%" 
+    height="280" 
+    frameborder="0" 
+    style="border: 1px solid #e0e0e0; border-radius: 8px;"
+    scrolling="no">
+  </iframe>
+</div>`;
+                          navigator.clipboard.writeText(code);
+                          alert('コードをコピーしました！WordPressのカスタムHTMLブロックに貼り付けてください。');
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                      >
+                        📋 コードをコピー
+                      </button>
+                    </div>
+                  </div>
+                  
                   <InteractiveBusinessCalendar
                     schedules={schedules}
                     selectedYear={selectedYear}
