@@ -6,6 +6,7 @@ import { InteractiveBusinessCalendar } from "./InteractiveBusinessCalendar";
 import { BusinessCalendarPreview } from "./BusinessCalendarPreview";
 import { BookingTimeScheduleManager } from "./BookingTimeScheduleManager";
 import { BasicScheduleManager } from "./BasicScheduleManager";
+import WeeklyBusinessCalendar from "@/components/WeeklyBusinessCalendar";
 import { Badge } from "@/components/ui/badge";
 import { Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -193,6 +194,13 @@ export const AdminScheduleTabs = ({
                       <p>💡 例：祝日の休診、臨時営業、年末年始の特別営業時間など</p>
                     </div>
                   </div>
+                  
+                  {/* 今週の診療カレンダープレビュー */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-gray-800 mb-3">今週の診療カレンダープレビュー</h4>
+                    <WeeklyBusinessCalendar />
+                  </div>
+                  
                   <InteractiveBusinessCalendar
                     schedules={schedules}
                     selectedYear={selectedYear}
