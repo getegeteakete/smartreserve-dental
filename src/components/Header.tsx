@@ -11,7 +11,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Home, BookOpen } from "lucide-react";
+import { ExternalLink, Home, BookOpen, Building2 } from "lucide-react";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -63,6 +63,19 @@ const Header = () => {
                   >
                     <BookOpen className="h-4 w-4" />
                     使い方ガイド
+                  </Button>
+                </NavigationMenuItem>
+
+                {/* 豊嶋歯科TOP */}
+                <NavigationMenuItem>
+                  <Button
+                    variant="ghost"
+                    onClick={() => window.open("https://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/", "_blank")}
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    豊嶋歯科TOP
+                    <ExternalLink className="h-3 w-3" />
                   </Button>
                 </NavigationMenuItem>
 
