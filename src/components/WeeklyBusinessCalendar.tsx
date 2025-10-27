@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, addDays, getDay } from "date-fns";
 import { ja } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ScheduleInfo {
   date: Date;
@@ -11,53 +12,104 @@ interface ScheduleInfo {
   specialText?: string;
 }
 
+interface ClinicSchedule {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+}
+
 const WeeklyBusinessCalendar = () => {
   const [weekSchedule, setWeekSchedule] = useState<ScheduleInfo[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const today = new Date();
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // 月曜日スタート
-    
-    const schedule: ScheduleInfo[] = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const currentDate = addDays(weekStart, i);
-      const dayOfWeek = currentDate.getDay(); // 0=日曜, 1=月曜, ..., 6=土曜
+    loadWeeklySchedule();
+  }, []);
+
+  const loadWeeklySchedule = async () => {
+    try {
+      setLoading(true);
+      const today = new Date();
+      const weekStart = startOfWeek(today, { weekStartsOn: 1 });
       
-      let hours = "";
-      let isOpen = true;
-      let specialText = "";
+      // データベースから現在の月の診療時間を取得
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
       
-      // 曜日別の営業時間設定
-      if (dayOfWeek === 0) {
-        // 日曜日 - 休診
-        isOpen = false;
-      } else if (dayOfWeek === 4) {
-        // 木曜日 - 休診
-        isOpen = false;
-      } else if (dayOfWeek === 6) {
-        // 土曜日 - 午前のみ
-        hours = "9:00-18:00";
-        specialText = "午前のみ";
-        isOpen = true;
-      } else {
-        // 月〜水、金 - 通常営業
-        hours = "9:00-18:00";
-        isOpen = true;
+      const { data: schedules, error } = await supabase
+        .from('clinic_schedules')
+        .select('*')
+        .eq('year', year)
+        .eq('month', month)
+        .order('day_of_week', { ascending: true });
+      
+      if (error) {
+        console.error('診療時間取得エラー:', error);
       }
       
-      schedule.push({
-        date: currentDate,
-        dayName: format(currentDate, "EEE", { locale: ja }),
-        hours: hours,
-        isOpen: isOpen,
-        isSpecial: dayOfWeek === 6,
-        specialText: specialText
+      const scheduleMap = new Map<number, ClinicSchedule[]>();
+      schedules?.forEach((schedule: ClinicSchedule) => {
+        if (!scheduleMap.has(schedule.day_of_week)) {
+          scheduleMap.set(schedule.day_of_week, []);
+        }
+        scheduleMap.get(schedule.day_of_week)!.push(schedule);
       });
+      
+      const schedule: ScheduleInfo[] = [];
+      
+      for (let i = 0; i < 7; i++) {
+        const currentDate = addDays(weekStart, i);
+        const dayOfWeek = currentDate.getDay();
+        
+        // データベースから営業時間を取得
+        const daySchedules = scheduleMap.get(dayOfWeek) || [];
+        const availableSchedules = daySchedules.filter(s => s.is_available);
+        
+        if (availableSchedules.length === 0) {
+          schedule.push({
+            date: currentDate,
+            dayName: format(currentDate, "EEE", { locale: ja }),
+            hours: "",
+            isOpen: false,
+          });
+          continue;
+        }
+        
+        // 営業時間をフォーマット
+        const hoursList = availableSchedules.map(s => 
+          `${s.start_time.substring(0, 5)}-${s.end_time.substring(0, 5)}`
+        );
+        const hours = hoursList.join(" / ");
+        
+        schedule.push({
+          date: currentDate,
+          dayName: format(currentDate, "EEE", { locale: ja }),
+          hours: hours,
+          isOpen: true,
+        });
+      }
+      
+      setWeekSchedule(schedule);
+    } catch (error) {
+      console.error('スケジュール取得エラー:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setWeekSchedule(schedule);
-  }, []);
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">診療時間を読み込み中...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
