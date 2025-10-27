@@ -113,15 +113,27 @@ export const InteractiveBusinessCalendar = ({
   const fetchSpecialSchedules = async () => {
     try {
       console.log(`特別スケジュール取得: ${selectedYear}年${selectedMonth}月`);
-      const { data: specialData } = await (supabase as any).rpc('get_special_clinic_schedules', {
-        p_year: selectedYear,
-        p_month: selectedMonth
-      });
+      
+      // RPC関数の代わりに、直接special_clinic_schedulesテーブルから取得
+      const startDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endDate = new Date(selectedYear, selectedMonth, 0);
+      
+      const { data: specialData, error } = await supabase
+        .from('special_clinic_schedules')
+        .select('*')
+        .gte('specific_date', format(startDate, 'yyyy-MM-dd'))
+        .lte('specific_date', format(endDate, 'yyyy-MM-dd'));
 
-      console.log("特別スケジュール取得結果:", specialData);
-      setSpecialScheduleData(specialData || []);
+      if (error) {
+        console.error("特別スケジュール取得エラー:", error);
+        setSpecialScheduleData([]);
+      } else {
+        console.log("特別スケジュール取得結果:", specialData);
+        setSpecialScheduleData(specialData || []);
+      }
     } catch (error) {
       console.error("特別スケジュール取得エラー:", error);
+      setSpecialScheduleData([]);
     } finally {
       setLoading(false);
     }
