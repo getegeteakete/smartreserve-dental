@@ -212,12 +212,13 @@ export const AdminScheduleTabs = ({
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
                       <code>{`<div style="width: 100%; margin: 20px auto;">
   <iframe 
-    src="https://your-app-url.vercel.app/calendar-embed" 
+    src="https://489.toyoshima-do.com/calendar-embed" 
     width="100%" 
     height="280" 
     frameborder="0" 
-    style="border: 1px solid #e0e0e0; border-radius: 8px;"
-    scrolling="no">
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+    scrolling="no"
+    loading="lazy">
   </iframe>
 </div>`}</code>
                     </pre>
@@ -226,12 +227,13 @@ export const AdminScheduleTabs = ({
                         onClick={() => {
                           const code = `<div style="width: 100%; margin: 20px auto;">
   <iframe 
-    src="https://your-app-url.vercel.app/calendar-embed" 
+    src="https://489.toyoshima-do.com/calendar-embed" 
     width="100%" 
     height="280" 
     frameborder="0" 
-    style="border: 1px solid #e0e0e0; border-radius: 8px;"
-    scrolling="no">
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+    scrolling="no"
+    loading="lazy">
   </iframe>
 </div>`;
                           navigator.clipboard.writeText(code);
