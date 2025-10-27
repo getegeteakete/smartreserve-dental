@@ -14,7 +14,7 @@ export const BusinessCalendarPreview = () => {
   const { toast } = useToast();
 
   const embedCode = `<iframe 
-  src="${window.location.origin}/calendar-embed" 
+  src="${window.location.origin}/calendar-month-embed" 
   width="100%" 
   height="600" 
   frameborder="0" 

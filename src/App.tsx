@@ -20,6 +20,7 @@ import AdminSettings from "./pages/AdminSettings";
 import TreatmentManagement from "./pages/TreatmentManagement";
 import PatientManagement from "./pages/PatientManagement";
 import BusinessCalendarEmbed from "./pages/BusinessCalendarEmbed";
+import BusinessCalendarMonthEmbed from "./pages/BusinessCalendarMonthEmbed";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Guide from "./pages/Guide";
 import NotFound from "./pages/NotFound";
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/admin/old-settings" element={<SystemSettings />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/calendar-embed" element={<BusinessCalendarEmbed />} />
+          <Route path="/calendar-month-embed" element={<BusinessCalendarMonthEmbed />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cancel" element={<AppointmentCancel />} />
