@@ -3,19 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Building2, MapPin, Phone, Mail, Globe, Clock } from 'lucide-react';
+import { Loader2, Save, Building2, MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 interface ClinicInfo {
-  clinic_name: string;
-  address: string;
+  name: string;
   phone: string;
+  address: string;
   email: string;
-  website?: string;
-  business_hours?: string;
-  description?: string;
+  business_hours?: {
+    monday?: { start: string; end: string; available: boolean };
+    tuesday?: { start: string; end: string; available: boolean };
+    wednesday?: { start: string; end: string; available: boolean };
+    thursday?: { start: string; end: string; available: boolean };
+    friday?: { start: string; end: string; available: boolean };
+    saturday?: { start: string; end: string; available: boolean };
+    sunday?: { start: string; end: string; available: boolean };
+  };
 }
 
 export const GeneralSettingsEditor = () => {
@@ -24,13 +29,19 @@ export const GeneralSettingsEditor = () => {
   const { toast } = useToast();
   
   const [formData, setFormData] = useState<ClinicInfo>({
-    clinic_name: '',
-    address: '',
-    phone: '',
-    email: '',
-    website: '',
-    business_hours: '',
-    description: '',
+    name: '六本松 矯正歯科クリニック とよしま',
+    phone: '092-406-2119',
+    address: '福岡県福岡市中央区六本松2-11-30',
+    email: 'info@example.com',
+    business_hours: {
+      monday: { start: '09:00', end: '18:30', available: true },
+      tuesday: { start: '09:00', end: '18:30', available: true },
+      wednesday: { start: '09:00', end: '18:30', available: true },
+      thursday: { start: '09:00', end: '18:30', available: true },
+      friday: { start: '09:00', end: '18:30', available: true },
+      saturday: { start: '09:00', end: '17:00', available: true },
+      sunday: { start: '00:00', end: '00:00', available: false },
+    },
   });
 
   useEffect(() => {
@@ -57,13 +68,19 @@ export const GeneralSettingsEditor = () => {
 
       if (data && data.setting_value) {
         setFormData({
-          clinic_name: data.setting_value.clinic_name || '',
-          address: data.setting_value.address || '',
-          phone: data.setting_value.phone || '',
-          email: data.setting_value.email || '',
-          website: data.setting_value.website || '',
-          business_hours: data.setting_value.business_hours || '',
-          description: data.setting_value.description || '',
+          name: data.setting_value.name || '六本松 矯正歯科クリニック とよしま',
+          phone: data.setting_value.phone || '092-406-2119',
+          address: data.setting_value.address || '福岡県福岡市中央区六本松2-11-30',
+          email: data.setting_value.email || 'info@example.com',
+          business_hours: data.setting_value.business_hours || {
+            monday: { start: '09:00', end: '18:30', available: true },
+            tuesday: { start: '09:00', end: '18:30', available: true },
+            wednesday: { start: '09:00', end: '18:30', available: true },
+            thursday: { start: '09:00', end: '18:30', available: true },
+            friday: { start: '09:00', end: '18:30', available: true },
+            saturday: { start: '09:00', end: '17:00', available: true },
+            sunday: { start: '00:00', end: '00:00', available: false },
+          },
         });
       }
     } catch (error) {
@@ -83,7 +100,7 @@ export const GeneralSettingsEditor = () => {
       setSaving(true);
 
       // バリデーション
-      if (!formData.clinic_name.trim()) {
+      if (!formData.name.trim()) {
         toast({
           title: '入力エラー',
           description: 'クリニック名は必須です',
@@ -182,8 +199,8 @@ export const GeneralSettingsEditor = () => {
           </Label>
           <Input
             id="clinic_name"
-            value={formData.clinic_name}
-            onChange={(e) => setFormData({ ...formData, clinic_name: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="例: スマイル歯科クリニック"
             className="text-base"
           />
@@ -235,52 +252,59 @@ export const GeneralSettingsEditor = () => {
           />
         </div>
 
-        {/* ウェブサイトURL */}
+        {/* 営業時間の表示 */}
         <div className="space-y-2">
-          <Label htmlFor="website" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            ウェブサイトURL
-          </Label>
-          <Input
-            id="website"
-            type="url"
-            value={formData.website}
-            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-            placeholder="例: https://www.example.com"
-            className="text-base"
-          />
-        </div>
-
-        {/* 営業時間 */}
-        <div className="space-y-2">
-          <Label htmlFor="business_hours" className="flex items-center gap-2">
+          <Label className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             営業時間
           </Label>
-          <Textarea
-            id="business_hours"
-            value={formData.business_hours}
-            onChange={(e) => setFormData({ ...formData, business_hours: e.target.value })}
-            placeholder="例:&#10;月〜金: 10:00〜13:30 / 15:00〜19:00&#10;土: 9:00〜12:30 / 14:00〜17:30&#10;日・祝: 休診"
-            rows={4}
-            className="text-base resize-none"
-          />
-        </div>
-
-        {/* クリニック説明 */}
-        <div className="space-y-2">
-          <Label htmlFor="description" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            クリニック説明
-          </Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="例: 患者様に寄り添った丁寧な治療を心がけています。"
-            rows={4}
-            className="text-base resize-none"
-          />
+          <div className="p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">月曜日:</span>
+              <span>{formData.business_hours?.monday?.available 
+                ? `${formData.business_hours.monday.start} - ${formData.business_hours.monday.end}` 
+                : '休診'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">火曜日:</span>
+              <span>{formData.business_hours?.tuesday?.available 
+                ? `${formData.business_hours.tuesday.start} - ${formData.business_hours.tuesday.end}` 
+                : '休診'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">水曜日:</span>
+              <span>{formData.business_hours?.wednesday?.available 
+                ? `${formData.business_hours.wednesday.start} - ${formData.business_hours.wednesday.end}` 
+                : '休診'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">木曜日:</span>
+              <span>{formData.business_hours?.thursday?.available 
+                ? `${formData.business_hours.thursday.start} - ${formData.business_hours.thursday.end}` 
+                : '休診'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">金曜日:</span>
+              <span>{formData.business_hours?.friday?.available 
+                ? `${formData.business_hours.friday.start} - ${formData.business_hours.friday.end}` 
+                : '休診'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">土曜日:</span>
+              <span>{formData.business_hours?.saturday?.available 
+                ? `${formData.business_hours.saturday.start} - ${formData.business_hours.saturday.end}` 
+                : '休診'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-gray-600">日曜日:</span>
+              <span>{formData.business_hours?.sunday?.available 
+                ? `${formData.business_hours.sunday.start} - ${formData.business_hours.sunday.end}` 
+                : '休診'}</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            ※ 営業時間の詳細な編集は「カレンダー調整」タブで行ってください。
+          </p>
         </div>
 
         {/* 保存ボタン */}

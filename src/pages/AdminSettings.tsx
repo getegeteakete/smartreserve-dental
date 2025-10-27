@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { GeneralSettingsEditor } from "@/components/admin/GeneralSettingsEditor";
 
 const AdminSettings = () => {
   const [loading, setLoading] = useState(true);
@@ -749,32 +750,7 @@ const AdminSettings = () => {
 
               {/* 一般設定 */}
               <TabsContent value="general" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <SettingsIcon className="h-5 w-5 text-gray-600" />
-                      一般設定
-                    </CardTitle>
-                    <CardDescription>
-                      医院名、連絡先、営業時間などの基本情報
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {settingsByCategory.general.map((setting) => (
-                      <div key={setting.id} className="p-4 bg-gray-50 rounded-lg">
-                        <Label className="text-base font-semibold block mb-2">
-                          {setting.description}
-                        </Label>
-                        <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto">
-                          {JSON.stringify(setting.setting_value, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
-                    <p className="text-sm text-gray-600">
-                      ※ 一般設定の編集機能は今後実装予定です
-                    </p>
-                  </CardContent>
-                </Card>
+                <GeneralSettingsEditor />
               </TabsContent>
             </Tabs>
           </div>
