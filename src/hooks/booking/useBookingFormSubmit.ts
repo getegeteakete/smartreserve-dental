@@ -84,7 +84,7 @@ export const useBookingFormSubmit = ({
 
       // 希望日時の重複・容量チェック
       console.log("ステップ4: 希望日時検証開始");
-      const datesValid = await validatePreferredDates(preferredDates, formData, selectedTreatment);
+      const datesValid = await validatePreferredDates(preferredDates, formData, selectedTreatment, selectedTreatmentData);
       if (!datesValid) {
         console.log("希望日時検証失敗");
         setIsLoading(false);
@@ -167,15 +167,29 @@ export const useBookingFormSubmit = ({
 
       // 予約申し込みメール送信（appointmentIdも渡してトークン生成）
       console.log("ステップ8: メール送信開始");
-      await sendAppointmentEmail(formData, selectedTreatment, selectedTreatmentData, fee, preferredDates, appointmentData.id);
-      console.log("メール送信成功");
+      let emailSent = false;
+      try {
+        await sendAppointmentEmail(formData, selectedTreatment, selectedTreatmentData, fee, preferredDates, appointmentData.id);
+        emailSent = true;
+        console.log("メール送信成功");
+      } catch (emailError: any) {
+        console.error("メール送信エラー:", emailError);
+        // メール送信が失敗しても予約は完了しているので続行
+        toast({
+          variant: "destructive",
+          title: "予約申し込み完了（メール送信失敗）",
+          description: `予約を受け付けましたが、確認メールの送信に失敗しました。予約ID: ${appointmentData.id}。お電話でお問い合わせください。`,
+        });
+      }
 
       console.log("=== 予約処理完了 ===");
       
-      toast({
-        title: "予約申し込み完了",
-        description: "予約を受け付けました。確認メールをお送りしましたのでご確認ください。",
-      });
+      if (emailSent) {
+        toast({
+          title: "予約申し込み完了",
+          description: "予約を受け付けました。確認メールをお送りしましたのでご確認ください。",
+        });
+      }
 
       onSuccess();
       navigate('/');

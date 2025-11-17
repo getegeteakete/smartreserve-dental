@@ -1,29 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { checkAdminAuth } from "@/utils/adminAuth";
 
 export const usePatientManagementAuth = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAdminAuth = () => {
-      const isAdminLoggedIn = localStorage.getItem("admin_logged_in");
-      const adminUsername = localStorage.getItem("admin_username");
-      
-      console.log("管理者認証チェック:", { isAdminLoggedIn, adminUsername });
-      
-      if (isAdminLoggedIn !== "true" || adminUsername !== "sup@ei-life.co.jp") {
-        console.log("管理者認証が必要です");
-        navigate("/admin-login");
-        return;
-      }
-      
-      console.log("管理者認証済み");
+    if (checkAdminAuth(navigate)) {
       setLoading(false);
-    };
-
-    checkAdminAuth();
+    }
   }, [navigate]);
 
   const handleLogout = () => {

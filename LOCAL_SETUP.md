@@ -222,11 +222,6 @@ npm install -g vercel
 vercel
 ```
 
-### Lovable
-
-1. [Lovable](https://lovable.dev/projects/5008901c-8f5a-40b5-b59e-fe7c6be75dab)を開く
-2. Share → Publish をクリック
-
 ## 💡 ヒント
 
 - **開発中は決済機能なしでOK**: 基本的な予約機能だけなら追加設定不要です

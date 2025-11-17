@@ -1,5 +1,6 @@
 import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isAfter } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { isHoliday, hasHolidayInWeek } from './holidayUtils';
 
 export interface BusinessDayInfo {
   type: 'business' | 'saturday' | 'closed';
@@ -60,6 +61,12 @@ export const getMonthlyBusinessDays = (year: number, month: number) => {
     const dayOfWeek = getDay(day);
     const dayNumber = day.getDate();
 
+    // 祝日チェック（最優先）
+    if (isHoliday(day)) {
+      businessDays['closed'].push(dayNumber);
+      return;
+    }
+
     // 土曜日は特別に分離
     if (dayOfWeek === 6) {
       businessDays['saturday'].push(dayNumber);
@@ -74,9 +81,8 @@ export const getMonthlyBusinessDays = (year: number, month: number) => {
     }
     // 木曜日（基本休診、祝日週は営業）
     else if (dayOfWeek === 4) {
-      // 祝日チェック（簡易版）
-      const hasHoliday = checkHolidayInWeek(day);
-      if (hasHoliday) {
+      // 祝日チェック（実際の祝日判定を使用）
+      if (hasHolidayInWeek(day)) {
         businessDays['business'].push(dayNumber);
       } else {
         businessDays['closed'].push(dayNumber);
@@ -85,14 +91,6 @@ export const getMonthlyBusinessDays = (year: number, month: number) => {
   });
 
   return businessDays;
-};
-
-// 祝日チェック（簡易版）
-const checkHolidayInWeek = (date: Date): boolean => {
-  // 実際の実装では、より詳細な祝日判定が必要
-  // ここでは簡易的に月の第3週の木曜日を祝日週として扱う
-  const weekOfMonth = Math.ceil(date.getDate() / 7);
-  return weekOfMonth === 3;
 };
 
 export const formatBusinessDaysDisplay = (businessDays: { [key: string]: number[] }) => {
@@ -200,7 +198,7 @@ export const getTodayBusinessStatus = () => {
   }
 
   // 木曜日は基本休診（祝日週除く）
-  if (dayOfWeek === 4 && !checkHolidayInWeek(today)) {
+  if (dayOfWeek === 4 && !hasHolidayInWeek(today)) {
     return { isOpen: false, message: '本日はお休み', nextOpen: getNextOpenMessage() };
   }
 
@@ -278,7 +276,7 @@ const getNextOpenMessage = (): string => {
       continue;
     }
     
-    if (dayOfWeek === 4 && !checkHolidayInWeek(nextDay)) {
+    if (dayOfWeek === 4 && !hasHolidayInWeek(nextDay)) {
       // 木曜日は基本休診
       nextDay = addDays(nextDay, 1);
       continue;

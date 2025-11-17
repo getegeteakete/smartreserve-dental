@@ -159,6 +159,7 @@ export default function Booking() {
                 fee={fee}
                 treatmentData={selectedTreatmentData}
                 onScrollToTop={scrollToCalendar}
+                isValid={isValid}
               />
             </div>
 

@@ -14,6 +14,7 @@ import { useAppointmentManagement } from "@/hooks/useAppointmentManagement";
 import { format, isToday, addDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { SystemTestPanel } from "@/components/SystemTestPanel";
+import { checkAdminAuth } from "@/utils/adminAuth";
 
 export default function Admin() {
   const [loading, setLoading] = useState(true);
@@ -24,23 +25,9 @@ export default function Admin() {
 
   useEffect(() => {
     // 管理者認証チェック
-    const checkAdminAuth = () => {
-      const isAdminLoggedIn = localStorage.getItem("admin_logged_in");
-      const adminUsername = localStorage.getItem("admin_username");
-      
-      console.log("管理者認証チェック:", { isAdminLoggedIn, adminUsername });
-      
-      if (isAdminLoggedIn !== "true" || adminUsername !== "sup@ei-life.co.jp") {
-        console.log("管理者認証が必要です");
-        navigate("/admin-login");
-        return;
-      }
-      
-      console.log("管理者認証済み");
+    if (checkAdminAuth(navigate)) {
       setLoading(false);
-    };
-
-    checkAdminAuth();
+    }
   }, [navigate]);
 
   // 予約データを取得

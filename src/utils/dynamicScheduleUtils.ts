@@ -1,6 +1,7 @@
 import { format, getDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { isJapaneseHoliday } from "./holidayApiUtils";
+import { hasHolidayInWeek } from "./holidayUtils";
 
 export interface TimeSlot {
   id: string;
@@ -213,8 +214,12 @@ export const generateDynamicTimeSlotsForTreatment = async (
           slots.push(...bookingSlots);
         }
       }
-      console.log(`予約受付時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, slots.length, '件');
-      return slots;
+      if (slots.length > 0) {
+        console.log(`予約受付時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, slots.length, '件');
+        return slots;
+      }
+      // 予約受付時間スケジュールが登録されているが、is_available=falseの場合もフォールバック処理へ
+      console.log(`予約受付時間スケジュールは存在するが、利用不可のためフォールバック処理へ`);
     }
 
     // 予約受付時間スケジュールがない場合は診療時間をフォールバック
@@ -251,7 +256,63 @@ export const generateDynamicTimeSlotsForTreatment = async (
       }
     }
 
-    console.log(`診療時間から生成(${treatmentDuration}分)（フォールバック）: ${dateStr} (${dayOfWeek}曜日)`, slots.length, '件');
+    // データベースから取得したスケジュールが空の場合、基本スケジュールを使用
+    if (slots.length === 0) {
+      console.log(`🔍 データベーススケジュールが空のため、基本スケジュールを使用: ${dateStr} (${dayOfWeek}曜日)`);
+      
+      // 木曜日で祝日がある週の場合
+      if (dayOfWeek === 4) {
+        if (hasHolidayInWeek(date)) {
+          console.log(`🔍 木曜日（祝日週）: 10:00～13:30、15:00～19:00`);
+          const morningSlots = generateSlotsFromTimeRange("10:00:00", "13:30:00", dateStr, treatmentDuration);
+          const afternoonSlots = generateSlotsFromTimeRange("15:00:00", "19:00:00", dateStr, treatmentDuration);
+          slots.push(...morningSlots, ...afternoonSlots);
+          console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (木曜日・祝日週)`, slots.length, '件');
+          return slots;
+        } else {
+          // 木曜日で祝日がない週は休診
+          console.log(`木曜日（祝日なし週）: 休診`);
+          return [];
+        }
+      }
+      
+      // 火・水・金曜日：10:00～13:30、15:00～19:00
+      if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 5) {
+        console.log(`🔍 ${dayOfWeek === 2 ? '火' : dayOfWeek === 3 ? '水' : '金'}曜日: 10:00～13:30、15:00～19:00`);
+        const morningSlots = generateSlotsFromTimeRange("10:00:00", "13:30:00", dateStr, treatmentDuration);
+        const afternoonSlots = generateSlotsFromTimeRange("15:00:00", "19:00:00", dateStr, treatmentDuration);
+        slots.push(...morningSlots, ...afternoonSlots);
+        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek === 2 ? '火' : dayOfWeek === 3 ? '水' : '金'}曜日)`, slots.length, '件');
+        return slots;
+      }
+      
+      // 月曜日：午前休診、15:00～19:00
+      if (dayOfWeek === 1) {
+        console.log(`🔍 月曜日: 15:00～19:00`);
+        const afternoonSlots = generateSlotsFromTimeRange("15:00:00", "19:00:00", dateStr, treatmentDuration);
+        slots.push(...afternoonSlots);
+        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (月曜日)`, slots.length, '件');
+        return slots;
+      }
+      
+      // 土曜日：9:00～12:30、14:00～17:30
+      if (dayOfWeek === 6) {
+        console.log(`🔍 土曜日: 9:00～12:30、14:00～17:30`);
+        const morningSlots = generateSlotsFromTimeRange("09:00:00", "12:30:00", dateStr, treatmentDuration);
+        const afternoonSlots = generateSlotsFromTimeRange("14:00:00", "17:30:00", dateStr, treatmentDuration);
+        slots.push(...morningSlots, ...afternoonSlots);
+        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (土曜日)`, slots.length, '件');
+        return slots;
+      }
+      
+      // 日曜日はデフォルトで休診
+      if (dayOfWeek === 0) {
+        console.log(`日曜日: 休診`);
+        return [];
+      }
+    }
+
+    console.log(`診療時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, slots.length, '件');
     console.log(`🔍 最終的な全時間枠:`, slots.map(s => s.start_time));
     return slots;
 

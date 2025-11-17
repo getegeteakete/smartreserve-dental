@@ -30,11 +30,17 @@ export const useEmailNotification = () => {
       }))
     };
 
-    console.log("予約申し込みメール送信開始:", emailData);
+    console.log("📧 予約申し込みメール送信開始:", {
+      patientEmail: emailData.patientEmail,
+      patientName: emailData.patientName,
+      preferredDatesCount: emailData.preferredDates.length
+    });
 
     const emailResponse = await supabase.functions.invoke('send-appointment-email', {
       body: emailData
     });
+
+    console.log("📧 メール送信レスポンス:", emailResponse);
 
     // メール送信成功かつappointmentIdがある場合はトークンを生成
     if (!emailResponse.error && appointmentId) {
@@ -63,18 +69,55 @@ export const useEmailNotification = () => {
       }
     }
 
+    // メール送信結果をチェック
     if (emailResponse.error) {
-      console.error("メール送信エラー:", emailResponse.error);
+      console.error("❌ メール送信エラー:", emailResponse.error);
+      console.error("❌ エラー詳細:", JSON.stringify(emailResponse.error, null, 2));
+      const errorMessage = emailResponse.error.message || '不明なエラー';
       toast({
-        title: "予約申し込み完了",
-        description: "予約を受け付けました。メール送信に失敗しましたが、予約は正常に登録されています。",
+        variant: "destructive",
+        title: "予約申し込み完了（メール送信失敗）",
+        description: `予約を受け付けましたが、メール送信に失敗しました。エラー: ${errorMessage}`,
       });
+      // エラーをスローして呼び出し元で処理できるようにする
+      throw new Error(`メール送信に失敗しました: ${errorMessage}`);
+    } 
+    
+    if (emailResponse.data?.success) {
+      const data = emailResponse.data;
+      console.log("✅ メール送信成功:", {
+        patientEmailId: data.patientEmailId,
+        adminEmailId: data.adminEmailId,
+        patientSuccess: data.patientSuccess,
+        adminSuccess: data.adminSuccess
+      });
+
+      if (!data.patientSuccess) {
+        const errorMsg = data.errors?.patient ? JSON.stringify(data.errors.patient) : '不明なエラー';
+        console.error("❌ 患者様メール送信失敗:", errorMsg);
+        toast({
+          variant: "destructive",
+          title: "予約申し込み完了（メール送信失敗）",
+          description: `予約を受け付けましたが、確認メールの送信に失敗しました。エラー: ${errorMsg}`,
+        });
+        throw new Error(`患者様へのメール送信に失敗しました: ${errorMsg}`);
+      } else {
+        console.log(`✅ メール送信完了: ${formData.email} に確認メールを送信しました`);
+        toast({
+          title: "予約申し込み完了",
+          description: "予約を受け付けました。確認メールをお送りしましたのでご確認ください。",
+        });
+        return { success: true, patientEmailId: data.patientEmailId };
+      }
     } else {
-      console.log("メール送信成功:", emailResponse.data);
+      console.warn("⚠️ メール送信レスポンスが不明:", emailResponse.data);
+      const errorMsg = emailResponse.data?.error || 'メール送信の確認ができませんでした';
       toast({
-        title: "予約申し込み完了",
-        description: "予約を受け付けました。確認メールをお送りしましたのでご確認ください。",
+        variant: "destructive",
+        title: "予約申し込み完了（メール送信状況不明）",
+        description: `予約を受け付けましたが、${errorMsg}。`,
       });
+      throw new Error(`メール送信の確認ができませんでした: ${errorMsg}`);
     }
   };
 

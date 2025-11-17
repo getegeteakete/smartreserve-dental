@@ -36,7 +36,15 @@ export const useBookingValidation = () => {
     return true;
   };
 
-  const validatePreferredDates = async (preferredDates: any[], formData: any, selectedTreatment: string) => {
+  const validatePreferredDates = async (preferredDates: any[], formData: any, selectedTreatment: string, selectedTreatmentData?: any) => {
+    // 診療内容名を取得（UUIDではなく名前を使用）
+    const treatmentName = selectedTreatmentData?.name || selectedTreatment;
+    
+    // UUIDの場合は警告ログを出力（診療内容名が取得できない場合）
+    if (!selectedTreatmentData?.name && selectedTreatment.includes('-')) {
+      console.warn("⚠️ 診療内容名が取得できません。UUIDを使用しますが、容量判定が正しく動作しない可能性があります:", selectedTreatment);
+    }
+
     for (const dateSlot of preferredDates) {
       if (!dateSlot || !dateSlot.date || !dateSlot.timeSlot) {
         continue;
@@ -59,7 +67,8 @@ export const useBookingValidation = () => {
         dateString, 
         actualTimeSlot, 
         email: formData.email,
-        treatmentName: selectedTreatment
+        treatmentId: selectedTreatment,
+        treatmentName: treatmentName
       });
 
       // 個人の重複チェック（新規予約の場合は希望日時のみチェック）
@@ -105,25 +114,26 @@ export const useBookingValidation = () => {
       
       console.log("✅ 重複なし: この日時は予約可能です");
 
-      // 時間枠の容量チェック
+      // 時間枠の容量チェック（診療内容名を使用）
+      console.log("🔍 時間枠容量チェック開始:", { treatmentName, dateString, actualTimeSlot });
       const { canReserve: hasCapacity, currentCount, maxCapacity, error: capacityError } = await checkTimeSlotCapacity(
-        selectedTreatment,
+        treatmentName, // UUIDではなく診療内容名を使用
         dateString,
         actualTimeSlot
       );
 
       if (capacityError || !hasCapacity) {
-        console.error("容量チェックエラー:", { capacityError, hasCapacity, currentCount, maxCapacity });
+        console.error("容量チェックエラー:", { capacityError, hasCapacity, currentCount, maxCapacity, treatmentName });
         toast({
           variant: "destructive",
           title: "予約枠が満員です",
-          description: `選択された日時は予約枠が満員となっております。\n日時: ${dateString} ${actualTimeSlot}\n現在の予約状況: ${currentCount}/${maxCapacity}名\n\nお手数ですが、別の日時をご選択ください。`,
+          description: `選択された日時は予約枠が満員となっております。\n日時: ${dateString} ${actualTimeSlot}\n診療内容: ${treatmentName}\n現在の予約状況: ${currentCount}/${maxCapacity}名\n\nお手数ですが、別の日時をご選択ください。`,
           duration: 7000,
         });
         return false;
       }
 
-      console.log(`時間枠容量OK: ${currentCount}/${maxCapacity}名`);
+      console.log(`✅ 時間枠容量OK: ${currentCount}/${maxCapacity}名 (診療内容: ${treatmentName})`);
     }
 
     return true;

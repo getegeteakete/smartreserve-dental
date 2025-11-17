@@ -234,11 +234,13 @@ export const InteractiveBusinessCalendar = ({
 
     monthDays.forEach(day => {
       const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
-      console.log(`${format(day, 'MM/dd')}のスケジュール情報:`, scheduleInfo);
+      const dayStr = format(day, 'MM/dd');
+      console.log(`${dayStr}のスケジュール情報:`, scheduleInfo);
       
       // 土曜営業を分離
       if (scheduleInfo.type === 'saturday-open') {
         saturdayDays.push(day);
+        console.log(`${dayStr}: 土曜営業として分類`);
       }
       // 通常営業日（special-open, full-open, partial-open, morning-closed等）
       else if (scheduleInfo.type === 'special-open' || 
@@ -246,8 +248,10 @@ export const InteractiveBusinessCalendar = ({
           scheduleInfo.type === 'partial-open' ||
           scheduleInfo.type === 'morning-closed') {
         businessDays.push(day);
+        console.log(`${dayStr}: 営業日として分類 (type: ${scheduleInfo.type})`);
       } else {
         closedDays.push(day);
+        console.log(`${dayStr}: 休日として分類 (type: ${scheduleInfo.type})`);
       }
     });
 

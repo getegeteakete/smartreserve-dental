@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReminderSettingsManager } from "@/components/admin/ReminderSettingsManager";
 import { NotificationHistoryManager } from "@/components/admin/NotificationHistoryManager";
-import { ArrowLeft, Bell, History } from "lucide-react";
+import { EmailTemplateManager } from "@/components/admin/EmailTemplateManager";
+import { ArrowLeft, Bell, History, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -81,8 +82,12 @@ const AdminNotifications = () => {
             </div>
 
             {/* 通知設定タブ */}
-            <Tabs defaultValue="settings" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+            <Tabs defaultValue="email" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  自動返信メール
+                </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">
                   <Bell className="h-4 w-4" />
                   リマインダー設定
@@ -92,6 +97,10 @@ const AdminNotifications = () => {
                   送信履歴
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="email" className="space-y-4 mt-6">
+                <EmailTemplateManager />
+              </TabsContent>
 
               <TabsContent value="settings" className="space-y-4 mt-6">
                 <ReminderSettingsManager />

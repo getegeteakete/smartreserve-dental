@@ -14,9 +14,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("📥 予約メール送信リクエスト受信");
     const requestData: AppointmentEmailRequest = await req.json();
+    console.log("📥 リクエストデータ:", {
+      patientName: requestData.patientName,
+      patientEmail: requestData.patientEmail,
+      preferredDatesCount: requestData.preferredDates?.length || 0
+    });
 
     const emailResults = await sendAppointmentEmails(requestData);
+
+    console.log("✅ メール送信成功:", {
+      patientEmailId: emailResults.patientEmailId,
+      adminEmailId: emailResults.adminEmailId,
+      patientSuccess: emailResults.patientSuccess,
+      adminSuccess: emailResults.adminSuccess
+    });
 
     return new Response(
       JSON.stringify({ 
@@ -32,9 +45,17 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("予約確認メール送信エラー:", error);
+    console.error("❌ 予約確認メール送信エラー:", error);
+    console.error("❌ エラー詳細:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || "メール送信に失敗しました",
+        details: error.stack
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

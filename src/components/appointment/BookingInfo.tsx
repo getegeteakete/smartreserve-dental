@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const BookingInfo = () => {
   return (
     <Card className="mb-8 bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+      <CardHeader className="bg-gray-700 text-white rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-white font-semibold">
           <Info className="h-5 w-5" />
           予約について
@@ -21,8 +21,8 @@ const BookingInfo = () => {
       <CardContent className="space-y-6 p-6">
         {/* 予約期間 */}
         <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-slate-100">
-          <div className="p-2 bg-blue-100 rounded-full">
-            <Calendar className="h-5 w-5 text-blue-600" />
+          <div className="p-2 bg-gray-100 rounded-full">
+            <Calendar className="h-5 w-5 text-gray-700" />
           </div>
           <div>
             <p className="font-semibold text-slate-800 mb-1">予約期間</p>
@@ -32,27 +32,27 @@ const BookingInfo = () => {
 
         {/* 診療時間 */}
         <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-slate-100">
-          <div className="p-2 bg-green-100 rounded-full">
-            <Clock className="h-5 w-5 text-green-600" />
+          <div className="p-2 bg-gray-100 rounded-full">
+            <Clock className="h-5 w-5 text-gray-700" />
           </div>
           <div className="flex-1">
             <p className="font-semibold text-slate-800 mb-3">診療時間</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-lg">
+              <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
                 <span className="font-medium text-slate-700">月曜日：</span>
-                <span className="text-orange-600 font-medium">午前中休診 / 15:00〜19:00</span>
+                <span className="text-black font-medium">午前中休診 / 15:00〜19:00</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded">
+              <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
                 <span className="font-medium text-slate-700">火・水・金：</span>
-                <span className="text-green-600 font-medium">10:00〜13:30 / 15:00〜19:00</span>
+                <span className="text-black font-medium">10:00〜13:30 / 15:00〜19:00</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded">
+              <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
                 <span className="font-medium text-slate-700">土曜日：</span>
-                <span className="text-blue-600 font-medium">9:00〜12:30 / 14:00〜17:30</span>
+                <span className="text-black font-medium">9:00〜12:30 / 14:00〜17:30</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded">
+              <div className="flex items-center gap-2 p-2 bg-slate-50 rounded">
                 <span className="font-medium text-slate-700">日曜日：</span>
-                <span className="text-purple-600 font-medium">月一度日曜診療あり</span>
+                <span className="text-black font-medium">月一度日曜診療あり</span>
               </div>
             </div>
           </div>
@@ -60,8 +60,8 @@ const BookingInfo = () => {
 
         {/* 休診日 */}
         <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-slate-100">
-          <div className="p-2 bg-red-100 rounded-full">
-            <XCircle className="h-5 w-5 text-red-600" />
+          <div className="p-2 bg-gray-100 rounded-full">
+            <XCircle className="h-5 w-5 text-gray-700" />
           </div>
           <div>
             <p className="font-semibold text-slate-800 mb-1">休診日</p>
@@ -74,8 +74,8 @@ const BookingInfo = () => {
         {/* 注意事項 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-slate-100">
-            <div className="p-2 bg-orange-100 rounded-full">
-              <Timer className="h-5 w-5 text-orange-600" />
+            <div className="p-2 bg-gray-100 rounded-full">
+              <Timer className="h-5 w-5 text-gray-700" />
             </div>
             <div>
               <p className="font-semibold text-slate-800 mb-1">キャンセルについて</p>
@@ -86,8 +86,8 @@ const BookingInfo = () => {
           </div>
 
           <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-slate-100">
-            <div className="p-2 bg-emerald-100 rounded-full">
-              <AlertCircle className="h-5 w-5 text-emerald-600" />
+            <div className="p-2 bg-gray-100 rounded-full">
+              <AlertCircle className="h-5 w-5 text-gray-700" />
             </div>
             <div>
               <p className="font-semibold text-slate-800 mb-1">初診の方へ</p>
@@ -100,8 +100,8 @@ const BookingInfo = () => {
 
         {/* 緊急時連絡 */}
         <div className="flex items-start gap-4 bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-lg border border-red-200 shadow-sm">
-          <div className="p-2 bg-red-100 rounded-full">
-            <Phone className="h-5 w-5 text-red-600" />
+          <div className="p-2 bg-gray-100 rounded-full">
+            <Phone className="h-5 w-5 text-gray-700" />
           </div>
           <div>
             <p className="font-semibold text-red-800 mb-1">緊急時について</p>

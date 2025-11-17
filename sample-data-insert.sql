@@ -3,10 +3,10 @@
 
 -- 治療カテゴリーの追加
 INSERT INTO treatment_categories (name, description, display_order, image_url) VALUES
-('一般歯科', '虫歯治療、抜歯など一般的な歯科治療を行います', 1, '/lovable-uploads/23dd7cf2-1136-4319-a747-b59ff65618a9.png'),
-('矯正歯科', '歯並びや噛み合わせの矯正治療を行います', 2, '/lovable-uploads/4a11c586-8857-452a-8081-344311c5cdb6.png'),
-('審美歯科', 'ホワイトニング、セラミック治療など見た目を美しくする治療', 3, '/lovable-uploads/70893a9e-d0ea-49bd-ba4b-f6b20d984c28.png'),
-('予防歯科', '定期検診、クリーニングなど予防を重視した治療', 4, '/lovable-uploads/87d8b2fd-ead0-49b4-bb0e-89abad0f0380.png')
+('一般歯科', '虫歯治療、抜歯など一般的な歯科治療を行います', 1, NULL),
+('矯正歯科', '歯並びや噛み合わせの矯正治療を行います', 2, NULL),
+('審美歯科', 'ホワイトニング、セラミック治療など見た目を美しくする治療', 3, NULL),
+('予防歯科', '定期検診、クリーニングなど予防を重視した治療', 4, NULL)
 ON CONFLICT DO NOTHING;
 
 -- 治療メニューの追加

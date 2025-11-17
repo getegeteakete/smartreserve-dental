@@ -20,7 +20,7 @@ const CourseDetail = () => {
     "初診": "/images/first-time-bg.jpg",
     "精密検査": "/images/precision-examination-bg.jpg",
     "ホワイトニング": "/images/whitening-bg.jpg",
-    "PMTC": "/lovable-uploads/87d8b2fd-ead0-49b4-bb0e-89abad0f0380.png"
+    "PMTC": "/images/first-time-bg.jpg"
   };
 
   const courseCategories = {

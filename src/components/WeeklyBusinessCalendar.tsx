@@ -157,11 +157,6 @@ const WeeklyBusinessCalendar = () => {
           </div>
         ))}
       </div>
-      
-      {/* 注意書き */}
-      <p className="text-xs text-gray-500 mt-4 text-center">
-        ※診療時間は変更になる場合がございます。詳しくはお電話でご確認ください。
-      </p>
     </div>
   );
 };

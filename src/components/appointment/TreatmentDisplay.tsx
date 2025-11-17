@@ -14,7 +14,7 @@ const TreatmentDisplay = ({ treatmentData }: TreatmentDisplayProps) => {
 
   return (
     <div className="text-center mb-8">
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 mx-auto max-w-full">
+      <div className="bg-gray-700 border border-gray-600 rounded-lg p-6 mx-auto max-w-full">
         <h2 className="text-lg font-semibold text-white">
           {treatmentData.name}
         </h2>

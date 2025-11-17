@@ -1,18 +1,29 @@
+import { format } from 'date-fns';
 
 // 日本の祝日を判定するユーティリティ
 export const getJapaneseHolidays = (year: number): Date[] => {
   const holidays: Date[] = [];
   
   // 固定祝日
-  holidays.push(new Date(year, 0, 1));   // 元日
-  holidays.push(new Date(year, 1, 11));  // 建国記念の日
-  holidays.push(new Date(year, 3, 29));  // 昭和の日
-  holidays.push(new Date(year, 4, 3));   // 憲法記念日
-  holidays.push(new Date(year, 4, 4));   // みどりの日
-  holidays.push(new Date(year, 4, 5));   // こどもの日
-  holidays.push(new Date(year, 7, 11));  // 山の日
-  holidays.push(new Date(year, 10, 3));  // 文化の日
-  holidays.push(new Date(year, 10, 23)); // 勤労感謝の日
+  const newYear = new Date(year, 0, 1);   // 元日
+  const foundationDay = new Date(year, 1, 11);  // 建国記念の日
+  const showaDay = new Date(year, 3, 29);  // 昭和の日
+  const constitutionDay = new Date(year, 4, 3);   // 憲法記念日
+  const greeneryDay = new Date(year, 4, 4);   // みどりの日
+  const childrenDay = new Date(year, 4, 5);   // こどもの日
+  const mountainDay = new Date(year, 7, 11);  // 山の日
+  const cultureDay = new Date(year, 10, 3);  // 文化の日
+  const laborThanksgivingDay = new Date(year, 10, 23); // 勤労感謝の日
+  
+  holidays.push(newYear);
+  holidays.push(foundationDay);
+  holidays.push(showaDay);
+  holidays.push(constitutionDay);
+  holidays.push(greeneryDay);
+  holidays.push(childrenDay);
+  holidays.push(mountainDay);
+  holidays.push(cultureDay);
+  holidays.push(laborThanksgivingDay);
   
   // 移動祝日の計算（簡略化）
   const secondMondayOfJan = getSecondMondayOfMonth(year, 0);
@@ -31,6 +42,16 @@ export const getJapaneseHolidays = (year: number): Date[] => {
   
   holidays.push(vernalEquinox);
   holidays.push(autumnalEquinox);
+  
+  // 振替休日の計算
+  // 祝日が日曜日の場合、次の平日（月曜日）が振替休日
+  holidays.forEach(holiday => {
+    if (holiday.getDay() === 0) { // 日曜日
+      const substituteHoliday = new Date(holiday);
+      substituteHoliday.setDate(holiday.getDate() + 1); // 次の日（月曜日）
+      holidays.push(substituteHoliday);
+    }
+  });
   
   return holidays;
 };
@@ -59,14 +80,25 @@ export const isHoliday = (date: Date): boolean => {
 export const hasHolidayInWeek = (date: Date): boolean => {
   const startOfWeek = new Date(date);
   startOfWeek.setDate(date.getDate() - date.getDay());
+  startOfWeek.setHours(0, 0, 0, 0); // 時刻をリセット
+  
+  const holidaysInWeek: Date[] = [];
   
   for (let i = 0; i < 7; i++) {
     const checkDate = new Date(startOfWeek);
     checkDate.setDate(startOfWeek.getDate() + i);
+    checkDate.setHours(0, 0, 0, 0); // 時刻をリセット
+    
     if (isHoliday(checkDate)) {
-      return true;
+      holidaysInWeek.push(checkDate);
     }
   }
   
-  return false;
+  const hasHoliday = holidaysInWeek.length > 0;
+  if (hasHoliday) {
+    console.log(`週に祝日あり (${format(date, 'MM/dd')}):`, holidaysInWeek.map(d => format(d, 'MM/dd')).join(', '));
+  }
+  
+  return hasHoliday;
 };
+

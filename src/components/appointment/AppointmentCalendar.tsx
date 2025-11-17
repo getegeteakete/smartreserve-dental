@@ -3,10 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format, addDays, addWeeks, getDay } from "date-fns";
+import { ja } from "date-fns/locale";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
+import { Clock, Calendar as CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getScheduleInfo } from "@/components/admin/calendar/utils/scheduleInfoUtils";
 import { 
@@ -88,8 +89,84 @@ const AppointmentCalendar = ({
     fetchSchedules();
   }, []);
 
+  // 各希望日ごとに、日付変更時に選択済み時間が利用可能かチェック
+  // 第1希望
+  const preference0Date = preferredDates[0]?.date ? format(preferredDates[0].date, 'yyyy-MM-dd') : '';
+  const preference0TimeSlot = preferredDates[0]?.timeSlot || '';
+  const { data: timeSlots0 = [], isLoading: isLoadingSlots0 } = useTimeSlots(
+    preferredDates[0]?.date,
+    selectedTreatment,
+    userEmail,
+    treatmentData?.duration
+  );
+  
+  useEffect(() => {
+    if (preferredDates[0]?.date && preferredDates[0]?.timeSlot && !isLoadingSlots0 && timeSlots0.length > 0) {
+      const isTimeSlotAvailable = timeSlots0.some(
+        slot => slot.start_time === preferredDates[0]?.timeSlot && slot.is_available
+      );
+      if (!isTimeSlotAvailable) {
+        console.log(`日付変更により、利用不可能な時間スロットをクリア（第1希望）: ${preferredDates[0]?.timeSlot}`);
+        onTimeSlotSelect(0, '');
+      }
+    }
+  }, [preference0Date, preference0TimeSlot, isLoadingSlots0, timeSlots0.length, onTimeSlotSelect]);
+
+  // 第2希望
+  const preference1Date = preferredDates[1]?.date ? format(preferredDates[1].date, 'yyyy-MM-dd') : '';
+  const preference1TimeSlot = preferredDates[1]?.timeSlot || '';
+  const { data: timeSlots1 = [], isLoading: isLoadingSlots1 } = useTimeSlots(
+    preferredDates[1]?.date,
+    selectedTreatment,
+    userEmail,
+    treatmentData?.duration
+  );
+  
+  useEffect(() => {
+    if (preferredDates[1]?.date && preferredDates[1]?.timeSlot && !isLoadingSlots1 && timeSlots1.length > 0) {
+      const isTimeSlotAvailable = timeSlots1.some(
+        slot => slot.start_time === preferredDates[1]?.timeSlot && slot.is_available
+      );
+      if (!isTimeSlotAvailable) {
+        console.log(`日付変更により、利用不可能な時間スロットをクリア（第2希望）: ${preferredDates[1]?.timeSlot}`);
+        onTimeSlotSelect(1, '');
+      }
+    }
+  }, [preference1Date, preference1TimeSlot, isLoadingSlots1, timeSlots1.length, onTimeSlotSelect]);
+
+  // 第3希望
+  const preference2Date = preferredDates[2]?.date ? format(preferredDates[2].date, 'yyyy-MM-dd') : '';
+  const preference2TimeSlot = preferredDates[2]?.timeSlot || '';
+  const { data: timeSlots2 = [], isLoading: isLoadingSlots2 } = useTimeSlots(
+    preferredDates[2]?.date,
+    selectedTreatment,
+    userEmail,
+    treatmentData?.duration
+  );
+  
+  useEffect(() => {
+    if (preferredDates[2]?.date && preferredDates[2]?.timeSlot && !isLoadingSlots2 && timeSlots2.length > 0) {
+      const isTimeSlotAvailable = timeSlots2.some(
+        slot => slot.start_time === preferredDates[2]?.timeSlot && slot.is_available
+      );
+      if (!isTimeSlotAvailable) {
+        console.log(`日付変更により、利用不可能な時間スロットをクリア（第3希望）: ${preferredDates[2]?.timeSlot}`);
+        onTimeSlotSelect(2, '');
+      }
+    }
+  }, [preference2Date, preference2TimeSlot, isLoadingSlots2, timeSlots2.length, onTimeSlotSelect]);
+
   const isDateDisabled = (date: Date) => {
-    return date < twoWeeksFromNow || date > sixWeeksFromNow;
+    // 選択可能な範囲外
+    if (date < twoWeeksFromNow || date > sixWeeksFromNow) {
+      return true;
+    }
+    // 休診日は選択不可
+    const scheduleType = getDateScheduleType(date);
+    if (['basic-closed', 'custom-closed', 'special-closed'].includes(scheduleType)) {
+      return true;
+    }
+    return false;
   };
   
   // 日付のスケジュール状態を取得
@@ -107,6 +184,13 @@ const AppointmentCalendar = ({
   const handleDateSelect = (date: Date | undefined, index: number) => {
     if (date) {
       onDateSelect(index, date);
+      // 日付変更時、以前選択された時間が新しい日付で利用可能かチェック
+      // 利用可能でない場合は時間をクリア
+      const currentPreference = preferredDates[index];
+      if (currentPreference?.timeSlot) {
+        // 時間スロットが読み込まれるまで待つため、useEffectで処理
+        // ここでは日付を更新するだけ
+      }
       // 日付選択時は自動スクロールしない（ユーザーが選択中のため）
     }
   };
@@ -159,12 +243,10 @@ const AppointmentCalendar = ({
 
   const renderPreferenceSection = (index: number) => {
     const preference = preferredDates[index];
-    const { data: timeSlots = [], isLoading: isLoadingSlots } = useTimeSlots(
-      preference?.date, 
-      selectedTreatment,
-      userEmail,
-      treatmentData?.duration
-    );
+    
+    // 各希望日ごとに取得した時間スロットを使用
+    const timeSlots = index === 0 ? timeSlots0 : index === 1 ? timeSlots1 : timeSlots2;
+    const isLoadingSlots = index === 0 ? isLoadingSlots0 : index === 1 ? isLoadingSlots1 : isLoadingSlots2;
 
     const isRequired = index < 2;
     const hasCompleted = index > 0 && preferredDates[index - 1]?.date && preferredDates[index - 1]?.timeSlot;
@@ -239,29 +321,42 @@ const AppointmentCalendar = ({
                         const selectedIndex = getSelectedDateIndex(date, index);
                         return selectedIndex !== -1;
                       },
-                      // 営業日の種類を3種類に統合
+                      // 営業日（選択可能な範囲内で、休みでない日）は黒枠を表示
                       business: (date) => {
+                        // 選択可能な範囲（2週間後〜6週間後）内かチェック
+                        if (date < twoWeeksFromNow || date > sixWeeksFromNow) {
+                          return false;
+                        }
+                        // 休みの日でないかチェック
                         const scheduleType = getDateScheduleType(date);
-                        return ['full-open', 'partial-open', 'special-open'].includes(scheduleType);
-                      },
-                      saturday: (date) => {
-                        const scheduleType = getDateScheduleType(date);
-                        return scheduleType === 'saturday-open';
-                      },
-                      closed: (date) => {
-                        const scheduleType = getDateScheduleType(date);
-                        return ['basic-closed', 'custom-closed', 'special-closed'].includes(scheduleType);
+                        return !['basic-closed', 'custom-closed', 'special-closed'].includes(scheduleType);
                       }
                     }}
                     modifiersClassNames={{
-                      selected: "bg-primary text-primary-foreground",
-                      otherSelected: "bg-gray-200 text-gray-500",
-                      business: "bg-blue-50 text-blue-700 border border-blue-400 font-medium",
-                      saturday: "bg-orange-50 text-orange-700 border border-orange-400 font-medium",
-                      closed: "bg-red-50 text-red-700 border border-red-400"
+                      selected: "date-selected",
+                      otherSelected: "bg-gray-200 text-gray-500 opacity-60",
+                      business: "date-business"
+                    }}
+                    classNames={{
+                      day: "date-unselected",
+                      day_selected: "date-selected",
+                      day_disabled: "date-disabled",
+                      day_outside: "date-disabled"
                     }}
                   />
                 </div>
+                
+                {/* 選択日表示（カレンダーの下） */}
+                {preference?.date && (
+                  <div className="mt-4 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
+                    <div className="text-center">
+                      <p className="text-base font-semibold text-gray-800 mb-1">
+                        {format(preference.date, "yyyy年MM月dd日(E)", { locale: ja })}
+                      </p>
+                      <p className="text-sm text-gray-600">・日付が選択されました</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -272,31 +367,36 @@ const AppointmentCalendar = ({
                 
                 {preference?.date ? (
                   <div>
-                    <div className="text-sm text-gray-600 mb-3">
-                      選択日: {format(preference.date, "yyyy年MM月dd日(E)")}
-                    </div>
-                    
                     {/* 選択された時間の表示エリア */}
                     <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
-                      {preference?.timeSlot ? (
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-gray-700">
-                              {preference.timeSlot.slice(0, 5)} - {preference.timeSlot.slice(6, 11)}
-                            </span>
-                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                      {preference?.timeSlot ? (() => {
+                        // 選択された時間スロットに対応するslotを見つける
+                        const selectedSlot = timeSlots.find(slot => slot.start_time === preference.timeSlot);
+                        const startTime = selectedSlot?.start_time ? selectedSlot.start_time.slice(0, 5) : preference.timeSlot.slice(0, 5);
+                        const endTime = selectedSlot?.end_time ? selectedSlot.end_time.slice(0, 5) : '';
+                        
+                        return (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium text-gray-700">
+                                {startTime}{endTime ? ` - ${endTime}` : ''}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-green-600 text-sm">時間が選択されました</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-green-600 text-sm">時間が選択されました</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between text-gray-500">
+                        );
+                      })() : (
+                        <div className="flex items-center justify-center text-gray-500">
                           <span>時間を選択してください</span>
-                          <ChevronDown className="h-4 w-4" />
                         </div>
                       )}
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 mb-3">
+                      選択日: {format(preference.date, "yyyy年MM月dd日(E)", { locale: ja })}
                     </div>
 
                     {/* 時間選択グリッド */}
@@ -382,28 +482,6 @@ const AppointmentCalendar = ({
         <p className="text-sm text-gray-600 mb-1">
           ※ 予約は2週間後〜6週間後まで選択可能です
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs text-gray-700 mt-4 max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
-            <div className="w-4 h-4 bg-cyan-100 border border-cyan-400 rounded"></div>
-            <span className="font-medium">終日営業</span>
-          </div>
-          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
-            <div className="w-4 h-4 bg-blue-100 border border-blue-400 rounded"></div>
-            <span className="font-medium">土曜営業</span>
-          </div>
-          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
-            <div className="w-4 h-4 bg-orange-100 border border-orange-400 rounded"></div>
-            <span className="font-medium">午前休診</span>
-          </div>
-          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
-            <div className="w-4 h-4 bg-purple-100 border border-purple-400 rounded"></div>
-            <span className="font-medium">特別営業</span>
-          </div>
-          <div className="flex items-center gap-2 bg-white p-2 rounded border shadow-sm">
-            <div className="w-4 h-4 bg-pink-100 border border-pink-300 rounded"></div>
-            <span className="font-medium">休診</span>
-          </div>
-        </div>
       </div>
 
       {/* 3つのカレンダー構成 */}

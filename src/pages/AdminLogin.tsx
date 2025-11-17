@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { ADMIN_USERNAME, ADMIN_PASSWORD } from "@/utils/adminAuth";
+
+// 開発環境用の追加認証情報（ドキュメントに記載されていたもの）
+const DEV_ADMIN_CREDENTIALS = [
+  { username: "sup@ei-life.co.jp", password: "aA-793179" },
+  { username: "sup@ei-life.co.jp", password: "pass" },
+  { username: "admin@smartreserve.com", password: "admin123" },
+];
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
@@ -21,6 +29,7 @@ const AdminLogin = () => {
     setLoading(true);
 
     console.log("ログイン試行:", { username, password });
+    console.log("期待される認証情報:", { ADMIN_USERNAME, ADMIN_PASSWORD });
 
     try {
       // 入力値の検証
@@ -30,8 +39,14 @@ const AdminLogin = () => {
 
       console.log("入力値検証完了");
 
-      // 管理者認証（デモ用認証情報）
-      if (username === "sup@ei-life.co.jp" && password === "aA-793179") {
+      // 管理者認証（環境変数またはデフォルト値）
+      const isAuthenticated = 
+        (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) ||
+        DEV_ADMIN_CREDENTIALS.some(
+          cred => cred.username === username && cred.password === password
+        );
+
+      if (isAuthenticated) {
         console.log("認証成功、ローカルストレージに保存");
         
         // ローカルストレージに管理者フラグを保存
@@ -56,7 +71,12 @@ const AdminLogin = () => {
           navigate("/admin", { replace: true });
         }, 1000);
       } else {
-        console.log("認証失敗:", { username, password });
+        console.log("認証失敗:", { 
+          username, 
+          password,
+          expectedUsername: ADMIN_USERNAME,
+          expectedPassword: ADMIN_PASSWORD ? "***" : "未設定"
+        });
         throw new Error("IDまたはパスワードが正しくありません");
       }
     } catch (error: any) {
@@ -70,6 +90,9 @@ const AdminLogin = () => {
       setLoading(false);
     }
   };
+
+  // 開発環境かどうかを判定
+  const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
   return (
     <div className="container max-w-lg mx-auto py-8 px-4">
@@ -122,6 +145,16 @@ const AdminLogin = () => {
               {loading ? "ログイン中..." : "ログイン"}
             </Button>
           </form>
+          {isDevelopment && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
+              <p className="font-semibold text-yellow-800 mb-2">開発環境用の認証情報:</p>
+              <ul className="list-disc list-inside text-yellow-700 space-y-1">
+                <li>ID: <code className="bg-yellow-100 px-1 rounded">sup@ei-life.co.jp</code> / パスワード: <code className="bg-yellow-100 px-1 rounded">aA-793179</code></li>
+                <li>ID: <code className="bg-yellow-100 px-1 rounded">sup@ei-life.co.jp</code> / パスワード: <code className="bg-yellow-100 px-1 rounded">pass</code></li>
+                <li>ID: <code className="bg-yellow-100 px-1 rounded">admin@smartreserve.com</code> / パスワード: <code className="bg-yellow-100 px-1 rounded">admin123</code></li>
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
       <div className="mt-4 text-center">

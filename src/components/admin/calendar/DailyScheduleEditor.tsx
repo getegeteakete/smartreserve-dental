@@ -296,14 +296,22 @@ export const DailyScheduleEditor = ({
                     </Button>
                   </div>
                   
+                  {slot.is_available && (
+                    <p className="text-xs text-gray-500 mb-2">
+                      💡 バーをドラッグして時間帯を移動、左右のハンドルで開始・終了時間を調整できます
+                    </p>
+                  )}
+                  
                   <TimeRangeSlider
                     startTime={slot.start_time}
                     endTime={slot.end_time}
-                    onTimeChange={(start, end) => {
+                    onChange={(start, end) => {
                       updateTimeSlot(index, 'start_time', start);
                       updateTimeSlot(index, 'end_time', end);
                     }}
                     disabled={!slot.is_available}
+                    minHour={0}
+                    maxHour={24}
                   />
                 </div>
               ))}

@@ -65,7 +65,9 @@ export const getScheduleInfo = (
 
   // 木曜日の処理：祝日がある週は営業、ない週は休診
   if (dayOfWeek === 4) {
-    if (hasHolidayInWeek(date)) {
+    const hasHoliday = hasHolidayInWeek(date);
+    console.log(`木曜日 ${dateString} (${format(date, 'MM/dd')}): 祝日週チェック = ${hasHoliday}`);
+    if (hasHoliday) {
       return {
         type: 'full-open',
         schedules: ['10:00～13:30', '15:00～19:00'],
