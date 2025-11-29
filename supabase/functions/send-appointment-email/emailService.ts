@@ -39,13 +39,13 @@ const getEmailSettings = async (type: 'patient' | 'admin') => {
 
     const enabled = settings[0].data?.setting_value?.enabled !== false && settings[0].data?.is_enabled !== false;
     const fromName = settings[1].data?.setting_value?.from_name || (type === 'patient' ? '六本松矯正歯科クリニックとよしま' : '六本松矯正歯科クリニックとよしま予約システム');
-    const fromEmail = settings[2].data?.setting_value?.from_email || '489@489.toyoshima-do.com';
+    const fromEmail = settings[2].data?.setting_value?.from_email || 'yoyaku@toyoshima-do.com';
     const subjectTemplate = settings[3].data?.setting_value?.subject || (type === 'patient' ? '予約受付完了 - {patient_name}様の予約を受け付けました' : '新規予約 - {patient_name}様からの予約申込み');
     const contentTemplate = settings[4].data?.setting_value?.content || '';
 
     if (type === 'admin') {
       const toEmailResult = await supabase.from('system_settings').select('*').eq('setting_key', 'email_admin_to_email').single();
-      const toEmail = toEmailResult.data?.setting_value?.to_email || '489@489.toyoshima-do.com';
+      const toEmail = toEmailResult.data?.setting_value?.to_email || 'yoyaku@toyoshima-do.com';
       return { enabled, fromName, fromEmail, toEmail, subjectTemplate, contentTemplate };
     }
 
@@ -57,8 +57,8 @@ const getEmailSettings = async (type: 'patient' | 'admin') => {
       return {
         enabled: true,
         fromName: '六本松矯正歯科クリニックとよしま予約システム',
-        fromEmail: '489@489.toyoshima-do.com',
-        toEmail: '489@489.toyoshima-do.com',
+        fromEmail: 'yoyaku@toyoshima-do.com',
+        toEmail: 'yoyaku@toyoshima-do.com',
         subjectTemplate: '新規予約 - {patient_name}様からの予約申込み',
         contentTemplate: '',
       };
@@ -66,7 +66,7 @@ const getEmailSettings = async (type: 'patient' | 'admin') => {
     return {
       enabled: true,
       fromName: '六本松矯正歯科クリニックとよしま',
-      fromEmail: '489@489.toyoshima-do.com',
+      fromEmail: 'yoyaku@toyoshima-do.com',
       subjectTemplate: '予約受付完了 - {patient_name}様の予約を受け付けました',
       contentTemplate: '',
     };

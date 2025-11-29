@@ -41,6 +41,12 @@ export const useEmailNotification = () => {
     });
 
     console.log("📧 メール送信レスポンス:", emailResponse);
+    console.log("📧 メール送信レスポンス詳細:", {
+      error: emailResponse.error,
+      data: emailResponse.data,
+      status: emailResponse.status,
+      statusText: emailResponse.statusText
+    });
 
     // メール送信成功かつappointmentIdがある場合はトークンを生成
     if (!emailResponse.error && appointmentId) {
@@ -73,11 +79,34 @@ export const useEmailNotification = () => {
     if (emailResponse.error) {
       console.error("❌ メール送信エラー:", emailResponse.error);
       console.error("❌ エラー詳細:", JSON.stringify(emailResponse.error, null, 2));
-      const errorMessage = emailResponse.error.message || '不明なエラー';
+      
+      // エラーの種類に応じたメッセージを生成
+      let errorMessage = '不明なエラー';
+      let userMessage = '予約を受け付けましたが、メール送信に失敗しました。';
+      
+      if (emailResponse.error.message) {
+        errorMessage = emailResponse.error.message;
+      }
+      
+      // Edge Functionが存在しない場合
+      if (errorMessage.includes('Function not found') || errorMessage.includes('404') || errorMessage.includes('not found')) {
+        userMessage = '予約を受け付けましたが、メール送信機能が設定されていません。管理者にご連絡ください。';
+        console.error("⚠️ Edge Functionがデプロイされていない可能性があります。Supabaseにデプロイしてください。");
+      }
+      // APIキーが設定されていない場合
+      else if (errorMessage.includes('RESEND_API_KEY') || errorMessage.includes('設定が完了していません')) {
+        userMessage = '予約を受け付けましたが、メール送信の設定が完了していません。管理者にご連絡ください。';
+        console.error("⚠️ RESEND_API_KEYがSupabaseのSecretsに設定されていない可能性があります。");
+      }
+      // その他のエラー
+      else {
+        userMessage = `予約を受け付けましたが、メール送信に失敗しました。エラー: ${errorMessage}`;
+      }
+      
       toast({
         variant: "destructive",
         title: "予約申し込み完了（メール送信失敗）",
-        description: `予約を受け付けましたが、メール送信に失敗しました。エラー: ${errorMessage}`,
+        description: userMessage,
       });
       // エラーをスローして呼び出し元で処理できるようにする
       throw new Error(`メール送信に失敗しました: ${errorMessage}`);

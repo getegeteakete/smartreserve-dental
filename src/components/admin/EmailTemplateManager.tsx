@@ -33,7 +33,7 @@ export const EmailTemplateManager = () => {
   const [patientEmailSettings, setPatientEmailSettings] = useState({
     enabled: true,
     from_name: '六本松矯正歯科クリニックとよしま',
-    from_email: '489@489.toyoshima-do.com',
+    from_email: 'yoyaku@toyoshima-do.com',
     subject_template: '予約受付完了 - {patient_name}様の予約を受け付けました',
     content_template: '',
   });
@@ -42,8 +42,8 @@ export const EmailTemplateManager = () => {
   const [adminEmailSettings, setAdminEmailSettings] = useState({
     enabled: true,
     from_name: '六本松矯正歯科クリニックとよしま予約システム',
-    from_email: '489@489.toyoshima-do.com',
-    to_email: '489@489.toyoshima-do.com',
+    from_email: 'yoyaku@toyoshima-do.com',
+    to_email: 'yoyaku@toyoshima-do.com',
     subject_template: '新規予約 - {patient_name}様からの予約申込み',
     content_template: '',
   });

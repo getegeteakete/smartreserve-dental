@@ -43,13 +43,60 @@ export const useRebookingValidation = () => {
     try {
       console.log("既存pending予約キャンセル開始:", email);
 
+      // まず、既存のpending予約を直接取得して確認
+      const { data: existingAppointments, error: fetchError } = await supabase
+        .from('appointments')
+        .select('id, status')
+        .eq('email', email)
+        .eq('status', 'pending');
+
+      if (fetchError) {
+        console.error("既存pending予約取得エラー:", fetchError);
+        // エラーが発生しても続行（予約処理をブロックしない）
+        return 0;
+      }
+
+      const pendingCount = existingAppointments?.length || 0;
+      console.log("既存pending予約数:", pendingCount);
+
+      if (pendingCount === 0) {
+        console.log("キャンセルするpending予約はありません");
+        return 0;
+      }
+
+      // RPC関数を試行
       const { data, error } = await supabase.rpc('cancel_existing_pending_appointments', {
         p_email: email
       });
 
       if (error) {
-        console.error("既存pending予約キャンセルエラー:", error);
-        throw error;
+        console.warn("RPC関数でのキャンセルエラー、直接更新を試行:", error);
+        
+        // RPC関数が失敗した場合、直接UPDATEを試行
+        const appointmentIds = existingAppointments!.map(apt => apt.id);
+        const { error: updateError } = await supabase
+          .from('appointments')
+          .update({ 
+            status: 'cancelled',
+            updated_at: new Date().toISOString()
+          })
+          .in('id', appointmentIds);
+
+        if (updateError) {
+          console.error("直接更新でもエラー:", updateError);
+          // エラーが発生しても警告のみで続行
+          console.warn("既存予約のキャンセルに失敗しましたが、新しい予約処理を続行します");
+          return 0;
+        }
+
+        console.log("直接更新でキャンセル成功:", pendingCount, "件");
+        if (pendingCount > 0) {
+          toast({
+            title: "既存予約をキャンセルしました",
+            description: `申込み中の予約 ${pendingCount}件を自動的にキャンセルし、新しい予約を受け付けます`,
+          });
+        }
+        return pendingCount;
       }
 
       const cancelledCount = data as number;
@@ -65,11 +112,8 @@ export const useRebookingValidation = () => {
       return cancelledCount;
     } catch (error: any) {
       console.error("既存pending予約キャンセル処理エラー:", error);
-      toast({
-        variant: "destructive",
-        title: "エラー",
-        description: "既存予約のキャンセル処理中にエラーが発生しました",
-      });
+      // エラーが発生しても警告のみで続行（予約処理をブロックしない）
+      console.warn("既存予約のキャンセルに失敗しましたが、新しい予約処理を続行します");
       return 0;
     }
   };

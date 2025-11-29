@@ -74,12 +74,12 @@ export const useBookingFormSubmit = ({
       if (rebookingStatus.pending_count > 0) {
         console.log("ステップ3: 既存pending予約キャンセル開始");
         const cancelledCount = await cancelExistingPendingAppointments(formData.email);
-        if (cancelledCount === 0 && rebookingStatus.pending_count > 0) {
-          console.log("既存pending予約キャンセル失敗");
-          setIsLoading(false);
-          return;
+        // キャンセルに失敗しても警告のみで続行（予約処理をブロックしない）
+        if (cancelledCount > 0) {
+          console.log("既存pending予約キャンセル成功:", cancelledCount);
+        } else {
+          console.warn("既存pending予約キャンセルに失敗しましたが、新しい予約処理を続行します");
         }
-        console.log("既存pending予約キャンセル成功:", cancelledCount);
       }
 
       // 希望日時の重複・容量チェック
