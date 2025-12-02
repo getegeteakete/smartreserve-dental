@@ -23,7 +23,7 @@ export const defaultCategories = [
     name: "PMTC予約",
     description: "プロによるお口の全体クリーニング。バイオフィルムを取り除いた後、フッ素、エナメルトリートメント、舌クリーニングなど、お口の状態に合わせて必要なケアを行います",
     display_order: 4,
-    image_url: "http://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/wp-content/uploads/2024/03/touin10.jpg"
+    image_url: "/images/first-time-bg.jpg"
   }
 ];
 

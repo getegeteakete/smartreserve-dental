@@ -117,14 +117,55 @@ const TreatmentSelection = () => {
     "初めての方": "/images/first-time-bg.jpg",
     "精密検査予約": "/images/precision-examination-bg.jpg", 
     "ホワイトニング予約": "/images/whitening-bg.jpg",
-    "PMTC予約": "http://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/wp-content/uploads/2024/03/touin10.jpg"
+    "PMTC予約": "/images/first-time-bg.jpg"
   };
 
 
 
+  // カテゴリーバナーにスクロールする関数
+  const scrollToCategory = (category: string) => {
+    setTimeout(() => {
+      const element = document.getElementById(`category-${category}`);
+      if (element) {
+        const headerOffset = 80; // ヘッダーの高さを考慮
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  };
+
   if (isMobile) {
     return (
       <div className="h-screen flex flex-col">
+        {/* トップバナー - ホワイトニング予約（シェイプアップ） */}
+        {displayCategories.includes("ホワイトニング予約") && (
+          <div 
+            className="relative w-full h-64 cursor-pointer overflow-hidden"
+            onClick={() => scrollToCategory("ホワイトニング予約")}
+          >
+            <img
+              src="/images/whitening-bg.jpg"
+              alt="ホワイトニング予約"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error("画像読み込みエラー: /images/whitening-bg.jpg");
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+              <div className="text-center text-white">
+                <h2 className="text-2xl font-bold mb-2">ホワイトニング予約</h2>
+                <p className="text-sm">タップして詳細を見る</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* 固定カテゴリー選択ヘッダー */}
         <div className="sticky top-16 z-40 bg-white border-b border-gray-200 shadow-sm">
           <div className="px-4 py-3">
@@ -154,8 +195,16 @@ const TreatmentSelection = () => {
           <div className="space-y-8">
             {displayCategories.map((category) => (
               <div key={category} id={`category-${category}`} className="space-y-4">
-                {/* カテゴリーヘッダー */}
-                <div className="text-center py-4 bg-gray-100 rounded-sm border border-gray-200">
+                {/* カテゴリーヘッダー - クリック可能 */}
+                <div 
+                  className="text-center py-4 bg-gray-100 rounded-sm border border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => {
+                    const element = document.getElementById(`category-${category}`);
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
+                >
                   {categoryImages[category as keyof typeof categoryImages] && (
                     <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
                       <img

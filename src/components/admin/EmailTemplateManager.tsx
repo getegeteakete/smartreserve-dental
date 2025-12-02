@@ -7,7 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Mail, Eye } from 'lucide-react';
+import { Loader2, Save, Mail, Eye, Send, CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface EmailTemplate {
@@ -26,14 +28,23 @@ export const EmailTemplateManager = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
   const [activeTab, setActiveTab] = useState<'patient' | 'admin'>('patient');
+  const [diagnosisResults, setDiagnosisResults] = useState<{
+    edgeFunction: { status: 'ok' | 'error' | 'checking'; message: string };
+    resendApiKey: { status: 'ok' | 'error' | 'checking'; message: string };
+    patientSettings: { status: 'ok' | 'error' | 'checking'; message: string };
+    adminSettings: { status: 'ok' | 'error' | 'checking'; message: string };
+  } | null>(null);
   const { toast } = useToast();
 
   // 患者様向けメール設定
   const [patientEmailSettings, setPatientEmailSettings] = useState({
     enabled: true,
     from_name: '六本松矯正歯科クリニックとよしま',
-    from_email: 'yoyaku@toyoshima-do.com',
+    from_email: 't@489.toyoshima-do.com',
     subject_template: '予約受付完了 - {patient_name}様の予約を受け付けました',
     content_template: '',
   });
@@ -42,8 +53,8 @@ export const EmailTemplateManager = () => {
   const [adminEmailSettings, setAdminEmailSettings] = useState({
     enabled: true,
     from_name: '六本松矯正歯科クリニックとよしま予約システム',
-    from_email: 'yoyaku@toyoshima-do.com',
-    to_email: 'yoyaku@toyoshima-do.com',
+    from_email: 't@489.toyoshima-do.com',
+    to_email: 't@489.toyoshima-do.com',
     subject_template: '新規予約 - {patient_name}様からの予約申込み',
     content_template: '',
   });
@@ -337,6 +348,202 @@ export const EmailTemplateManager = () => {
     }
   };
 
+  const diagnoseEmailSettings = async () => {
+    setIsDiagnosing(true);
+    setDiagnosisResults({
+      edgeFunction: { status: 'checking', message: '確認中...' },
+      resendApiKey: { status: 'checking', message: '確認中...' },
+      patientSettings: { status: 'checking', message: '確認中...' },
+      adminSettings: { status: 'checking', message: '確認中...' },
+    });
+
+    const results = {
+      edgeFunction: { status: 'checking' as const, message: '' },
+      resendApiKey: { status: 'checking' as const, message: '' },
+      patientSettings: { status: 'checking' as const, message: '' },
+      adminSettings: { status: 'checking' as const, message: '' },
+    };
+
+    try {
+      // 1. Edge Functionの確認
+      try {
+        const testResponse = await supabase.functions.invoke('send-appointment-email', {
+          body: {
+            patientName: '診断テスト',
+            patientEmail: 'test@example.com',
+            phone: '090-0000-0000',
+            treatmentName: '診断テスト',
+            fee: 0,
+            preferredDates: [{ date: '2025-12-31', timeSlot: '10:00:00' }],
+          }
+        });
+
+        if (testResponse.error) {
+          if (testResponse.error.message?.includes('Function not found') || 
+              testResponse.error.message?.includes('404')) {
+            results.edgeFunction = {
+              status: 'error',
+              message: 'Edge Functionがデプロイされていません。EDGE_FUNCTION_DEPLOY_GUIDE.mdを参照してデプロイしてください。'
+            };
+          } else if (testResponse.error.message?.includes('RESEND_API_KEY')) {
+            results.edgeFunction = {
+              status: 'ok',
+              message: 'Edge Functionはデプロイされています'
+            };
+            results.resendApiKey = {
+              status: 'error',
+              message: 'RESEND_API_KEYが設定されていません。Supabase Secretsに設定してください。'
+            };
+          } else {
+            results.edgeFunction = {
+              status: 'ok',
+              message: 'Edge Functionはデプロイされています（エラー: ' + testResponse.error.message + '）'
+            };
+          }
+        } else {
+          results.edgeFunction = {
+            status: 'ok',
+            message: 'Edge Functionは正常にデプロイされています'
+          };
+        }
+      } catch (error: any) {
+        results.edgeFunction = {
+          status: 'error',
+          message: 'Edge Functionへの接続に失敗しました: ' + (error.message || '不明なエラー')
+        };
+      }
+
+      // 2. RESEND_API_KEYの確認（Edge Functionのレスポンスから推測）
+      if (results.edgeFunction.status === 'ok' && results.resendApiKey.status === 'checking') {
+        results.resendApiKey = {
+          status: 'ok',
+          message: 'RESEND_API_KEYは設定されているようです（Edge Functionが正常に応答）'
+        };
+      }
+
+      // 3. 患者様向けメール設定の確認
+      if (!patientEmailSettings.enabled) {
+        results.patientSettings = {
+          status: 'error',
+          message: '患者様向け自動返信メールが無効になっています'
+        };
+      } else if (!patientEmailSettings.from_email || !patientEmailSettings.from_email.includes('@')) {
+        results.patientSettings = {
+          status: 'error',
+          message: '送信元メールアドレスが正しく設定されていません'
+        };
+      } else if (!patientEmailSettings.subject_template || !patientEmailSettings.content_template) {
+        results.patientSettings = {
+          status: 'error',
+          message: '件名または本文テンプレートが設定されていません'
+        };
+      } else {
+        results.patientSettings = {
+          status: 'ok',
+          message: '患者様向けメール設定は正常です'
+        };
+      }
+
+      // 4. 管理者向けメール設定の確認
+      if (!adminEmailSettings.enabled) {
+        results.adminSettings = {
+          status: 'error',
+          message: '管理者向け通知メールが無効になっています'
+        };
+      } else if (!adminEmailSettings.from_email || !adminEmailSettings.from_email.includes('@')) {
+        results.adminSettings = {
+          status: 'error',
+          message: '送信元メールアドレスが正しく設定されていません'
+        };
+      } else if (!adminEmailSettings.to_email || !adminEmailSettings.to_email.includes('@')) {
+        results.adminSettings = {
+          status: 'error',
+          message: '送信先メールアドレスが正しく設定されていません'
+        };
+      } else if (!adminEmailSettings.subject_template || !adminEmailSettings.content_template) {
+        results.adminSettings = {
+          status: 'error',
+          message: '件名または本文テンプレートが設定されていません'
+        };
+      } else {
+        results.adminSettings = {
+          status: 'ok',
+          message: '管理者向けメール設定は正常です'
+        };
+      }
+
+      setDiagnosisResults(results);
+    } catch (error: any) {
+      console.error('診断エラー:', error);
+      toast({
+        title: 'エラー',
+        description: '診断中にエラーが発生しました: ' + error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDiagnosing(false);
+    }
+  };
+
+  const sendTestEmail = async (type: 'patient' | 'admin') => {
+    if (!testEmail || !testEmail.includes('@')) {
+      toast({
+        title: 'エラー',
+        description: '有効なメールアドレスを入力してください',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      const settings = type === 'patient' ? patientEmailSettings : adminEmailSettings;
+      
+      // テスト用のデータを準備
+      const testData = {
+        patientName: 'テスト太郎',
+        patientEmail: type === 'patient' ? testEmail : settings.to_email || testEmail,
+        phone: '090-1234-5678',
+        treatmentName: '初診相談',
+        fee: 3000,
+        preferredDates: [
+          { date: '2025-12-31', timeSlot: '10:00:00' },
+          { date: '2026-01-02', timeSlot: '14:00:00' }
+        ],
+        notes: 'これはテストメールです'
+      };
+
+      console.log('📧 テストメール送信開始:', testData);
+
+      const { data, error } = await supabase.functions.invoke('send-appointment-email', {
+        body: testData
+      });
+
+      if (error) {
+        console.error('❌ テストメール送信エラー:', error);
+        throw new Error(error.message || 'メール送信に失敗しました');
+      }
+
+      if (data?.success) {
+        toast({
+          title: 'テストメール送信成功',
+          description: `${testEmail} にテストメールを送信しました。受信ボックスをご確認ください。`,
+        });
+      } else {
+        throw new Error(data?.error || 'メール送信に失敗しました');
+      }
+    } catch (error: any) {
+      console.error('テストメール送信エラー:', error);
+      toast({
+        title: 'エラー',
+        description: error.message || 'テストメールの送信に失敗しました。Edge Functionがデプロイされているか確認してください。',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-10">
@@ -347,6 +554,116 @@ export const EmailTemplateManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* メール設定診断カード */}
+      <Card className="border-2">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-orange-600" />
+                メール送信設定の診断
+              </CardTitle>
+              <CardDescription>
+                現在のメール送信設定を確認し、問題点を特定します
+              </CardDescription>
+            </div>
+            <Button
+              onClick={diagnoseEmailSettings}
+              disabled={isDiagnosing}
+              variant="outline"
+            >
+              {isDiagnosing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  診断中...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  診断を実行
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        {diagnosisResults && (
+          <CardContent className="space-y-4">
+            <Alert>
+              <AlertTitle>診断結果</AlertTitle>
+              <AlertDescription className="space-y-3 mt-2">
+                <div className="flex items-start gap-3">
+                  {diagnosisResults.edgeFunction.status === 'ok' ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <strong>Edge Function</strong>
+                      <Badge variant={diagnosisResults.edgeFunction.status === 'ok' ? 'default' : 'destructive'}>
+                        {diagnosisResults.edgeFunction.status === 'ok' ? 'OK' : 'エラー'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{diagnosisResults.edgeFunction.message}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  {diagnosisResults.resendApiKey.status === 'ok' ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <strong>Resend APIキー</strong>
+                      <Badge variant={diagnosisResults.resendApiKey.status === 'ok' ? 'default' : 'destructive'}>
+                        {diagnosisResults.resendApiKey.status === 'ok' ? 'OK' : 'エラー'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{diagnosisResults.resendApiKey.message}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  {diagnosisResults.patientSettings.status === 'ok' ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <strong>患者様向けメール設定</strong>
+                      <Badge variant={diagnosisResults.patientSettings.status === 'ok' ? 'default' : 'destructive'}>
+                        {diagnosisResults.patientSettings.status === 'ok' ? 'OK' : 'エラー'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{diagnosisResults.patientSettings.message}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  {diagnosisResults.adminSettings.status === 'ok' ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <strong>管理者向けメール設定</strong>
+                      <Badge variant={diagnosisResults.adminSettings.status === 'ok' ? 'default' : 'destructive'}>
+                        {diagnosisResults.adminSettings.status === 'ok' ? 'OK' : 'エラー'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{diagnosisResults.adminSettings.message}</p>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        )}
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -423,15 +740,17 @@ export const EmailTemplateManager = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="patient_content">本文テンプレート（HTML対応）</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => previewEmail('patient')}
-                    className="flex items-center gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    プレビュー
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => previewEmail('patient')}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      プレビュー
+                    </Button>
+                  </div>
                 </div>
                 <Textarea
                   id="patient_content"
@@ -460,23 +779,56 @@ export const EmailTemplateManager = () => {
                 </div>
               </div>
 
-              <Button
-                onClick={() => handleSave('patient')}
-                disabled={isSaving}
-                className="w-full"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    保存中...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    患者様向けメール設定を保存
-                  </>
-                )}
-              </Button>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="test_email_patient">テスト送信用メールアドレス</Label>
+                  <Input
+                    id="test_email_patient"
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="test@example.com"
+                  />
+                  <p className="text-xs text-gray-500">
+                    テストメールを送信するメールアドレスを入力してください
+                  </p>
+                </div>
+                <Button
+                  onClick={() => sendTestEmail('patient')}
+                  disabled={isTesting || !testEmail}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isTesting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      送信中...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      テストメールを送信（患者様向け）
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => handleSave('patient')}
+                  disabled={isSaving}
+                  className="w-full"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      保存中...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      患者様向けメール設定を保存
+                    </>
+                  )}
+                </Button>
+              </div>
             </TabsContent>
 
             {/* 管理者向けメール設定 */}
@@ -551,15 +903,17 @@ export const EmailTemplateManager = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="admin_content">本文テンプレート（HTML対応）</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => previewEmail('admin')}
-                    className="flex items-center gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    プレビュー
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => previewEmail('admin')}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      プレビュー
+                    </Button>
+                  </div>
                 </div>
                 <Textarea
                   id="admin_content"
@@ -588,23 +942,56 @@ export const EmailTemplateManager = () => {
                 </div>
               </div>
 
-              <Button
-                onClick={() => handleSave('admin')}
-                disabled={isSaving}
-                className="w-full"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    保存中...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    管理者向けメール設定を保存
-                  </>
-                )}
-              </Button>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="test_email_admin">テスト送信用メールアドレス</Label>
+                  <Input
+                    id="test_email_admin"
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="test@example.com"
+                  />
+                  <p className="text-xs text-gray-500">
+                    テストメールを送信するメールアドレスを入力してください
+                  </p>
+                </div>
+                <Button
+                  onClick={() => sendTestEmail('admin')}
+                  disabled={isTesting || !testEmail}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isTesting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      送信中...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      テストメールを送信（管理者向け）
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => handleSave('admin')}
+                  disabled={isSaving}
+                  className="w-full"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      保存中...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      管理者向けメール設定を保存
+                    </>
+                  )}
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

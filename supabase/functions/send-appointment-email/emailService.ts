@@ -39,13 +39,13 @@ const getEmailSettings = async (type: 'patient' | 'admin') => {
 
     const enabled = settings[0].data?.setting_value?.enabled !== false && settings[0].data?.is_enabled !== false;
     const fromName = settings[1].data?.setting_value?.from_name || (type === 'patient' ? '六本松矯正歯科クリニックとよしま' : '六本松矯正歯科クリニックとよしま予約システム');
-    const fromEmail = settings[2].data?.setting_value?.from_email || 'yoyaku@toyoshima-do.com';
+    const fromEmail = settings[2].data?.setting_value?.from_email || 't@489.toyoshima-do.com';
     const subjectTemplate = settings[3].data?.setting_value?.subject || (type === 'patient' ? '予約受付完了 - {patient_name}様の予約を受け付けました' : '新規予約 - {patient_name}様からの予約申込み');
     const contentTemplate = settings[4].data?.setting_value?.content || '';
 
     if (type === 'admin') {
       const toEmailResult = await supabase.from('system_settings').select('*').eq('setting_key', 'email_admin_to_email').single();
-      const toEmail = toEmailResult.data?.setting_value?.to_email || 'yoyaku@toyoshima-do.com';
+      const toEmail = toEmailResult.data?.setting_value?.to_email || 't@489.toyoshima-do.com';
       return { enabled, fromName, fromEmail, toEmail, subjectTemplate, contentTemplate };
     }
 
@@ -57,8 +57,8 @@ const getEmailSettings = async (type: 'patient' | 'admin') => {
       return {
         enabled: true,
         fromName: '六本松矯正歯科クリニックとよしま予約システム',
-        fromEmail: 'yoyaku@toyoshima-do.com',
-        toEmail: 'yoyaku@toyoshima-do.com',
+        fromEmail: 't@489.toyoshima-do.com',
+        toEmail: 't@489.toyoshima-do.com',
         subjectTemplate: '新規予約 - {patient_name}様からの予約申込み',
         contentTemplate: '',
       };
@@ -66,7 +66,7 @@ const getEmailSettings = async (type: 'patient' | 'admin') => {
     return {
       enabled: true,
       fromName: '六本松矯正歯科クリニックとよしま',
-      fromEmail: 'yoyaku@toyoshima-do.com',
+      fromEmail: 't@489.toyoshima-do.com',
       subjectTemplate: '予約受付完了 - {patient_name}様の予約を受け付けました',
       contentTemplate: '',
     };
@@ -89,7 +89,7 @@ const replaceTemplateVariables = (template: string, data: AppointmentEmailReques
     .replace(/{notes}/g, data.notes || '')
     .replace(/{clinic_name}/g, '六本松矯正歯科クリニックとよしま')
     .replace(/{clinic_phone}/g, '092-406-2119')
-    .replace(/{clinic_email}/g, '489@489.toyoshima-do.com');
+    .replace(/{clinic_email}/g, 't@489.toyoshima-do.com');
 };
 
 export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { cancelToken?: string; rebookToken?: string }) => {
@@ -152,12 +152,32 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
     // 患者様メール送信エラーチェック
     if (patientEmailResponse.error) {
       console.error("❌ 患者様メール送信エラー:", patientEmailResponse.error);
-      throw new Error(`患者様へのメール送信に失敗しました: ${JSON.stringify(patientEmailResponse.error)}`);
+      const errorDetails = patientEmailResponse.error;
+      let errorMessage = `患者様へのメール送信に失敗しました`;
+      
+      // Resend APIのエラー詳細を解析
+      if (typeof errorDetails === 'object') {
+        if (errorDetails.message) {
+          errorMessage += `: ${errorDetails.message}`;
+        }
+        if (errorDetails.name) {
+          errorMessage += ` (${errorDetails.name})`;
+        }
+        // ドメイン認証エラーの場合
+        if (errorDetails.message?.includes('domain') || errorDetails.message?.includes('unverified')) {
+          errorMessage += ' - ドメイン認証が必要です。RESEND_DOMAIN_SETUP.mdを参照してください。';
+        }
+      } else {
+        errorMessage += `: ${JSON.stringify(errorDetails)}`;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     if (!patientEmailResponse.data?.id) {
       console.error("❌ 患者様メール送信失敗: レスポンスにIDがありません");
-      throw new Error("患者様へのメール送信に失敗しました");
+      console.error("❌ レスポンス全体:", JSON.stringify(patientEmailResponse, null, 2));
+      throw new Error("患者様へのメール送信に失敗しました（レスポンスにIDがありません）");
     }
   } else {
     console.log("⚠️ 患者様への自動返信メールは無効になっています");

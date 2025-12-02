@@ -175,14 +175,14 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const adminEmailResponse = await resend.emails.send({
-      from: "六本松矯正歯科クリニックとよしま予約システム <489@489.toyoshima-do.com>",
-      to: ["489@489.toyoshima-do.com"],
+      from: "六本松矯正歯科クリニックとよしま予約システム <t@489.toyoshima-do.com>",
+      to: ["t@489.toyoshima-do.com"],
       subject: `予約キャンセル - ${patientName}様の予約がキャンセルされました`,
       html: adminNotificationHtml,
     });
 
     const patientEmailResponse = await resend.emails.send({
-      from: "六本松矯正歯科クリニックとよしま <489@489.toyoshima-do.com>",
+      from: "六本松矯正歯科クリニックとよしま <t@489.toyoshima-do.com>",
       to: [patientEmail],
       subject: `予約キャンセル確認 - ${patientName}様の予約をキャンセルいたしました`,
       html: patientConfirmationHtml,

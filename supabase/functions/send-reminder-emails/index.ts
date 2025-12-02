@@ -171,7 +171,7 @@ const sendReminderEmail = async (appointment: Appointment, reminderType: 'day_be
   }
 
   const emailResponse = await resend.emails.send({
-    from: "六本松矯正歯科クリニックとよしま <noreply@haru-sora-dental.com>",
+    from: "六本松矯正歯科クリニックとよしま <t@489.toyoshima-do.com>",
     to: [appointment.email],
     subject: subject,
     html: htmlContent,

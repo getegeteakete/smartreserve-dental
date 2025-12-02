@@ -114,7 +114,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: 'デンタルクリニック <noreply@yourdomain.com>',
+          from: '六本松矯正歯科クリニックとよしま <t@489.toyoshima-do.com>',
           to: [appointment.email],
           subject: '【決済完了】ご予約の決済が完了しました',
           html: emailContent,

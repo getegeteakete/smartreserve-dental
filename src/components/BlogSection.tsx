@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, ArrowRight, Heart, Shield, Sparkles } from 'lucide-react';
@@ -68,6 +69,7 @@ const blogPosts: BlogPost[] = [
 ];
 
 export const BlogSection = () => {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -135,10 +137,15 @@ export const BlogSection = () => {
           {blogPosts.map((post, index) => (
             <Card 
               key={post.id}
-              className={`bg-white shadow-lg border-0 overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-2 group ${
+              className={`bg-white shadow-lg border-0 overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-2 group cursor-pointer ${
                 isVisible ? 'animate-in fade-in slide-in-from-bottom-5' : ''
               }`}
               style={{ animationDelay: `${index * 200}ms` }}
+              onClick={() => {
+                // ページ遷移時にスクロール位置をリセット
+                window.scrollTo(0, 0);
+                navigate(`/blog/${post.id}`);
+              }}
             >
               <div className="relative overflow-hidden">
                 <img
@@ -191,6 +198,12 @@ export const BlogSection = () => {
                   variant="ghost" 
                   size="sm"
                   className="w-full group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation(); // カード全体のクリックイベントを阻止
+                    // ページ遷移時にスクロール位置をリセット
+                    window.scrollTo(0, 0);
+                    navigate(`/blog/${post.id}`);
+                  }}
                 >
                   続きを読む
                   <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />

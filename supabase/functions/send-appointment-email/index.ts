@@ -6,11 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      status: 200,
+      headers: corsHeaders 
+    });
   }
 
   try {
@@ -49,12 +53,35 @@ const handler = async (req: Request): Promise<Response> => {
     console.error("❌ エラー詳細:", {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
+      cause: error.cause
     });
+    
+    // エラーメッセージの詳細化
+    let errorMessage = error.message || "メール送信に失敗しました";
+    let errorDetails: any = {
+      message: errorMessage,
+      name: error.name || "Error",
+      stack: error.stack
+    };
+    
+    // Resend APIのエラーの場合、詳細情報を追加
+    if (error.message?.includes('RESEND') || error.message?.includes('API key')) {
+      errorDetails.resendError = true;
+      errorDetails.suggestion = "RESEND_API_KEYがSupabase Secretsに正しく設定されているか確認してください";
+    }
+    
+    // ドメイン認証エラーの場合
+    if (error.message?.includes('domain') || error.message?.includes('unverified')) {
+      errorDetails.domainError = true;
+      errorDetails.suggestion = "Resendでドメイン認証が完了しているか確認してください（RESEND_DOMAIN_SETUP.mdを参照）";
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message || "メール送信に失敗しました",
-        details: error.stack
+        success: false,
+        error: errorMessage,
+        details: errorDetails
       }),
       {
         status: 500,

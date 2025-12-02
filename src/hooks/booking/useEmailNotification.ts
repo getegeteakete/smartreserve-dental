@@ -79,37 +79,72 @@ export const useEmailNotification = () => {
     if (emailResponse.error) {
       console.error("❌ メール送信エラー:", emailResponse.error);
       console.error("❌ エラー詳細:", JSON.stringify(emailResponse.error, null, 2));
+      console.error("❌ エラーオブジェクト全体:", emailResponse.error);
       
       // エラーの種類に応じたメッセージを生成
       let errorMessage = '不明なエラー';
       let userMessage = '予約を受け付けましたが、メール送信に失敗しました。';
+      let detailedError = '';
       
-      if (emailResponse.error.message) {
+      // エラーメッセージの取得
+      if (typeof emailResponse.error === 'string') {
+        errorMessage = emailResponse.error;
+      } else if (emailResponse.error?.message) {
         errorMessage = emailResponse.error.message;
+      } else if (emailResponse.error?.error) {
+        errorMessage = emailResponse.error.error;
       }
       
+      // 詳細エラー情報の取得
+      if (emailResponse.error?.context) {
+        detailedError = JSON.stringify(emailResponse.error.context);
+      }
+      
+      console.error("🔍 解析されたエラーメッセージ:", errorMessage);
+      console.error("🔍 詳細エラー:", detailedError);
+      
+      // CORSエラーの場合
+      if (errorMessage.includes('CORS') || errorMessage.includes('blocked') || errorMessage.includes('preflight')) {
+        userMessage = '予約を受け付けましたが、メール送信機能への接続に失敗しました（CORSエラー）。Edge FunctionのCORS設定を確認してください。';
+        console.error("⚠️ CORSエラーが発生しています。Edge FunctionのCORS設定を確認してください。");
+      }
       // Edge Functionが存在しない場合
-      if (errorMessage.includes('Function not found') || errorMessage.includes('404') || errorMessage.includes('not found')) {
+      else if (errorMessage.includes('Function not found') || 
+               errorMessage.includes('404') || 
+               errorMessage.includes('not found') ||
+               errorMessage.includes('Failed to send a request')) {
         userMessage = '予約を受け付けましたが、メール送信機能が設定されていません。管理者にご連絡ください。';
-        console.error("⚠️ Edge Functionがデプロイされていない可能性があります。Supabaseにデプロイしてください。");
+        console.error("⚠️ Edge Functionがデプロイされていない可能性があります。EDGE_FUNCTION_DEPLOY_GUIDE.mdを参照してデプロイしてください。");
       }
       // APIキーが設定されていない場合
-      else if (errorMessage.includes('RESEND_API_KEY') || errorMessage.includes('設定が完了していません')) {
+      else if (errorMessage.includes('RESEND_API_KEY') || 
+               errorMessage.includes('設定が完了していません') ||
+               errorMessage.includes('API key')) {
         userMessage = '予約を受け付けましたが、メール送信の設定が完了していません。管理者にご連絡ください。';
         console.error("⚠️ RESEND_API_KEYがSupabaseのSecretsに設定されていない可能性があります。");
+      }
+      // ネットワークエラーの場合
+      else if (errorMessage.includes('network') || 
+               errorMessage.includes('fetch') || 
+               errorMessage.includes('ERR_FAILED')) {
+        userMessage = '予約を受け付けましたが、メール送信機能への接続に失敗しました。ネットワーク接続を確認してください。';
+        console.error("⚠️ ネットワークエラーが発生しています。");
       }
       // その他のエラー
       else {
         userMessage = `予約を受け付けましたが、メール送信に失敗しました。エラー: ${errorMessage}`;
+        console.error("⚠️ 不明なエラー:", errorMessage);
       }
       
       toast({
         variant: "destructive",
         title: "予約申し込み完了（メール送信失敗）",
         description: userMessage,
+        duration: 10000, // 10秒間表示
       });
+      
       // エラーをスローして呼び出し元で処理できるようにする
-      throw new Error(`メール送信に失敗しました: ${errorMessage}`);
+      throw new Error(`メール送信に失敗しました: ${errorMessage}${detailedError ? ' | 詳細: ' + detailedError : ''}`);
     } 
     
     if (emailResponse.data?.success) {

@@ -210,7 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 患者様への修正確認メール送信
     const patientEmailResponse = await resend.emails.send({
-      from: "六本松矯正歯科クリニックとよしま <489@489.toyoshima-do.com>",
+      from: "六本松矯正歯科クリニックとよしま <t@489.toyoshima-do.com>",
       to: [patientEmail],
       subject: `予約修正のご連絡 - ${patientName}様の予約修正を受け付けました`,
       html: patientEmailHtml,
@@ -219,8 +219,8 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("患者様修正確認メール送信結果:", patientEmailResponse);
 
     const adminEmailResponse = await resend.emails.send({
-      from: "六本松矯正歯科クリニックとよしま予約システム <489@489.toyoshima-do.com>",
-      to: ["489@489.toyoshima-do.com"],
+      from: "六本松矯正歯科クリニックとよしま予約システム <t@489.toyoshima-do.com>",
+      to: ["t@489.toyoshima-do.com"],
       subject: `予約修正 - ${patientName}様から予約修正の申し込みがありました`,
       html: adminEmailHtml,
     });

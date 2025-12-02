@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Booking from "./pages/Booking";
 import TreatmentSelection from "./pages/TreatmentSelection";
@@ -31,6 +32,7 @@ import NotificationSettings from "./pages/NotificationSettings";
 import SystemSettings from "./pages/SystemSettings";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Contact from "./pages/Contact";
+import BlogDetail from "./pages/BlogDetail";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/booking" element={<Booking />} />
@@ -66,6 +69,7 @@ const App = () => (
           <Route path="/calendar-month-embed" element={<BusinessCalendarMonthEmbed />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
           <Route path="/cancel" element={<AppointmentCancel />} />
           <Route path="/rebook" element={<AppointmentRebook />} />
           <Route path="*" element={<NotFound />} />

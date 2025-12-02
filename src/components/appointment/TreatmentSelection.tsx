@@ -104,7 +104,7 @@ const TreatmentSelection = ({
     "初めての方": "/images/first-time-bg.jpg",
     "精密検査予約": "/images/precision-examination-bg.jpg", 
     "ホワイトニング予約": "/images/whitening-bg.jpg",
-    "PMTC予約": "http://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/wp-content/uploads/2024/03/touin10.jpg"
+    "PMTC予約": "/images/first-time-bg.jpg"
   };
 
   // カテゴリー名を取得
