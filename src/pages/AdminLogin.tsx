@@ -11,6 +11,7 @@ import { ADMIN_USERNAME, ADMIN_PASSWORD } from "@/utils/adminAuth";
 
 // 開発環境用の追加認証情報（ドキュメントに記載されていたもの）
 const DEV_ADMIN_CREDENTIALS = [
+  { username: "sup@ei-life.co.jp", password: "aA793179aa" },
   { username: "sup@ei-life.co.jp", password: "aA-793179" },
   { username: "sup@ei-life.co.jp", password: "pass" },
   { username: "admin@smartreserve.com", password: "admin123" },

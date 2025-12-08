@@ -2,7 +2,7 @@
 
 // 環境変数から認証情報を取得（デフォルト値あり）
 export const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || "sup@ei-life.co.jp";
-export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "aA-793179";
+export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "aA793179aa";
 
 // 許可された管理者ユーザー名のリスト
 export const ALLOWED_ADMIN_USERNAMES = [
