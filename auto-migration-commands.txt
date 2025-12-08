@@ -1,0 +1,59 @@
+# Supabase自動移行コマンド
+# 以下のコマンドを順番に実行してください
+
+# ========================================
+# ステップ1: 旧プロジェクトからデータをエクスポート
+# ========================================
+
+# 旧プロジェクトに接続
+npx -y supabase link --project-ref vnwnevhakhgbbxxlmutx
+
+# データをエクスポート（データのみ）
+npx -y supabase db dump -f backup-data.sql --data-only
+
+# スキーマもバックアップ（念のため）
+npx -y supabase db dump -f backup-schema.sql --schema-only
+
+# ========================================
+# ステップ2: 新プロジェクトにスキーマを作成
+# ========================================
+
+# 新プロジェクトに接続
+npx -y supabase link --project-ref lcexzucpzawxdujmljyo
+
+# マイグレーションを実行（スキーマ作成）
+npx -y supabase db push
+
+# ========================================
+# ステップ3: データをインポート
+# ========================================
+
+# バックアップしたデータをインポート
+# 注意: このコマンドはエラーが出る可能性があります
+# エラーが出た場合は、手動でCSVインポートを推奨
+psql "postgresql://postgres:[パスワード]@db.lcexzucpzawxdujmljyo.supabase.co:5432/postgres" -f backup-data.sql
+
+# ========================================
+# ステップ4: Edge Functionsをデプロイ
+# ========================================
+
+npx -y supabase functions deploy send-appointment-email
+npx -y supabase functions deploy send-confirmation-email
+npx -y supabase functions deploy send-cancellation-email
+npx -y supabase functions deploy send-reminder-emails
+npx -y supabase functions deploy send-appointment-modification-email
+npx -y supabase functions deploy send-payment-confirmation-email
+
+# ========================================
+# ステップ5: Secretsを設定
+# ========================================
+
+npx -y supabase secrets set RESEND_API_KEY=re_xxxxxxxxxxxxx
+
+# ========================================
+# 完了！
+# ========================================
+
+
+
+

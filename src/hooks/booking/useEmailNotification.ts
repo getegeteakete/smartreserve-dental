@@ -36,20 +36,43 @@ export const useEmailNotification = () => {
       preferredDatesCount: emailData.preferredDates.length
     });
 
-    const emailResponse = await supabase.functions.invoke('send-appointment-email', {
-      body: emailData
+    // Vercel API Routesを使用
+    const apiUrl = import.meta.env.VITE_API_URL || '/api/send-appointment-email';
+    console.log("📧 Vercel API呼び出し開始:", {
+      apiUrl: apiUrl,
+      patientEmail: emailData.patientEmail,
+      patientName: emailData.patientName
     });
 
-    console.log("📧 メール送信レスポンス:", emailResponse);
-    console.log("📧 メール送信レスポンス詳細:", {
-      error: emailResponse.error,
-      data: emailResponse.data,
+    const emailResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData)
+    });
+
+    const emailData_result = await emailResponse.json();
+    
+    // レスポンス形式をSupabase形式に変換
+    const emailResponse_supabase = {
+      data: emailData_result.success ? emailData_result : null,
+      error: emailData_result.success ? null : emailData_result,
       status: emailResponse.status,
       statusText: emailResponse.statusText
+    };
+
+    console.log("📧 メール送信レスポンス:", emailResponse_supabase);
+    console.log("📧 メール送信レスポンス詳細:", {
+      error: emailResponse_supabase.error,
+      data: emailResponse_supabase.data,
+      status: emailResponse_supabase.status,
+      statusText: emailResponse_supabase.statusText,
+      errorDetails: emailResponse_supabase.error ? JSON.stringify(emailResponse_supabase.error, null, 2) : null
     });
 
     // メール送信成功かつappointmentIdがある場合はトークンを生成
-    if (!emailResponse.error && appointmentId) {
+    if (!emailResponse_supabase.error && appointmentId) {
       try {
         // キャンセル用トークンを生成
         const { data: cancelToken, error: cancelError } = await supabase.rpc('generate_appointment_token', {
@@ -76,10 +99,10 @@ export const useEmailNotification = () => {
     }
 
     // メール送信結果をチェック
-    if (emailResponse.error) {
-      console.error("❌ メール送信エラー:", emailResponse.error);
-      console.error("❌ エラー詳細:", JSON.stringify(emailResponse.error, null, 2));
-      console.error("❌ エラーオブジェクト全体:", emailResponse.error);
+    if (emailResponse_supabase.error) {
+      console.error("❌ メール送信エラー:", emailResponse_supabase.error);
+      console.error("❌ エラー詳細:", JSON.stringify(emailResponse_supabase.error, null, 2));
+      console.error("❌ エラーオブジェクト全体:", emailResponse_supabase.error);
       
       // エラーの種類に応じたメッセージを生成
       let errorMessage = '不明なエラー';
@@ -87,17 +110,17 @@ export const useEmailNotification = () => {
       let detailedError = '';
       
       // エラーメッセージの取得
-      if (typeof emailResponse.error === 'string') {
-        errorMessage = emailResponse.error;
-      } else if (emailResponse.error?.message) {
-        errorMessage = emailResponse.error.message;
-      } else if (emailResponse.error?.error) {
-        errorMessage = emailResponse.error.error;
+      if (typeof emailResponse_supabase.error === 'string') {
+        errorMessage = emailResponse_supabase.error;
+      } else if (emailResponse_supabase.error?.error) {
+        errorMessage = emailResponse_supabase.error.error;
+      } else if (emailResponse_supabase.error?.message) {
+        errorMessage = emailResponse_supabase.error.message;
       }
       
       // 詳細エラー情報の取得
-      if (emailResponse.error?.context) {
-        detailedError = JSON.stringify(emailResponse.error.context);
+      if (emailResponse_supabase.error?.details) {
+        detailedError = JSON.stringify(emailResponse_supabase.error.details);
       }
       
       console.error("🔍 解析されたエラーメッセージ:", errorMessage);
@@ -147,8 +170,8 @@ export const useEmailNotification = () => {
       throw new Error(`メール送信に失敗しました: ${errorMessage}${detailedError ? ' | 詳細: ' + detailedError : ''}`);
     } 
     
-    if (emailResponse.data?.success) {
-      const data = emailResponse.data;
+    if (emailResponse_supabase.data?.success) {
+      const data = emailResponse_supabase.data;
       console.log("✅ メール送信成功:", {
         patientEmailId: data.patientEmailId,
         adminEmailId: data.adminEmailId,
@@ -174,8 +197,8 @@ export const useEmailNotification = () => {
         return { success: true, patientEmailId: data.patientEmailId };
       }
     } else {
-      console.warn("⚠️ メール送信レスポンスが不明:", emailResponse.data);
-      const errorMsg = emailResponse.data?.error || 'メール送信の確認ができませんでした';
+      console.warn("⚠️ メール送信レスポンスが不明:", emailResponse_supabase.data);
+      const errorMsg = emailResponse_supabase.data?.error || emailResponse_supabase.error?.error || 'メール送信の確認ができませんでした';
       toast({
         variant: "destructive",
         title: "予約申し込み完了（メール送信状況不明）",

@@ -4,12 +4,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generatePatientConfirmationEmail, generateAdminNotificationEmail } from "./emailTemplates.ts";
 import { formatPreferredDateTime } from "./dateFormatter.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+// Resend APIキーの確認
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
+if (!resendApiKey) {
+  console.error("❌ RESEND_API_KEYが環境変数に設定されていません");
+}
+const resend = new Resend(resendApiKey);
 
 // Supabaseクライアントの初期化
-const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn("⚠️ SUPABASE_URLまたはSUPABASE_SERVICE_ROLE_KEYが設定されていません。システム設定の取得に失敗する可能性があります。");
+}
+
+const supabase = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export interface AppointmentEmailRequest {
   patientName: string;
@@ -24,9 +36,38 @@ export interface AppointmentEmailRequest {
   notes?: string;
 }
 
+// メールアドレスの検証
+const isValidEmail = (email: string): boolean => {
+  if (!email || typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+};
+
 // システム設定からメール設定を取得
 const getEmailSettings = async (type: 'patient' | 'admin') => {
   const prefix = type === 'patient' ? 'email_patient' : 'email_admin';
+  
+  // Supabaseクライアントが利用できない場合はデフォルト値を返す
+  if (!supabase) {
+    console.warn('⚠️ Supabaseクライアントが初期化されていません。デフォルト値を使用します。');
+    if (type === 'admin') {
+      return {
+        enabled: true,
+        fromName: '六本松矯正歯科クリニックとよしま予約システム',
+        fromEmail: 't@489.toyoshima-do.com',
+        toEmail: 't@489.toyoshima-do.com',
+        subjectTemplate: '新規予約 - {patient_name}様からの予約申込み',
+        contentTemplate: '',
+      };
+    }
+    return {
+      enabled: true,
+      fromName: '六本松矯正歯科クリニックとよしま',
+      fromEmail: 't@489.toyoshima-do.com',
+      subjectTemplate: '予約受付完了 - {patient_name}様の予約を受け付けました',
+      contentTemplate: '',
+    };
+  }
   
   try {
     const settings = await Promise.all([
@@ -93,10 +134,19 @@ const replaceTemplateVariables = (template: string, data: AppointmentEmailReques
 };
 
 export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { cancelToken?: string; rebookToken?: string }) => {
-  console.log("予約確認メール送信開始:", { patientName: data.patientName, patientEmail: data.patientEmail, preferredDates: data.preferredDates });
+  console.log("📧 予約確認メール送信開始:", { 
+    patientName: data.patientName, 
+    patientEmail: data.patientEmail, 
+    preferredDatesCount: data.preferredDates?.length || 0 
+  });
+
+  // メールアドレスの検証
+  if (!data.patientEmail || !isValidEmail(data.patientEmail)) {
+    console.error("❌ 無効なメールアドレス:", data.patientEmail);
+    throw new Error(`無効なメールアドレスです: ${data.patientEmail}`);
+  }
 
   // Resend APIキーの確認
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
   if (!resendApiKey) {
     console.error("❌ RESEND_API_KEYが設定されていません");
     throw new Error("メール送信の設定が完了していません。管理者にお問い合わせください。");
@@ -132,16 +182,32 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
     .replace(/{patient_name}/g, data.patientName)
     .replace(/{treatment_name}/g, data.treatmentName);
 
+  // 送信元メールアドレスの検証
+  if (!isValidEmail(patientSettings.fromEmail)) {
+    console.error("❌ 無効な送信元メールアドレス:", patientSettings.fromEmail);
+    throw new Error(`送信元メールアドレスが無効です: ${patientSettings.fromEmail}`);
+  }
+
   // 患者様への確認メール送信（設定で有効な場合のみ）
   let patientEmailResponse = null;
   if (patientSettings.enabled) {
-    console.log(`📧 患者様メール送信開始: ${data.patientEmail}`);
-    patientEmailResponse = await resend.emails.send({
+    console.log(`📧 患者様メール送信開始:`, {
+      to: data.patientEmail,
       from: `${patientSettings.fromName} <${patientSettings.fromEmail}>`,
-      to: [data.patientEmail],
-      subject: patientSubject,
-      html: confirmationEmailHtml,
+      subject: patientSubject
     });
+    
+    try {
+      patientEmailResponse = await resend.emails.send({
+        from: `${patientSettings.fromName} <${patientSettings.fromEmail}>`,
+        to: [data.patientEmail],
+        subject: patientSubject,
+        html: confirmationEmailHtml,
+      });
+    } catch (sendError: any) {
+      console.error("❌ Resend API呼び出しエラー:", sendError);
+      throw new Error(`メール送信API呼び出しに失敗しました: ${sendError.message || JSON.stringify(sendError)}`);
+    }
 
     console.log("患者様確認メール送信結果:", {
       success: !!patientEmailResponse.data?.id,
@@ -186,13 +252,30 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
   // 管理者への通知メール送信（設定で有効な場合のみ）
   let adminEmailResponse = null;
   if (adminSettings.enabled) {
-    console.log(`📧 管理者メール送信開始: ${adminSettings.toEmail}`);
-    adminEmailResponse = await resend.emails.send({
-      from: `${adminSettings.fromName} <${adminSettings.fromEmail}>`,
-      to: [adminSettings.toEmail],
-      subject: adminSubject,
-      html: adminNotificationHtml,
-    });
+    // 管理者メールアドレスの検証
+    if (!isValidEmail(adminSettings.toEmail)) {
+      console.warn("⚠️ 無効な管理者メールアドレス:", adminSettings.toEmail);
+    } else if (!isValidEmail(adminSettings.fromEmail)) {
+      console.warn("⚠️ 無効な管理者送信元メールアドレス:", adminSettings.fromEmail);
+    } else {
+      console.log(`📧 管理者メール送信開始:`, {
+        to: adminSettings.toEmail,
+        from: `${adminSettings.fromName} <${adminSettings.fromEmail}>`,
+        subject: adminSubject
+      });
+      
+      try {
+        adminEmailResponse = await resend.emails.send({
+          from: `${adminSettings.fromName} <${adminSettings.fromEmail}>`,
+          to: [adminSettings.toEmail],
+          subject: adminSubject,
+          html: adminNotificationHtml,
+        });
+      } catch (sendError: any) {
+        console.warn("⚠️ 管理者メール送信エラー（患者様メールは成功）:", sendError);
+        // 管理者メールの失敗は警告のみ（患者様メールが成功していれば続行）
+      }
+    }
 
     console.log("管理者通知メール送信結果:", {
       success: !!adminEmailResponse.data?.id,

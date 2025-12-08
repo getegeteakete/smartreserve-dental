@@ -30,8 +30,8 @@ const BusinessStatusBanner = () => {
   };
 
   return (
-    <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
-      <div className="px-4 py-3">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
+      <div className="px-4 py-2">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-1">
             <Clock className={`h-5 w-5 flex-shrink-0 ${businessStatus.isOpen ? 'text-green-600' : 'text-red-600'}`} />

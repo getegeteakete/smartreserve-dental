@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ensureSystemSettings } from '@/utils/defaultSystemSettings';
 
 export interface SystemSetting {
   id: string;
@@ -38,16 +39,84 @@ export const useSystemSettings = () => {
         .order('category', { ascending: true })
         .order('setting_key', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        // テーブルが存在しない、またはデータが存在しない場合は初期化を試みる
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('relation') || error.message?.includes('table')) {
+          console.log('システム設定が存在しないため、初期化を試みます...', error);
+          try {
+            const initialized = await ensureSystemSettings();
+            if (initialized) {
+              // 初期化成功後、再度取得を試みる
+              const { data: newData, error: newError } = await supabase
+                .from('system_settings')
+                .select('*')
+                .order('category', { ascending: true })
+                .order('setting_key', { ascending: true });
+              
+              if (newError) {
+                console.warn('初期化後の取得エラー（デフォルト値を使用）:', newError);
+                setSettings([]);
+                return;
+              }
+              setSettings(newData || []);
+              return;
+            } else {
+              console.warn('システム設定の初期化に失敗しました（デフォルト値を使用）');
+              setSettings([]);
+              return;
+            }
+          } catch (initError) {
+            console.warn('初期化処理中にエラーが発生しました（デフォルト値を使用）:', initError);
+            setSettings([]);
+            return;
+          }
+        }
+        // その他のエラーも警告のみで続行（予約処理をブロックしない）
+        console.warn('システム設定の取得エラー（デフォルト値を使用）:', error);
+        setSettings([]);
+        return;
+      }
+
+      // データが空の場合は初期化を試みる
+      if (!data || data.length === 0) {
+        console.log('システム設定が空のため、初期化を試みます...');
+        try {
+          const initialized = await ensureSystemSettings();
+          if (initialized) {
+            // 初期化成功後、再度取得を試みる
+            const { data: newData, error: newError } = await supabase
+              .from('system_settings')
+              .select('*')
+              .order('category', { ascending: true })
+              .order('setting_key', { ascending: true });
+            
+            if (newError) {
+              console.warn('初期化後の取得エラー（デフォルト値を使用）:', newError);
+              setSettings([]);
+              return;
+            }
+            setSettings(newData || []);
+            return;
+          } else {
+            console.warn('システム設定の初期化に失敗しました（デフォルト値を使用）');
+            setSettings([]);
+            return;
+          }
+        } catch (initError) {
+          console.warn('初期化処理中にエラーが発生しました（デフォルト値を使用）:', initError);
+          setSettings([]);
+          return;
+        }
+      }
 
       setSettings(data || []);
     } catch (error) {
       console.error('Error fetching system settings:', error);
-      toast({
-        title: 'エラー',
-        description: 'システム設定の取得に失敗しました',
-        variant: 'destructive',
-      });
+      // エラーが発生しても予約処理をブロックしないように、警告のみ表示
+      // システム設定がなくても予約は可能なため、エラーではなく警告として扱う
+      console.warn('システム設定の取得に失敗しましたが、デフォルト値を使用して続行します:', error);
+      setSettings([]);
+      // エラートーストは表示しない（予約処理を妨げないため）
     } finally {
       if (updateLoadingState) {
         setLoading(false);
