@@ -24,6 +24,7 @@ export default function Booking() {
   const calendarRef = useRef<HTMLDivElement>(null);
   const treatmentSelectionRef = useRef<HTMLDivElement>(null);
   const [hasScrolledToCalendar, setHasScrolledToCalendar] = useState(false);
+  const [maxVisiblePreference, setMaxVisiblePreference] = useState(0); // 最初は第1希望のみ表示
   
   const {
     formData,
@@ -39,6 +40,18 @@ export default function Booking() {
     handleSubmit,
     selectedTreatmentData,
   } = useBookingForm();
+
+  // 希望日の選択状況に応じて表示する希望日の数を更新
+  useEffect(() => {
+    // 第1希望日が選択完了したら、第2希望日を表示
+    if (preferredDates[0]?.date && preferredDates[0]?.timeSlot && maxVisiblePreference < 1) {
+      setMaxVisiblePreference(1);
+    }
+    // 第2希望日が選択完了したら、第3希望日とフォームを表示
+    if (preferredDates[1]?.date && preferredDates[1]?.timeSlot && maxVisiblePreference < 2) {
+      setMaxVisiblePreference(2);
+    }
+  }, [preferredDates, maxVisiblePreference]);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -145,49 +158,52 @@ export default function Booking() {
               selectedTreatment={selectedTreatment}
               treatmentData={selectedTreatmentData}
               onScrollToPatientForm={scrollToPatientForm}
+              maxVisiblePreference={maxVisiblePreference}
             />
           </div>
 
-          {/* Booking form section */}
-          <div ref={patientFormRef} className="w-full max-w-2xl mx-auto space-y-6 scroll-mt-20">
-            <div ref={treatmentSelectionRef} className="scroll-mt-20">
-              <AppointmentForm
-                formData={formData}
-                onFormChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-                selectedTreatment={selectedTreatment}
-                onTreatmentSelect={setSelectedTreatment}
-                fee={fee}
-                treatmentData={selectedTreatmentData}
-                onScrollToTop={scrollToCalendar}
-                isValid={isValid}
-              />
-            </div>
+          {/* Booking form section - 第2希望日が選択完了したら表示 */}
+          {preferredDates[1]?.date && preferredDates[1]?.timeSlot && (
+            <div ref={patientFormRef} className="w-full max-w-2xl mx-auto space-y-6 scroll-mt-20 animate-in fade-in-50 slide-in-from-bottom-3">
+              <div ref={treatmentSelectionRef} className="scroll-mt-20">
+                <AppointmentForm
+                  formData={formData}
+                  onFormChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+                  selectedTreatment={selectedTreatment}
+                  onTreatmentSelect={setSelectedTreatment}
+                  fee={fee}
+                  treatmentData={selectedTreatmentData}
+                  onScrollToTop={scrollToCalendar}
+                  isValid={isValid}
+                />
+              </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 pointer-events-auto h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!isValid || isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  予約処理中...
-                </div>
-              ) : !selectedTreatment ? (
-                "診療メニューを選択してください"
-              ) : (
-                "予約を確定する"
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 pointer-events-auto h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!isValid || isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    予約処理中...
+                  </div>
+                ) : !selectedTreatment ? (
+                  "診療メニューを選択してください"
+                ) : (
+                  "予約を確定する"
+                )}
+              </Button>
+              
+              {!selectedTreatment && (
+                <p className="text-center text-sm text-amber-600">
+                  ※ 診療メニューを選択して確定してください
+                </p>
               )}
-            </Button>
-            
-            {!selectedTreatment && (
-              <p className="text-center text-sm text-amber-600">
-                ※ 診療メニューを選択して確定してください
-              </p>
-            )}
 
-            <AppointmentInfo />
-          </div>
+              <AppointmentInfo />
+            </div>
+          )}
         </form>
         
         <Toaster position="bottom-right" />

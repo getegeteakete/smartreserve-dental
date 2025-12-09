@@ -32,6 +32,7 @@ interface AppointmentCalendarProps {
     description?: string;
   };
   onScrollToPatientForm?: () => void;
+  maxVisiblePreference?: number; // 表示する希望日の最大数（0: 第1希望のみ、1: 第1・第2希望、2: すべて）
 }
 
 const AppointmentCalendar = ({
@@ -41,7 +42,8 @@ const AppointmentCalendar = ({
   userEmail,
   selectedTreatment,
   treatmentData,
-  onScrollToPatientForm
+  onScrollToPatientForm,
+  maxVisiblePreference = 2 // デフォルトはすべて表示
 }: AppointmentCalendarProps) => {
   // 2週間後から6週間後までの日付のみ選択可能
   const twoWeeksFromNow = addDays(new Date(), 14);
@@ -484,41 +486,53 @@ const AppointmentCalendar = ({
         </p>
       </div>
 
-      {/* 3つのカレンダー構成 */}
+      {/* 段階的にカレンダーを表示 */}
       <div>
-        {[0, 1, 2].map((index) => renderPreferenceSection(index))}
+        {[0, 1, 2].map((index) => {
+          // maxVisiblePreferenceに基づいて表示を制御
+          if (index > maxVisiblePreference) {
+            return null;
+          }
+          return renderPreferenceSection(index);
+        })}
       </div>
 
-      {/* 選択状況サマリー */}
-      <div className="bg-blue-50 p-4 rounded-lg mt-6">
-        <h3 className="font-medium mb-3">選択状況</h3>
-        <div className="space-y-2">
-          {[0, 1, 2].map((index) => {
-            const preference = preferredDates[index];
-            const label = getPreferenceLabel(index);
-            const isRequired = index < 2;
-            
-            return (
-              <div key={index} className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  {label}
-                </span>
-                {preference?.date && preference?.timeSlot ? (
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    {format(preference.date, "M月d日")} {preference.timeSlot.slice(0, 5)}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className={cn(
-                    isRequired ? "text-red-500 border-red-300" : "text-gray-500 border-gray-300"
-                  )}>
-                    {isRequired ? "未選択（必須）" : "未選択（任意）"}
-                  </Badge>
-                )}
-              </div>
-            );
-          })}
+      {/* 選択状況サマリー（表示されている希望日のみ） */}
+      {maxVisiblePreference >= 0 && (
+        <div className="bg-blue-50 p-4 rounded-lg mt-6">
+          <h3 className="font-medium mb-3">選択状況</h3>
+          <div className="space-y-2">
+            {[0, 1, 2].map((index) => {
+              // 表示されている希望日のみサマリーに表示
+              if (index > maxVisiblePreference) {
+                return null;
+              }
+              const preference = preferredDates[index];
+              const label = getPreferenceLabel(index);
+              const isRequired = index < 2;
+              
+              return (
+                <div key={index} className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {label}
+                  </span>
+                  {preference?.date && preference?.timeSlot ? (
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      {format(preference.date, "M月d日")} {preference.timeSlot.slice(0, 5)}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className={cn(
+                      isRequired ? "text-red-500 border-red-300" : "text-gray-500 border-gray-300"
+                    )}>
+                      {isRequired ? "未選択（必須）" : "未選択（任意）"}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

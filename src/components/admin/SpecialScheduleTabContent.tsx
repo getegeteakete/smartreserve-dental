@@ -31,6 +31,7 @@ interface SpecialScheduleTabContentProps {
   onSpecialScheduleAdd: (selectedDate: Date, selectedTime: string) => Promise<void>;
   onSpecialScheduleToggle: (scheduleId: string, isAvailable: boolean) => Promise<void>;
   onSpecialScheduleDelete: (scheduleId: string) => Promise<void>;
+  onRefresh?: () => Promise<void>;
 }
 
 export const SpecialScheduleTabContent = ({
@@ -42,7 +43,8 @@ export const SpecialScheduleTabContent = ({
   onScheduleChange,
   onSpecialScheduleAdd,
   onSpecialScheduleToggle,
-  onSpecialScheduleDelete
+  onSpecialScheduleDelete,
+  onRefresh
 }: SpecialScheduleTabContentProps) => {
   const isMobile = useIsMobile();
 
@@ -55,6 +57,7 @@ export const SpecialScheduleTabContent = ({
             onAdd={onSpecialScheduleAdd}
             onToggle={onSpecialScheduleToggle}
             onDelete={onSpecialScheduleDelete}
+            onRefresh={onRefresh}
           />
         </div>
         

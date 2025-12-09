@@ -133,7 +133,7 @@ export function AppointmentTableRow({
             <Edit className="h-3 w-3" />
           </Button>
         )}
-        {appointment.status === 'pending' && onCancel && (
+        {(appointment.status === 'pending' || appointment.status === 'confirmed') && onCancel && (
           <Button
             variant="outline"
             size="sm"
@@ -141,6 +141,7 @@ export function AppointmentTableRow({
             className="text-red-600 hover:text-red-700 text-xs px-2 py-1"
           >
             <X className="h-3 w-3" />
+            キャンセル
           </Button>
         )}
         {onDelete && (
@@ -226,12 +227,13 @@ export function AppointmentTableRow({
             <Edit className="h-4 w-4" />
           </Button>
         )}
-        {appointment.status === 'pending' && onCancel && (
+        {(appointment.status === 'pending' || appointment.status === 'confirmed') && onCancel && (
           <Button
             variant="outline"
             size="icon"
             onClick={() => onCancel(appointment)}
             className="text-red-600 hover:text-red-700"
+            title="キャンセル"
           >
             <X className="h-4 w-4" />
           </Button>

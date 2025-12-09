@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { format } from "date-fns";
+import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ja } from "date-fns/locale";
 import { CalendarIcon, Trash2, HelpCircle, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface SpecialScheduleData {
   id: string;
@@ -26,13 +29,23 @@ interface SpecialScheduleManagerProps {
   onAdd: (date: Date, timeSlot: string) => Promise<void>;
   onToggle: (scheduleId: string, isAvailable: boolean) => Promise<void>;
   onDelete: (scheduleId: string) => Promise<void>;
+  onRefresh?: () => Promise<void>;
 }
 
-export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDelete }: SpecialScheduleManagerProps) => {
+export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDelete, onRefresh }: SpecialScheduleManagerProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [loadingScheduleId, setLoadingScheduleId] = useState<string | null>(null);
+  const { toast } = useToast();
+  
+  // 日曜日一括設定用の状態
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedSundays, setSelectedSundays] = useState<string[]>([]);
+  const [sundayStartTime, setSundayStartTime] = useState("09:00");
+  const [sundayEndTime, setSundayEndTime] = useState("17:30");
+  const [isBulkAdding, setIsBulkAdding] = useState(false);
 
   // 10:00-20:00の30分刻みの時間スロットを生成
   const timeSlots = [];
@@ -45,6 +58,110 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
       timeSlots.push({ start: startTime, end: endTime });
     }
   }
+
+  // 選択した年月の日曜日を取得
+  const sundaysInMonth = useMemo(() => {
+    const firstDay = startOfMonth(new Date(selectedYear, selectedMonth - 1, 1));
+    const lastDay = endOfMonth(new Date(selectedYear, selectedMonth - 1, 1));
+    const allDays = eachDayOfInterval({ start: firstDay, end: lastDay });
+    return allDays.filter(day => getDay(day) === 0).map(day => format(day, 'yyyy-MM-dd'));
+  }, [selectedYear, selectedMonth]);
+
+  // 既に設定されている日曜日をチェック
+  const existingSundaySchedules = useMemo(() => {
+    return specialSchedules
+      .filter(schedule => {
+        const scheduleDate = new Date(schedule.specific_date);
+        return getDay(scheduleDate) === 0 && 
+               scheduleDate.getFullYear() === selectedYear &&
+               scheduleDate.getMonth() + 1 === selectedMonth;
+      })
+      .map(schedule => schedule.specific_date);
+  }, [specialSchedules, selectedYear, selectedMonth]);
+
+  // 年と月の選択肢を生成
+  const years = Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  // 日曜日の一括追加処理
+  const handleBulkAddSundays = async () => {
+    if (selectedSundays.length === 0 || isBulkAdding) {
+      return;
+    }
+
+    // 時間のバリデーション
+    if (sundayStartTime >= sundayEndTime) {
+      toast({
+        title: "エラー",
+        description: "開始時間は終了時間より前である必要があります。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBulkAdding(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const sundayDate of selectedSundays) {
+        // 既に設定されている場合はスキップ
+        if (existingSundaySchedules.includes(sundayDate)) {
+          continue;
+        }
+
+        try {
+          // 直接RPCを呼び出してカスタム時間を設定
+          const { error } = await (supabase as any).rpc('insert_special_clinic_schedule', {
+            p_specific_date: sundayDate,
+            p_start_time: sundayStartTime,
+            p_end_time: sundayEndTime,
+            p_is_available: true
+          });
+
+          if (error) {
+            console.error(`日曜日 ${sundayDate} の設定エラー:`, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } catch (error) {
+          console.error(`日曜日 ${sundayDate} の設定エラー:`, error);
+          errorCount++;
+        }
+
+        // 少し待機してから次の処理
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      if (successCount > 0) {
+        toast({
+          title: "設定完了",
+          description: `${successCount}件の日曜日営業を設定しました。${errorCount > 0 ? `（${errorCount}件失敗）` : ''}`,
+        });
+        setSelectedSundays([]);
+        // 親コンポーネントに再取得を促す
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } else if (errorCount > 0) {
+        toast({
+          title: "エラー",
+          description: `日曜日営業の設定に失敗しました。`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("日曜日一括追加エラー:", error);
+      toast({
+        title: "エラー",
+        description: "日曜日営業の設定中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkAdding(false);
+    }
+  };
 
   const handleAdd = async () => {
     if (!selectedDate || !selectedTime || isAdding) {
@@ -112,6 +229,145 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* 日曜日一括設定セクション */}
+          <div className="border rounded-lg p-4 bg-blue-50">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="font-semibold text-blue-900">日曜日営業設定（月ごと）</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>月に1回程度の日曜診療を設定できます。<br/>
+                  年月を選択して、その月の日曜日から営業する日を選んでください。</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-end gap-4">
+                <div className="w-32">
+                  <Label htmlFor="sunday-year">年</Label>
+                  <Select 
+                    value={selectedYear.toString()} 
+                    onValueChange={(value) => {
+                      setSelectedYear(parseInt(value));
+                      setSelectedSundays([]);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map(year => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}年
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-32">
+                  <Label htmlFor="sunday-month">月</Label>
+                  <Select 
+                    value={selectedMonth.toString()} 
+                    onValueChange={(value) => {
+                      setSelectedMonth(parseInt(value));
+                      setSelectedSundays([]);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map(month => (
+                        <SelectItem key={month} value={month.toString()}>
+                          {month}月
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {sundaysInMonth.length > 0 ? (
+                <div className="space-y-2">
+                  <Label>営業する日曜日を選択（複数選択可）</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {sundaysInMonth.map(sunday => {
+                      const isExisting = existingSundaySchedules.includes(sunday);
+                      const isSelected = selectedSundays.includes(sunday);
+                      return (
+                        <div key={sunday} className="flex items-center space-x-2 p-2 border rounded">
+                          <Checkbox
+                            id={`sunday-${sunday}`}
+                            checked={isSelected}
+                            disabled={isExisting}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedSundays([...selectedSundays, sunday]);
+                              } else {
+                                setSelectedSundays(selectedSundays.filter(d => d !== sunday));
+                              }
+                            }}
+                          />
+                          <Label 
+                            htmlFor={`sunday-${sunday}`} 
+                            className={`text-sm cursor-pointer ${isExisting ? 'text-gray-400' : ''}`}
+                          >
+                            {format(new Date(sunday), 'M月d日', { locale: ja })}
+                            {isExisting && <span className="ml-1 text-xs">(設定済み)</span>}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="flex items-end gap-2 pt-2">
+                    <div className="w-24">
+                      <Label htmlFor="sunday-start">開始時間</Label>
+                      <Input
+                        id="sunday-start"
+                        type="time"
+                        value={sundayStartTime}
+                        onChange={(e) => setSundayStartTime(e.target.value)}
+                        disabled={isBulkAdding}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Label htmlFor="sunday-end">終了時間</Label>
+                      <Input
+                        id="sunday-end"
+                        type="time"
+                        value={sundayEndTime}
+                        onChange={(e) => setSundayEndTime(e.target.value)}
+                        disabled={isBulkAdding}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleBulkAddSundays}
+                      disabled={selectedSundays.length === 0 || isBulkAdding}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isBulkAdding ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          設定中...
+                        </>
+                      ) : (
+                        `選択した日曜日を設定 (${selectedSundays.length}件)`
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    ※ 既に設定済みの日曜日は選択できません。削除してから再度設定してください。
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600">この月に日曜日はありません。</p>
+              )}
+            </div>
+          </div>
+
           <div className="border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <h3 className="font-semibold">新しい特別営業日を追加</h3>

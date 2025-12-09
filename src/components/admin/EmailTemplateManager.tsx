@@ -86,15 +86,29 @@ export const EmailTemplateManager = () => {
         .eq('template_type', 'appointment_confirmation')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTemplates(data || []);
-    } catch (error) {
+      if (error) {
+        // テーブルが存在しない場合や権限エラーの場合は空配列を設定して続行
+        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('permission denied')) {
+          console.log('email_templatesテーブルが存在しないか、アクセス権限がありません。デフォルトテンプレートを使用します。');
+          setTemplates([]);
+        } else {
+          throw error;
+        }
+      } else {
+        setTemplates(data || []);
+      }
+    } catch (error: any) {
       console.error('Error loading templates:', error);
-      toast({
-        title: 'エラー',
-        description: 'テンプレートの読み込みに失敗しました',
-        variant: 'destructive',
-      });
+      // エラーが発生しても空配列を設定して続行（デフォルトテンプレートを使用）
+      setTemplates([]);
+      // エラーメッセージは表示しない（テーブルが存在しない場合は正常な動作）
+      if (error?.code !== 'PGRST116' && !error?.message?.includes('does not exist')) {
+        toast({
+          title: '警告',
+          description: 'テンプレートの読み込みに失敗しました。デフォルトテンプレートを使用します。',
+          variant: 'default',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -120,56 +134,74 @@ export const EmailTemplateManager = () => {
           'email_admin_content',
         ]);
 
-      if (error) throw error;
+      if (error) {
+        // テーブルが存在しない場合や権限エラーの場合はデフォルトテンプレートを使用
+        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('permission denied')) {
+          console.log('system_settingsテーブルから設定を読み込めませんでした。デフォルトテンプレートを使用します。');
+          loadDefaultTemplate('patient');
+          loadDefaultTemplate('admin');
+          return;
+        } else {
+          throw error;
+        }
+      }
+
+      // 設定値を一時的に保持
+      let patientContent = '';
+      let adminContent = '';
 
       // 設定値を反映
-      data?.forEach((setting) => {
-        const value = setting.setting_value;
-        switch (setting.setting_key) {
-          case 'email_auto_reply_enabled':
-            setPatientEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
-            break;
-          case 'email_patient_from_name':
-            setPatientEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
-            break;
-          case 'email_patient_from_email':
-            setPatientEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
-            break;
-          case 'email_patient_subject':
-            setPatientEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
-            break;
-          case 'email_patient_content':
-            setPatientEmailSettings(prev => ({ ...prev, content_template: value?.content || prev.content_template }));
-            break;
-          case 'email_admin_enabled':
-            setAdminEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
-            break;
-          case 'email_admin_from_name':
-            setAdminEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
-            break;
-          case 'email_admin_from_email':
-            setAdminEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
-            break;
-          case 'email_admin_to_email':
-            setAdminEmailSettings(prev => ({ ...prev, to_email: value?.to_email || prev.to_email }));
-            break;
-          case 'email_admin_subject':
-            setAdminEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
-            break;
-          case 'email_admin_content':
-            setAdminEmailSettings(prev => ({ ...prev, content_template: value?.content || prev.content_template }));
-            break;
-        }
-      });
+      if (data && data.length > 0) {
+        data.forEach((setting) => {
+          const value = setting.setting_value;
+          switch (setting.setting_key) {
+            case 'email_auto_reply_enabled':
+              setPatientEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
+              break;
+            case 'email_patient_from_name':
+              setPatientEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
+              break;
+            case 'email_patient_from_email':
+              setPatientEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
+              break;
+            case 'email_patient_subject':
+              setPatientEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
+              break;
+            case 'email_patient_content':
+              patientContent = value?.content || '';
+              setPatientEmailSettings(prev => ({ ...prev, content_template: patientContent || prev.content_template }));
+              break;
+            case 'email_admin_enabled':
+              setAdminEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
+              break;
+            case 'email_admin_from_name':
+              setAdminEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
+              break;
+            case 'email_admin_from_email':
+              setAdminEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
+              break;
+            case 'email_admin_to_email':
+              setAdminEmailSettings(prev => ({ ...prev, to_email: value?.to_email || prev.to_email }));
+              break;
+            case 'email_admin_subject':
+              setAdminEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
+              break;
+            case 'email_admin_content':
+              adminContent = value?.content || '';
+              setAdminEmailSettings(prev => ({ ...prev, content_template: adminContent || prev.content_template }));
+              break;
+          }
+        });
+      }
 
       // デフォルトテンプレートを読み込む（設定がない場合）
-      if (!patientEmailSettings.content_template) {
+      if (!patientContent) {
         loadDefaultTemplate('patient');
       }
-      if (!adminEmailSettings.content_template) {
+      if (!adminContent) {
         loadDefaultTemplate('admin');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading email settings:', error);
       // エラーが発生してもデフォルトテンプレートを読み込む
       loadDefaultTemplate('patient');

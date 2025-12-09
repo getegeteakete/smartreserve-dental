@@ -281,7 +281,7 @@ export function AppointmentTable({
                   編集
                 </button>
               )}
-              {onCancel && (
+              {(appointment.status === 'pending' || appointment.status === 'confirmed') && onCancel && (
                 <button
                   onClick={() => onCancel(appointment)}
                   className="px-3 py-1 text-red-600 border border-red-600 rounded hover:bg-red-50"

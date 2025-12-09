@@ -75,6 +75,7 @@ export const useScheduleManagement = () => {
     handleSpecialScheduleDelete: handleSpecialScheduleDeleteWithRefresh,
     handleTreatmentLimitUpdate,
     handleTreatmentLimitDelete,
-    handleYearMonthChange
+    handleYearMonthChange,
+    fetchSpecialSchedules
   };
 };
