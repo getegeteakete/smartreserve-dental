@@ -25,6 +25,7 @@ export default function Booking() {
   const treatmentSelectionRef = useRef<HTMLDivElement>(null);
   const [hasScrolledToCalendar, setHasScrolledToCalendar] = useState(false);
   const [maxVisiblePreference, setMaxVisiblePreference] = useState(0); // 最初は第1希望のみ表示
+  const [shouldScrollToForm, setShouldScrollToForm] = useState(false); // フォームへのスクロールフラグ
   
   const {
     formData,
@@ -53,6 +54,68 @@ export default function Booking() {
     }
   }, [preferredDates, maxVisiblePreference]);
 
+  // フォーム表示後のスクロール処理
+  useEffect(() => {
+    if (shouldScrollToForm && maxVisiblePreference >= 2) {
+      // フォームが表示された後にスクロール
+      const scrollToForm = (retryCount = 0) => {
+        // 患者情報セクションを直接検索
+        const patientInfoSection = document.getElementById('patient-info-section');
+        
+        if (patientInfoSection) {
+          const headerOffset = 100;
+          const elementPosition = patientInfoSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          // スクロール位置を保存
+          const targetScrollPosition = offsetPosition;
+          
+          window.scrollTo({
+            top: targetScrollPosition,
+            behavior: 'smooth'
+          });
+          
+          // スクロール完了後、スクロール位置を維持し、最初の入力欄にフォーカスを設定
+          setTimeout(() => {
+            // スクロール位置が変わっていないか確認し、必要に応じて再調整
+            const currentScroll = window.pageYOffset;
+            if (Math.abs(currentScroll - targetScrollPosition) > 50) {
+              window.scrollTo({
+                top: targetScrollPosition,
+                behavior: 'auto'
+              });
+            }
+            
+            // 患者情報セクション内の最初の入力欄にフォーカスを設定（スクロールを防ぐ）
+            const firstInput = patientInfoSection.querySelector('input[type="text"]:not([type="hidden"]), input[type="number"]') as HTMLInputElement;
+            if (firstInput) {
+              firstInput.focus({ preventScroll: true });
+              // フォーカス後もスクロール位置を維持
+              setTimeout(() => {
+                window.scrollTo({
+                  top: targetScrollPosition,
+                  behavior: 'auto'
+                });
+              }, 100);
+            }
+          }, 600);
+          
+          setShouldScrollToForm(false);
+        } else if (retryCount < 5) {
+          // 患者情報セクションがまだ表示されていない場合、少し待ってから再試行（最大5回）
+          setTimeout(() => {
+            scrollToForm(retryCount + 1);
+          }, 200);
+        } else {
+          setShouldScrollToForm(false);
+        }
+      };
+      
+      // レンダリング完了を待つ
+      setTimeout(() => scrollToForm(), 200);
+    }
+  }, [shouldScrollToForm, maxVisiblePreference]);
+
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -75,31 +138,54 @@ export default function Booking() {
 
   // 名前入力欄へスクロールする関数
   const scrollToPatientForm = () => {
-    // フォームが表示されるまで少し待機してからスクロール
-    // 第2希望日が選択完了しているので、フォームは表示されているはず
-    const attemptScroll = (retryCount = 0) => {
-      if (patientFormRef.current) {
-        // ヘッダーの高さを考慮してスクロール位置を調整
-        const headerOffset = 80;
-        const elementPosition = patientFormRef.current.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+    // 第2希望が選択完了しているので、フォームを表示するためにmaxVisiblePreferenceを2に設定
+    if (preferredDates[1]?.date && preferredDates[1]?.timeSlot) {
+      setMaxVisiblePreference(2);
+      setShouldScrollToForm(true);
+    } else {
+      // フォームが既に表示されている場合のフォールバック
+      const attemptScroll = (retryCount = 0) => {
+        // 患者情報セクションを直接検索
+        const patientInfoSection = document.getElementById('patient-info-section');
         
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-      } else if (retryCount < 3) {
-        // フォームがまだ表示されていない場合、少し待ってから再試行（最大3回）
-        setTimeout(() => {
-          attemptScroll(retryCount + 1);
-        }, 200);
-      }
-    };
-    
-    // 少し待ってからスクロールを試行（アニメーション完了を待つ）
-    setTimeout(() => {
-      attemptScroll();
-    }, 300);
+        if (patientInfoSection) {
+          // ヘッダーの高さを考慮してスクロール位置を調整
+          const headerOffset = 100;
+          const elementPosition = patientInfoSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // スクロール完了後、最初の入力欄にフォーカスを設定してスクロール位置を維持
+          setTimeout(() => {
+            const firstInput = patientInfoSection.querySelector('input[type="text"]:not([type="hidden"]), input[type="number"]') as HTMLInputElement;
+            if (firstInput) {
+              firstInput.focus({ preventScroll: true });
+              // フォーカス後もスクロール位置を維持
+              setTimeout(() => {
+                window.scrollTo({
+                  top: offsetPosition,
+                  behavior: 'auto'
+                });
+              }, 100);
+            }
+          }, 500);
+        } else if (retryCount < 3) {
+          // 患者情報セクションがまだ表示されていない場合、少し待ってから再試行（最大3回）
+          setTimeout(() => {
+            attemptScroll(retryCount + 1);
+          }, 200);
+        }
+      };
+      
+      // 少し待ってからスクロールを試行（アニメーション完了を待つ）
+      setTimeout(() => {
+        attemptScroll();
+      }, 300);
+    }
   };
 
   // カレンダーへスクロールする関数（診療メニュー確定後用）

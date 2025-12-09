@@ -60,6 +60,11 @@ const AppointmentCalendar = ({
   const preference2Ref = useRef<HTMLDivElement>(null);
   const preference3Ref = useRef<HTMLDivElement>(null);
   
+  // 各希望日の時間選択セクションへの参照
+  const timeSlot1Ref = useRef<HTMLDivElement>(null);
+  const timeSlot2Ref = useRef<HTMLDivElement>(null);
+  const timeSlot3Ref = useRef<HTMLDivElement>(null);
+  
   // スケジュールデータの取得
   useEffect(() => {
     const fetchSchedules = async () => {
@@ -199,7 +204,23 @@ const AppointmentCalendar = ({
         // 時間スロットが読み込まれるまで待つため、useEffectで処理
         // ここでは日付を更新するだけ
       }
-      // 日付選択時は自動スクロールしない（ユーザーが選択中のため）
+      
+      // 第1希望または第2希望の日付選択時、時間選択セクションまでスクロール
+      if (index === 0 || index === 1) {
+        setTimeout(() => {
+          const timeSlotRef = index === 0 ? timeSlot1Ref : timeSlot2Ref;
+          if (timeSlotRef.current) {
+            const headerOffset = 100;
+            const elementPosition = timeSlotRef.current.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 300); // 時間スロットの読み込みを待つ
+      }
     }
   };
 
@@ -374,7 +395,7 @@ const AppointmentCalendar = ({
             </div>
 
             {/* 右側：時間選択 */}
-            <div>
+            <div ref={index === 0 ? timeSlot1Ref : index === 1 ? timeSlot2Ref : timeSlot3Ref}>
               <div className="mb-4">
                 <h4 className="text-base font-medium text-gray-700 mb-3">時間を選択してください</h4>
                 

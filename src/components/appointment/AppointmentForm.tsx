@@ -82,7 +82,7 @@ const AppointmentForm = ({
       />
 
       {/* 患者情報セクション */}
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+      <div id="patient-info-section" className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 scroll-mt-24">
         <h3 className="text-lg font-semibold text-slate-800 mb-6 flex items-center gap-2">
           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
           患者情報
