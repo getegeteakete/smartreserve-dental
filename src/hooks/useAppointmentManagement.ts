@@ -202,14 +202,20 @@ export const useAppointmentManagement = () => {
 
         console.log("クイック承認メール送信開始:", emailData);
 
-        const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
-          body: emailData
+        // Vercel API Routeを使用して確定メールを送信
+        const emailResponse = await fetch('/api/send-confirmation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailData),
         });
 
-        if (emailResponse.error) {
-          console.error("確定メール送信エラー:", emailResponse.error);
+        const emailResult = await emailResponse.json();
+        if (!emailResponse.ok || !emailResult.success) {
+          console.error("確定メール送信エラー:", emailResult.error);
         } else {
-          console.log("確定メール送信成功:", emailResponse.data);
+          console.log("確定メール送信成功:", emailResult);
         }
       }
 
@@ -354,14 +360,20 @@ export const useAppointmentManagement = () => {
 
           console.log(`一括承認メール送信開始 (${appointment.patient_name}):`, emailData);
 
-          const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
-            body: emailData
+          // Vercel API Routeを使用して確定メールを送信
+          const emailResponse = await fetch('/api/send-confirmation-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData),
           });
 
-          if (emailResponse.error) {
-            console.error("確定メール送信エラー:", emailResponse.error);
+          const emailResult = await emailResponse.json();
+          if (!emailResponse.ok || !emailResult.success) {
+            console.error("確定メール送信エラー:", emailResult.error);
           } else {
-            console.log("確定メール送信成功:", emailResponse.data);
+            console.log("確定メール送信成功:", emailResult);
           }
         }
 

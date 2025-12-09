@@ -173,12 +173,14 @@ const AdminTreatments = () => {
                 setEditingTreatment(null);
               }}
               onSave={handleSaveTreatment}
+              existingTreatments={treatments}
             />
 
             <TreatmentCreateDialog
               isOpen={isCreateDialogOpen}
               onClose={() => setIsCreateDialogOpen(false)}
               onSave={handleCreateTreatment}
+              existingTreatments={treatments}
             />
           </div>
         </div>

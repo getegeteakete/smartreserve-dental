@@ -15,19 +15,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TreatmentWithCategory } from "@/hooks/useTreatmentsWithCategories";
 import { useTreatmentCategories } from "@/hooks/useTreatmentCategories";
+import { useToast } from "@/hooks/use-toast";
 
 interface TreatmentCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (treatment: Omit<TreatmentWithCategory, "id" | "created_at" | "updated_at" | "category">) => void;
+  existingTreatments?: TreatmentWithCategory[];
 }
 
 export const TreatmentCreateDialog = ({
   isOpen,
   onClose,
-  onSave
+  onSave,
+  existingTreatments = []
 }: TreatmentCreateDialogProps) => {
   const { categories } = useTreatmentCategories();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -35,16 +39,51 @@ export const TreatmentCreateDialog = ({
     duration: 30,
     category_id: ""
   });
+  const [nameError, setNameError] = useState("");
+
+  // メニュー名の重複チェック
+  const checkDuplicateName = (name: string): boolean => {
+    if (!name.trim()) return false;
+    
+    const trimmedName = name.trim();
+    const isDuplicate = existingTreatments.some(
+      treatment => treatment.name.trim() === trimmedName
+    );
+    
+    if (isDuplicate) {
+      setNameError("このメニュー名は既に使用されています。別の名前を入力してください。");
+      return true;
+    }
+    
+    setNameError("");
+    return false;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setFormData(prev => ({ ...prev, name: newName }));
+    checkDuplicateName(newName);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 重複チェック
+    if (checkDuplicateName(formData.name)) {
+      toast({
+        title: "エラー",
+        description: "このメニュー名は既に使用されています。別の名前を入力してください。",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       // カテゴリーIDの処理（"none"をnullに変換）
       const categoryId = formData.category_id === "" || formData.category_id === "none" ? null : formData.category_id;
       
       const treatmentData = {
-        name: formData.name,
+        name: formData.name.trim(),
         description: formData.description || null,
         fee: formData.fee,
         duration: formData.duration,
@@ -77,6 +116,7 @@ export const TreatmentCreateDialog = ({
       duration: 30,
       category_id: ""
     });
+    setNameError("");
   };
 
   return (
@@ -95,10 +135,14 @@ export const TreatmentCreateDialog = ({
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={handleNameChange}
                 placeholder="診療メニュー名を入力"
                 required
+                className={nameError ? "border-red-500" : ""}
               />
+              {nameError && (
+                <p className="text-sm text-red-500">{nameError}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">カテゴリー</Label>

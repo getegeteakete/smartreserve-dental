@@ -138,29 +138,33 @@ export function AppointmentApprovalDialog({
 
       console.log("確定メール送信開始（AppointmentApprovalDialog）:", emailData);
 
-      const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
-        body: emailData
+      // Vercel API Routeを使用して確定メールを送信
+      const emailResponse = await fetch('/api/send-confirmation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailData),
       });
 
-      console.log("確定メール送信レスポンス（全体）:", emailResponse);
+      const emailResult = await emailResponse.json();
+      console.log("確定メール送信レスポンス（全体）:", emailResult);
 
-      if (emailResponse.error) {
-        console.error("確定メール送信エラー（詳細）:", emailResponse.error);
-        console.error("エラーデータ:", emailResponse.data);
+      if (!emailResponse.ok || !emailResult.success) {
+        console.error("確定メール送信エラー（詳細）:", emailResult.error);
         toast({
           title: "予約確定完了",
-          description: `予約が確定されましたが、確定メールの送信に失敗しました。エラー: ${emailResponse.error.message || 'Unknown error'}`,
+          description: `予約が確定されましたが、確定メールの送信に失敗しました。エラー: ${emailResult.error || 'Unknown error'}`,
           variant: "destructive",
         });
       } else {
-        console.log("確定メール送信成功（詳細）:", emailResponse.data);
-        const result = emailResponse.data;
-        if (result?.patientEmailId && result?.adminEmailId) {
+        console.log("確定メール送信成功（詳細）:", emailResult);
+        if (emailResult.patientEmailId && emailResult.adminEmailId) {
           toast({
             title: "予約確定完了",
             description: "予約が確定され、患者様と管理者に確定メールを送信しました。",
           });
-        } else if (result?.patientEmailId) {
+        } else if (emailResult.patientEmailId) {
           toast({
             title: "予約確定完了（一部エラー）",
             description: "予約が確定され、患者様にメールを送信しました。管理者メールの送信に失敗した可能性があります。",

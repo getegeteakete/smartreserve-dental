@@ -91,6 +91,11 @@ export function AppointmentList() {
             console.error("予約希望取得エラー:", preferencesError);
           }
 
+          // デバッグ用ログ
+          if (appointment.status === 'pending') {
+            console.log(`予約ID ${appointment.id} (${appointment.patient_name}) の希望日時:`, preferencesData);
+          }
+
           return {
             ...appointment,
             appointment_preferences: preferencesData || []
@@ -178,21 +183,27 @@ export function AppointmentList() {
 
       console.log("確定メール送信開始（handlePreferenceApproval）:", emailData);
 
-      const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
-        body: emailData
+      // Vercel API Routeを使用して確定メールを送信
+      const emailResponse = await fetch('/api/send-confirmation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailData),
       });
 
-      console.log("確定メール送信レスポンス（handlePreferenceApproval）:", emailResponse);
+      const emailResult = await emailResponse.json();
+      console.log("確定メール送信レスポンス（handlePreferenceApproval）:", emailResult);
 
-      if (emailResponse.error) {
-        console.error("確定メール送信エラー（handlePreferenceApproval）:", emailResponse.error);
+      if (!emailResponse.ok || !emailResult.success) {
+        console.error("確定メール送信エラー（handlePreferenceApproval）:", emailResult.error);
         toast({
           title: "予約承認完了",
-          description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認しましたが、確定メールの送信に失敗しました。`,
+          description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認しましたが、確定メールの送信に失敗しました。${emailResult.error ? `エラー: ${emailResult.error}` : ''}`,
           variant: "destructive",
         });
       } else {
-        console.log("確定メール送信成功（handlePreferenceApproval）:", emailResponse.data);
+        console.log("確定メール送信成功（handlePreferenceApproval）:", emailResult);
         toast({
           title: "承認完了",
           description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認し、確定メールを送信しました`,

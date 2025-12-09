@@ -34,6 +34,7 @@ interface TreatmentEditWithCategoryDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (treatment: TreatmentWithCategory) => void;
+  existingTreatments?: TreatmentWithCategory[];
 }
 
 export const TreatmentEditWithCategoryDialog = ({
@@ -41,6 +42,7 @@ export const TreatmentEditWithCategoryDialog = ({
   isOpen,
   onClose,
   onSave,
+  existingTreatments = [],
 }: TreatmentEditWithCategoryDialogProps) => {
   console.log("TreatmentEditWithCategoryDialog - Rendering", { treatment, isOpen });
   
@@ -102,6 +104,21 @@ export const TreatmentEditWithCategoryDialog = ({
       toast({
         title: "エラー",
         description: "編集対象の診療メニューが見つかりません",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // メニュー名の重複チェック（自分以外のメニューと重複していないか）
+    const trimmedName = values.name.trim();
+    const isDuplicate = existingTreatments.some(
+      t => t.id !== treatment.id && t.name.trim() === trimmedName
+    );
+    
+    if (isDuplicate) {
+      toast({
+        title: "エラー",
+        description: "このメニュー名は既に使用されています。別の名前を入力してください。",
         variant: "destructive",
       });
       return;
@@ -172,7 +189,20 @@ export const TreatmentEditWithCategoryDialog = ({
               name="name"
               rules={{
                 required: "メニュー名は必須です",
-                minLength: { value: 1, message: "メニュー名を入力してください" }
+                minLength: { value: 1, message: "メニュー名を入力してください" },
+                validate: (value) => {
+                  const trimmedName = value?.trim();
+                  if (!trimmedName) return true; // requiredでチェック済み
+                  
+                  const isDuplicate = existingTreatments.some(
+                    t => t.id !== treatment?.id && t.name.trim() === trimmedName
+                  );
+                  
+                  if (isDuplicate) {
+                    return "このメニュー名は既に使用されています";
+                  }
+                  return true;
+                }
               }}
               render={({ field }) => (
                 <FormItem>

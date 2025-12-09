@@ -10,7 +10,8 @@ import {
   ChevronDown,
   ChevronRight,
   BarChart3,
-  MessageCircle
+  MessageCircle,
+  ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,6 +33,13 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
       label: "ダッシュボード",
       icon: LayoutDashboard,
       path: "/admin",
+      badge: null
+    },
+    {
+      id: "appointments",
+      label: "予約管理",
+      icon: ClipboardList,
+      path: "/admin/appointments",
       badge: null
     },
     {

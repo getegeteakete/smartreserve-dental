@@ -122,39 +122,47 @@ export function AppointmentTable({
             </div>
 
             {/* 詳細表示モードの場合は希望日時も表示 */}
-            {showDetailedView && appointment.appointment_preferences && (
+            {showDetailedView && appointment.status === 'pending' && (
               <div className="mt-4 p-3 bg-gray-50 rounded">
-                <h4 className="font-medium text-sm mb-2">希望日時</h4>
-                <div className="space-y-2">
-                  {appointment.appointment_preferences
-                    .sort((a, b) => a.preference_order - b.preference_order)
-                    .map((pref) => {
-                      const prefDate = new Date(pref.preferred_date);
-                      const formattedDate = prefDate.toLocaleDateString('ja-JP', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        weekday: 'long'
-                      });
-                      const formattedTime = formatTimeSlotJapanese(pref.preferred_time_slot);
-                      
-                      return (
-                        <div key={pref.id} className="flex justify-between items-center text-sm">
-                          <span>
-                            第{pref.preference_order}希望: {formattedDate} {formattedTime}
-                          </span>
-                          {onPreferenceApproval && (
-                            <button
-                              onClick={() => onPreferenceApproval(appointment, pref.id)}
-                              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                            >
-                              承認
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
+                <h4 className="font-medium text-sm mb-2">希望日時から選択して承認</h4>
+                {appointment.appointment_preferences && appointment.appointment_preferences.length > 0 ? (
+                  <div className="space-y-2">
+                    {appointment.appointment_preferences
+                      .sort((a, b) => a.preference_order - b.preference_order)
+                      .map((pref) => {
+                        const prefDate = new Date(pref.preferred_date);
+                        const formattedDate = prefDate.toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          weekday: 'long'
+                        });
+                        const formattedTime = formatTimeSlotJapanese(pref.preferred_time_slot);
+                        
+                        return (
+                          <div key={pref.id} className="flex justify-between items-center text-sm">
+                            <span>
+                              第{pref.preference_order}希望: {formattedDate} {formattedTime}
+                            </span>
+                            {onPreferenceApproval && (
+                              <button
+                                onClick={() => onPreferenceApproval(appointment, pref.id)}
+                                className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                              >
+                                この日時で承認
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <div className="p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-800">
+                      希望日時が登録されていません。
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -220,39 +228,47 @@ export function AppointmentTable({
               </div>
             </div>
             
-            {appointment.appointment_preferences && appointment.appointment_preferences.length > 0 && (
+            {appointment.status === 'pending' && (
               <div className="mt-4 p-3 bg-gray-50 rounded">
                 <h4 className="font-medium mb-3">希望日時から選択して承認</h4>
-                <div className="space-y-2">
-                  {appointment.appointment_preferences
-                    .sort((a, b) => a.preference_order - b.preference_order)
-                    .map((pref) => {
-                      const prefDate = new Date(pref.preferred_date);
-                      const formattedDate = prefDate.toLocaleDateString('ja-JP', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        weekday: 'long'
-                      });
-                      const formattedTime = formatTimeSlotJapanese(pref.preferred_time_slot);
-                      
-                      return (
-                        <div key={pref.id} className="flex justify-between items-center p-2 bg-white rounded border">
-                          <span className="flex-1">
-                            第{pref.preference_order}希望: {formattedDate} {formattedTime}
-                          </span>
-                          {onPreferenceApproval && (
-                            <button
-                              onClick={() => onPreferenceApproval(appointment, pref.id)}
-                              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                            >
-                              この日時で承認
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
+                {appointment.appointment_preferences && appointment.appointment_preferences.length > 0 ? (
+                  <div className="space-y-2">
+                    {appointment.appointment_preferences
+                      .sort((a, b) => a.preference_order - b.preference_order)
+                      .map((pref) => {
+                        const prefDate = new Date(pref.preferred_date);
+                        const formattedDate = prefDate.toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          weekday: 'long'
+                        });
+                        const formattedTime = formatTimeSlotJapanese(pref.preferred_time_slot);
+                        
+                        return (
+                          <div key={pref.id} className="flex justify-between items-center p-2 bg-white rounded border">
+                            <span className="flex-1">
+                              第{pref.preference_order}希望: {formattedDate} {formattedTime}
+                            </span>
+                            {onPreferenceApproval && (
+                              <button
+                                onClick={() => onPreferenceApproval(appointment, pref.id)}
+                                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                              >
+                                この日時で承認
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-sm text-yellow-800">
+                      希望日時が登録されていません。編集ボタンから希望日時を設定してください。
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

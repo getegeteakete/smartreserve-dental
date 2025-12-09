@@ -12,6 +12,7 @@ import TreatmentDetail from "./pages/TreatmentDetail";
 import CourseDetail from "./pages/CourseDetail";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import AdminAppointments from "./pages/AdminAppointments";
 import AdminSchedule from "./pages/AdminSchedule";
 import AdminTreatments from "./pages/AdminTreatments";
 import AdminPatients from "./pages/AdminPatients";
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin/guide" element={<AdminGuide />} />
+          <Route path="/admin/appointments" element={<AdminAppointments />} />
           <Route path="/admin/schedule" element={<AdminSchedule />} />
           <Route path="/admin/treatments" element={<AdminTreatments />} />
           <Route path="/admin/patients" element={<AdminPatients />} />
