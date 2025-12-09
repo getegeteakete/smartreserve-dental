@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ja } from "date-fns/locale";
 import { CalendarIcon, Trash2, HelpCircle, Loader2 } from "lucide-react";
@@ -229,19 +230,25 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 日曜日一括設定セクション */}
-          <div className="border rounded-lg p-4 bg-blue-50">
+          {/* 日曜日特別営業日設定セクション */}
+          <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="font-semibold text-blue-900">日曜日営業設定（月ごと）</h3>
+              <h3 className="font-semibold text-blue-900">日曜日特別営業日設定</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>月に1回程度の日曜診療を設定できます。<br/>
-                  年月を選択して、その月の日曜日から営業する日を選んでください。</p>
+                  <p>日曜日は特別営業日として設定できます。<br/>
+                  年月を選択して、その月の日曜日から営業する日付を選んでください。</p>
                 </TooltipContent>
               </Tooltip>
+            </div>
+            <div className="mb-3 p-3 bg-blue-100 rounded border border-blue-300">
+              <p className="text-sm text-blue-800">
+                <strong>※ 日曜日は特別営業日として設定されます。</strong><br/>
+                通常の曜日設定とは別に、特定の日曜日を選んで営業時間を設定できます。
+              </p>
             </div>
             <div className="space-y-4">
               <div className="flex items-end gap-4">
@@ -291,13 +298,39 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
               
               {sundaysInMonth.length > 0 ? (
                 <div className="space-y-2">
-                  <Label>営業する日曜日を選択（複数選択可）</Label>
+                  <Label className="text-base font-medium">その月の日曜日から営業する日付を選択（複数選択可）</Label>
+                  <p className="text-xs text-gray-600 mb-3">
+                    選択した日曜日が特別営業日として設定されます。
+                  </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {sundaysInMonth.map(sunday => {
                       const isExisting = existingSundaySchedules.includes(sunday);
                       const isSelected = selectedSundays.includes(sunday);
+                      const sundayDate = new Date(sunday);
+                      const dayOfMonth = sundayDate.getDate();
+                      const weekOfMonth = Math.ceil(dayOfMonth / 7);
+                      const weekLabel = weekOfMonth === 1 ? '第1' : weekOfMonth === 2 ? '第2' : weekOfMonth === 3 ? '第3' : weekOfMonth === 4 ? '第4' : '第5';
+                      
                       return (
-                        <div key={sunday} className="flex items-center space-x-2 p-2 border rounded">
+                        <div 
+                          key={sunday} 
+                          className={`flex items-center space-x-2 p-3 border-2 rounded-lg transition-all ${
+                            isSelected 
+                              ? 'bg-blue-100 border-blue-400 shadow-sm' 
+                              : isExisting 
+                              ? 'bg-gray-50 border-gray-300 opacity-60' 
+                              : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
+                          }`}
+                          onClick={() => {
+                            if (!isExisting) {
+                              if (isSelected) {
+                                setSelectedSundays(selectedSundays.filter(d => d !== sunday));
+                              } else {
+                                setSelectedSundays([...selectedSundays, sunday]);
+                              }
+                            }
+                          }}
+                        >
                           <Checkbox
                             id={`sunday-${sunday}`}
                             checked={isSelected}
@@ -309,13 +342,23 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                                 setSelectedSundays(selectedSundays.filter(d => d !== sunday));
                               }
                             }}
+                            className="pointer-events-none"
                           />
                           <Label 
                             htmlFor={`sunday-${sunday}`} 
-                            className={`text-sm cursor-pointer ${isExisting ? 'text-gray-400' : ''}`}
+                            className={`text-sm cursor-pointer flex-1 ${isExisting ? 'text-gray-400' : 'text-gray-700'}`}
                           >
-                            {format(new Date(sunday), 'M月d日', { locale: ja })}
-                            {isExisting && <span className="ml-1 text-xs">(設定済み)</span>}
+                            <div className="font-medium">
+                              {format(sundayDate, 'M月d日(E)', { locale: ja })}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {weekLabel}日曜日
+                            </div>
+                            {isExisting && (
+                              <div className="text-xs text-blue-600 mt-1 font-medium">
+                                (特別営業日設定済み)
+                              </div>
+                            )}
                           </Label>
                         </div>
                       );
@@ -358,9 +401,12 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-600">
-                    ※ 既に設定済みの日曜日は選択できません。削除してから再度設定してください。
-                  </p>
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-800">
+                      <strong>注意：</strong>既に特別営業日として設定済みの日曜日は選択できません。<br/>
+                      削除してから再度設定する場合は、下の「設定済み特別営業日」一覧から削除してください。
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-gray-600">この月に日曜日はありません。</p>
@@ -508,14 +554,24 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {specialSchedules.map((schedule) => (
-                  <TableRow key={schedule.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(schedule.specific_date), "yyyy年MM月dd日", { locale: ja })}
-                    </TableCell>
-                    <TableCell>
-                      {schedule.start_time} - {schedule.end_time}
-                    </TableCell>
+                {specialSchedules.map((schedule) => {
+                  const scheduleDate = new Date(schedule.specific_date);
+                  const isSunday = getDay(scheduleDate) === 0;
+                  return (
+                    <TableRow key={schedule.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {format(scheduleDate, "yyyy年MM月dd日", { locale: ja })}
+                          {isSunday && (
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                              日曜日
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {schedule.start_time} - {schedule.end_time}
+                      </TableCell>
                     <TableCell>
                       <Checkbox
                         checked={schedule.is_available}
