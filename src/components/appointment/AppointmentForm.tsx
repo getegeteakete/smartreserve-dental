@@ -184,6 +184,22 @@ const AppointmentForm = ({
               value={formData.email}
               onChange={(e) => onFormChange({ email: e.target.value })}
               onBlur={() => handleFieldBlur('email')}
+              onFocus={(e) => {
+                // モバイルでの自動スクロールを防ぐ
+                const currentScrollY = window.scrollY;
+                // スクロール位置を維持（キーボード表示後も）
+                const maintainScroll = () => {
+                  window.scrollTo({
+                    top: currentScrollY,
+                    behavior: 'auto'
+                  });
+                };
+                // 即座に実行
+                maintainScroll();
+                // キーボード表示を待って再実行
+                setTimeout(maintainScroll, 100);
+                setTimeout(maintainScroll, 300);
+              }}
               placeholder="example@email.com"
               required
               className={`h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 ${shouldShowError('email', emailEmpty) ? 'border-red-300' : ''}`}
