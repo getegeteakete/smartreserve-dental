@@ -167,7 +167,7 @@ const AppointmentForm = ({
               value={formData.phone}
               onChange={(e) => onFormChange({ phone: e.target.value })}
               onBlur={() => handleFieldBlur('phone')}
-              placeholder="090-1234-5678"
+              placeholder="09012345678"
               required
               className={`h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 ${shouldShowError('phone', phoneEmpty) ? 'border-red-300' : ''}`}
             />

@@ -88,10 +88,15 @@ const Header = () => {
           {/* モバイルメニューボタン */}
           <div className="md:hidden">
             <Button
+              type="button"
               variant="ghost"
               size="icon"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-700"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              className="text-gray-700 relative z-50"
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -104,11 +109,14 @@ const Header = () => {
 
         {/* モバイルメニュー */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="md:hidden border-t border-gray-200 bg-white relative z-50">
             <div className="flex flex-col py-2">
               <Button
+                type="button"
                 variant="ghost"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   navigate("/");
                   setIsMobileMenuOpen(false);
                 }}
@@ -118,8 +126,11 @@ const Header = () => {
                 HOME
               </Button>
               <Button
+                type="button"
                 variant="ghost"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   navigate("/guide");
                   setIsMobileMenuOpen(false);
                 }}
@@ -129,8 +140,11 @@ const Header = () => {
                 使い方ガイド
               </Button>
               <Button
+                type="button"
                 variant="ghost"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   window.open("https://xn--68j7a2dtb9053amj1aoqai3wdd676ltle.com/", "_blank");
                   setIsMobileMenuOpen(false);
                 }}
