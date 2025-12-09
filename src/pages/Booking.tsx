@@ -75,13 +75,30 @@ export default function Booking() {
 
   // 名前入力欄へスクロールする関数
   const scrollToPatientForm = () => {
-    setTimeout(() => {
+    // フォームが表示されるまで少し待機してからスクロール
+    // 第2希望日が選択完了しているので、フォームは表示されているはず
+    const attemptScroll = (retryCount = 0) => {
       if (patientFormRef.current) {
-        patientFormRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
+        // ヘッダーの高さを考慮してスクロール位置を調整
+        const headerOffset = 80;
+        const elementPosition = patientFormRef.current.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
         });
+      } else if (retryCount < 3) {
+        // フォームがまだ表示されていない場合、少し待ってから再試行（最大3回）
+        setTimeout(() => {
+          attemptScroll(retryCount + 1);
+        }, 200);
       }
+    };
+    
+    // 少し待ってからスクロールを試行（アニメーション完了を待つ）
+    setTimeout(() => {
+      attemptScroll();
     }, 300);
   };
 
