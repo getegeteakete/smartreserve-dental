@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTreatmentsWithCategories } from '@/hooks/useTreatmentsWithCategories';
 import { useAppointmentManagement } from '@/hooks/useAppointmentManagement';
+import { ensureSystemSettings } from '@/utils/defaultSystemSettings';
 
 interface TestResult {
   name: string;
@@ -95,11 +96,45 @@ export const SystemTestPanel = () => {
         .select('*')
         .limit(1);
       
-      if (error && error.code !== 'PGRST116') { // テーブルが存在しない場合は無視
+      // テーブルが存在しない、またはスキーマキャッシュにない場合
+      if (error && (
+        error.code === 'PGRST116' || 
+        error.message?.includes('Could not find the table') ||
+        error.message?.includes('does not exist') ||
+        error.message?.includes('schema cache')
+      )) {
+        // テーブルを初期化を試みる
+        tests[3].status = 'pending';
+        tests[3].message = 'システム設定テーブルを初期化中...';
+        setTestResults([...tests]);
+        
+        try {
+          const initialized = await ensureSystemSettings();
+          if (initialized) {
+            // 初期化成功後、再度取得を試みる
+            const { data: newData, error: newError } = await supabase
+              .from('system_settings')
+              .select('*')
+              .limit(1);
+            
+            if (newError) {
+              throw newError;
+            }
+            tests[3].status = 'success';
+            tests[3].message = newData ? `${newData.length}件の設定を取得（初期化済み）` : 'システム設定テーブル確認（初期化済み）';
+          } else {
+            throw new Error('システム設定の初期化に失敗しました');
+          }
+        } catch (initError: any) {
+          tests[3].status = 'error';
+          tests[3].message = `初期化エラー: ${initError.message}`;
+        }
+      } else if (error) {
         throw error;
+      } else {
+        tests[3].status = 'success';
+        tests[3].message = data ? `${data.length}件の設定を取得` : 'システム設定テーブル確認';
       }
-      tests[3].status = 'success';
-      tests[3].message = data ? `${data.length}件の設定を取得` : 'システム設定テーブル確認';
     } catch (error: any) {
       tests[3].status = 'error';
       tests[3].message = `設定取得エラー: ${error.message}`;
