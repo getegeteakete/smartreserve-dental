@@ -157,8 +157,8 @@ const TreatmentSelection = () => {
         </div>
 
         {/* 診療メニュー一覧 */}
-        <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6">
-          <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto">
+        <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6 pb-20 md:pb-6">
+          <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto mb-4 md:mb-0">
             {displayCategories.map((category) => (
               <div key={category} id={`category-${category}`} className="space-y-3 md:space-y-4">
                 {/* カテゴリーヘッダー */}
