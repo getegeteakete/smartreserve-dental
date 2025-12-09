@@ -294,28 +294,74 @@ export function AppointmentTable({
             <TableHead>診療内容</TableHead>
             <TableHead>料金</TableHead>
             <TableHead>申込日</TableHead>
+            <TableHead>希望日時</TableHead>
             <TableHead>操作</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {appointments.map((appointment) => (
-            <AppointmentTableRow
-              key={appointment.id}
-              appointment={appointment}
-              isSelected={selectedAppointments?.has(appointment.id)}
-              onCheckboxChange={onCheckboxChange}
-              onQuickApproval={onQuickApproval}
-              onApproval={onApproval}
-              onCancel={onCancel}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onStatusChange={onStatusChange}
-              getStatusBadge={getStatusBadge}
-              showCheckbox={showCheckboxes}
-              showStatus={showStatusColumn}
-              showEmail={showStatusColumn}
-              rowClassName={tableClassName ? "bg-white" : undefined}
-            />
+            <>
+              <AppointmentTableRow
+                key={appointment.id}
+                appointment={appointment}
+                isSelected={selectedAppointments?.has(appointment.id)}
+                onCheckboxChange={onCheckboxChange}
+                onQuickApproval={onQuickApproval}
+                onApproval={onApproval}
+                onCancel={onCancel}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onStatusChange={onStatusChange}
+                getStatusBadge={getStatusBadge}
+                showCheckbox={showCheckboxes}
+                showStatus={showStatusColumn}
+                showEmail={showStatusColumn}
+                rowClassName={tableClassName ? "bg-white" : undefined}
+                appointment_preferences={appointment.appointment_preferences}
+                onPreferenceApproval={onPreferenceApproval}
+              />
+              {/* 希望日時を表示する展開行（承認待ちの場合のみ） */}
+              {appointment.status === 'pending' && appointment.appointment_preferences && appointment.appointment_preferences.length > 0 && (
+                <TableRow key={`${appointment.id}-preferences`} className="bg-gray-50">
+                  <TableCell colSpan={showCheckboxes ? (showStatusColumn ? 10 : 8) : (showStatusColumn ? 9 : 7)}>
+                    <div className="p-3">
+                      <h4 className="font-medium text-sm mb-2">希望日時から選択して承認</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {appointment.appointment_preferences
+                          .sort((a, b) => a.preference_order - b.preference_order)
+                          .map((pref) => {
+                            const prefDate = new Date(pref.preferred_date);
+                            const formattedDate = prefDate.toLocaleDateString('ja-JP', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              weekday: 'long'
+                            });
+                            const formattedTime = formatTimeSlotJapanese(pref.preferred_time_slot);
+                            
+                            return (
+                              <div key={pref.id} className="flex items-center gap-2 p-2 bg-white rounded border">
+                                <span className="text-sm">
+                                  第{pref.preference_order}希望: {formattedDate} {formattedTime}
+                                </span>
+                                {onPreferenceApproval && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => onPreferenceApproval(appointment, pref.id)}
+                                    className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1"
+                                  >
+                                    この日時で承認
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>

@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, Trash2, Check, X } from "lucide-react";
 
+interface AppointmentPreference {
+  id: string;
+  preference_order: number;
+  preferred_date: string;
+  preferred_time_slot: string;
+}
+
 interface Appointment {
   id: string;
   patient_name: string;
@@ -36,6 +43,8 @@ interface AppointmentTableRowProps {
   showEmail?: boolean;
   rowClassName?: string;
   isMobileCard?: boolean;
+  appointment_preferences?: AppointmentPreference[];
+  onPreferenceApproval?: (appointment: Appointment, preferenceId: string) => void;
 }
 
 export function AppointmentTableRow({
@@ -54,6 +63,8 @@ export function AppointmentTableRow({
   showEmail = true,
   rowClassName,
   isMobileCard = false,
+  appointment_preferences,
+  onPreferenceApproval,
 }: AppointmentTableRowProps) {
   const formatDateTime = (dateString: string) => {
     // タイムゾーン変換を避けるため、文字列を直接解析
@@ -167,6 +178,24 @@ export function AppointmentTableRow({
       <TableCell>{appointment.treatment_name}</TableCell>
       <TableCell>¥{appointment.fee?.toLocaleString()}</TableCell>
       <TableCell>{formatDateTime(appointment.created_at)}</TableCell>
+      <TableCell>
+        {appointment.status === 'pending' && appointment_preferences && appointment_preferences.length > 0 ? (
+          <div className="text-xs text-gray-600">
+            {appointment_preferences.length}件の希望日時あり
+          </div>
+        ) : appointment.confirmed_date ? (
+          <div className="text-xs">
+            {new Date(appointment.confirmed_date).toLocaleDateString('ja-JP', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              weekday: 'short'
+            })} {appointment.confirmed_time_slot || ''}
+          </div>
+        ) : (
+          <span className="text-xs text-gray-400">未確定</span>
+        )}
+      </TableCell>
       <TableCell className="space-x-2">
         {appointment.status === 'pending' && onQuickApproval && (
           <Button
