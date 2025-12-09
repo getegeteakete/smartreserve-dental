@@ -89,6 +89,30 @@ const generateSlotsFromTimeRange = (
 };
 
 /**
+ * 時間スロットの重複を除去する関数
+ */
+const removeDuplicateTimeSlots = (slots: TimeSlot[]): TimeSlot[] => {
+  const seen = new Set<string>();
+  const uniqueSlots: TimeSlot[] = [];
+  
+  for (const slot of slots) {
+    // start_timeとend_timeの組み合わせでユニーク性を判定
+    const key = `${slot.start_time}-${slot.end_time}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueSlots.push(slot);
+    }
+  }
+  
+  // 開始時間でソート
+  return uniqueSlots.sort((a, b) => {
+    const timeA = a.start_time;
+    const timeB = b.start_time;
+    return timeA.localeCompare(timeB);
+  });
+};
+
+/**
  * 治療時間に応じた時間枠を生成
  */
 export const generateDynamicTimeSlotsForTreatment = async (
@@ -139,8 +163,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
         }
       }
       
-      console.log(`特別予約受付時間から生成(${treatmentDuration}分): ${dateStr}`, slots.length, '件');
-      return slots;
+      // 重複を除去
+      const uniqueSlots = removeDuplicateTimeSlots(slots);
+      console.log(`特別予約受付時間から生成(${treatmentDuration}分): ${dateStr}`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+      return uniqueSlots;
     }
 
     // 3. 特別診療時間をチェック（予約受付時間がない場合のフォールバック）
@@ -174,8 +200,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
         }
       }
       
-      console.log(`特別診療時間から生成(${treatmentDuration}分)（フォールバック）: ${dateStr}`, slots.length, '件');
-      return slots;
+      // 重複を除去
+      const uniqueSlots = removeDuplicateTimeSlots(slots);
+      console.log(`特別診療時間から生成(${treatmentDuration}分)（フォールバック）: ${dateStr}`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+      return uniqueSlots;
     }
 
     // 4. 祝日の場合は予約不可（特別スケジュールで上書きされていない限り）
@@ -215,8 +243,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
         }
       }
       if (slots.length > 0) {
-        console.log(`予約受付時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, slots.length, '件');
-        return slots;
+        // 重複を除去
+        const uniqueSlots = removeDuplicateTimeSlots(slots);
+        console.log(`予約受付時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+        return uniqueSlots;
       }
       // 予約受付時間スケジュールが登録されているが、is_available=falseの場合もフォールバック処理へ
       console.log(`予約受付時間スケジュールは存在するが、利用不可のためフォールバック処理へ`);
@@ -267,8 +297,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
           const morningSlots = generateSlotsFromTimeRange("10:00:00", "13:30:00", dateStr, treatmentDuration);
           const afternoonSlots = generateSlotsFromTimeRange("15:00:00", "19:00:00", dateStr, treatmentDuration);
           slots.push(...morningSlots, ...afternoonSlots);
-          console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (木曜日・祝日週)`, slots.length, '件');
-          return slots;
+          // 重複を除去
+          const uniqueSlots = removeDuplicateTimeSlots(slots);
+          console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (木曜日・祝日週)`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+          return uniqueSlots;
         } else {
           // 木曜日で祝日がない週は休診
           console.log(`木曜日（祝日なし週）: 休診`);
@@ -282,8 +314,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
         const morningSlots = generateSlotsFromTimeRange("10:00:00", "13:30:00", dateStr, treatmentDuration);
         const afternoonSlots = generateSlotsFromTimeRange("15:00:00", "19:00:00", dateStr, treatmentDuration);
         slots.push(...morningSlots, ...afternoonSlots);
-        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek === 2 ? '火' : dayOfWeek === 3 ? '水' : '金'}曜日)`, slots.length, '件');
-        return slots;
+        // 重複を除去
+        const uniqueSlots = removeDuplicateTimeSlots(slots);
+        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek === 2 ? '火' : dayOfWeek === 3 ? '水' : '金'}曜日)`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+        return uniqueSlots;
       }
       
       // 月曜日：午前休診、15:00～19:00
@@ -291,8 +325,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
         console.log(`🔍 月曜日: 15:00～19:00`);
         const afternoonSlots = generateSlotsFromTimeRange("15:00:00", "19:00:00", dateStr, treatmentDuration);
         slots.push(...afternoonSlots);
-        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (月曜日)`, slots.length, '件');
-        return slots;
+        // 重複を除去
+        const uniqueSlots = removeDuplicateTimeSlots(slots);
+        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (月曜日)`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+        return uniqueSlots;
       }
       
       // 土曜日：9:00～12:30、14:00～17:30
@@ -301,8 +337,10 @@ export const generateDynamicTimeSlotsForTreatment = async (
         const morningSlots = generateSlotsFromTimeRange("09:00:00", "12:30:00", dateStr, treatmentDuration);
         const afternoonSlots = generateSlotsFromTimeRange("14:00:00", "17:30:00", dateStr, treatmentDuration);
         slots.push(...morningSlots, ...afternoonSlots);
-        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (土曜日)`, slots.length, '件');
-        return slots;
+        // 重複を除去
+        const uniqueSlots = removeDuplicateTimeSlots(slots);
+        console.log(`基本スケジュールから生成(${treatmentDuration}分): ${dateStr} (土曜日)`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+        return uniqueSlots;
       }
       
       // 日曜日はデフォルトで休診
@@ -312,9 +350,11 @@ export const generateDynamicTimeSlotsForTreatment = async (
       }
     }
 
-    console.log(`診療時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, slots.length, '件');
-    console.log(`🔍 最終的な全時間枠:`, slots.map(s => s.start_time));
-    return slots;
+    // 重複を除去
+    const uniqueSlots = removeDuplicateTimeSlots(slots);
+    console.log(`診療時間から生成(${treatmentDuration}分): ${dateStr} (${dayOfWeek}曜日)`, uniqueSlots.length, `件 (重複除去前: ${slots.length}件)`);
+    console.log(`🔍 最終的な全時間枠:`, uniqueSlots.map(s => s.start_time));
+    return uniqueSlots;
 
   } catch (error) {
     console.error("動的時間枠生成エラー:", error);
