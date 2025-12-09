@@ -122,50 +122,10 @@ const TreatmentSelection = () => {
 
 
 
-  // カテゴリーバナーにスクロールする関数
-  const scrollToCategory = (category: string) => {
-    setTimeout(() => {
-      const element = document.getElementById(`category-${category}`);
-      if (element) {
-        const headerOffset = 80; // ヘッダーの高さを考慮
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-      }
-    }, 100);
-  };
 
   if (isMobile) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
-        {/* トップバナー - ホワイトニング予約（シェイプアップ） */}
-        {displayCategories.includes("ホワイトニング予約") && (
-          <div 
-            className="relative w-full h-48 md:h-64 cursor-pointer overflow-hidden"
-            onClick={() => scrollToCategory("ホワイトニング予約")}
-          >
-            <img
-              src="/images/whitening-bg.jpg"
-              alt="ホワイトニング予約"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.error("画像読み込みエラー: /images/whitening-bg.jpg");
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-              <div className="text-center text-white px-4">
-                <h2 className="text-xl md:text-2xl font-bold mb-2">ホワイトニング予約</h2>
-                <p className="text-xs md:text-sm">タップして詳細を見る</p>
-              </div>
-            </div>
-          </div>
-        )}
-        
         {/* 固定カテゴリー選択ヘッダー */}
         <div className="sticky top-16 z-40 bg-white border-b border-gray-200 shadow-sm">
           <div className="px-2 md:px-4 py-2 md:py-3">
