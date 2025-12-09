@@ -13,8 +13,9 @@ import {
   MessageCircle,
   ClipboardList
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -26,6 +27,34 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [pendingCount, setPendingCount] = useState<number>(0);
+
+  // 承認待ちの予約数を取得
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from("appointments")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "pending");
+
+        if (error) {
+          console.error("承認待ち予約数取得エラー:", error);
+        } else {
+          setPendingCount(count || 0);
+        }
+      } catch (error) {
+        console.error("承認待ち予約数取得エラー:", error);
+      }
+    };
+
+    fetchPendingCount();
+
+    // 定期的に更新（30秒ごと）
+    const interval = setInterval(fetchPendingCount, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const menuItems = [
     {
@@ -40,7 +69,7 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
       label: "予約管理",
       icon: ClipboardList,
       path: "/admin/appointments",
-      badge: null
+      badge: pendingCount > 0 ? `${pendingCount}件` : null
     },
     {
       id: "schedule",
@@ -139,7 +168,7 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
             <button
               key={item.id}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 relative ${
                 active 
                   ? 'bg-blue-600 text-white shadow-lg' 
                   : 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -150,8 +179,15 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
                 <span className="text-sm font-medium">{item.label}</span>
               )}
               {item.badge && !isCollapsed && (
-                <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                <span className={`ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold ${
+                  item.id === 'appointments' && pendingCount > 0 ? 'animate-pulse' : ''
+                }`}>
                   {item.badge}
+                </span>
+              )}
+              {item.badge && isCollapsed && item.id === 'appointments' && pendingCount > 0 && (
+                <span className="absolute top-1 right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">
+                  {pendingCount > 9 ? '9+' : pendingCount}
                 </span>
               )}
             </button>

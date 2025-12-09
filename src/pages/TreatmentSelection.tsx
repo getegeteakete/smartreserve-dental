@@ -141,11 +141,11 @@ const TreatmentSelection = () => {
 
   if (isMobile) {
     return (
-      <div className="h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         {/* トップバナー - ホワイトニング予約（シェイプアップ） */}
         {displayCategories.includes("ホワイトニング予約") && (
           <div 
-            className="relative w-full h-64 cursor-pointer overflow-hidden"
+            className="relative w-full h-48 md:h-64 cursor-pointer overflow-hidden"
             onClick={() => scrollToCategory("ホワイトニング予約")}
           >
             <img
@@ -158,9 +158,9 @@ const TreatmentSelection = () => {
               }}
             />
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-              <div className="text-center text-white">
-                <h2 className="text-2xl font-bold mb-2">ホワイトニング予約</h2>
-                <p className="text-sm">タップして詳細を見る</p>
+              <div className="text-center text-white px-4">
+                <h2 className="text-xl md:text-2xl font-bold mb-2">ホワイトニング予約</h2>
+                <p className="text-xs md:text-sm">タップして詳細を見る</p>
               </div>
             </div>
           </div>
@@ -168,18 +168,24 @@ const TreatmentSelection = () => {
         
         {/* 固定カテゴリー選択ヘッダー */}
         <div className="sticky top-16 z-40 bg-white border-b border-gray-200 shadow-sm">
-          <div className="px-4 py-3">
-            <div className="flex flex-wrap justify-center gap-2">
+          <div className="px-2 md:px-4 py-2 md:py-3">
+            <div className="flex flex-wrap justify-center gap-1 md:gap-2">
               {displayCategories.map((category) => (
                 <Button
                   key={category}
                   variant="outline"
                   size="sm"
-                  className="text-xs"
+                  className="text-xs md:text-sm px-2 md:px-3"
                   onClick={() => {
                     const element = document.getElementById(`category-${category}`);
                     if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
+                      const headerOffset = 80;
+                      const elementPosition = element.getBoundingClientRect().top;
+                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                      });
                     }
                   }}
                 >
@@ -191,68 +197,63 @@ const TreatmentSelection = () => {
         </div>
 
         {/* 診療メニュー一覧 */}
-        <ScrollArea className="flex-1 px-4 py-6">
-          <div className="space-y-8">
+        <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6">
+          <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto">
             {displayCategories.map((category) => (
-              <div key={category} id={`category-${category}`} className="space-y-4">
-                {/* カテゴリーヘッダー - クリック可能 */}
-                <div 
-                  className="text-center py-4 bg-gray-100 rounded-sm border border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => {
-                    const element = document.getElementById(`category-${category}`);
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }}
-                >
+              <div key={category} id={`category-${category}`} className="space-y-3 md:space-y-4">
+                {/* カテゴリーヘッダー */}
+                <div className="text-center py-3 md:py-4 bg-gray-100 rounded-sm border border-gray-200">
                   {categoryImages[category as keyof typeof categoryImages] && (
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
+                    <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 md:mb-3 rounded-full overflow-hidden">
                       <img
                         src={categoryImages[category as keyof typeof categoryImages]}
                         alt={category}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     </div>
                   )}
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1 md:mb-2">
                     {category}
                   </h2>
                 </div>
                 
                 {/* 診療メニュー表示 */}
-                <div className="grid gap-4 grid-cols-1">
+                <div className="grid gap-3 md:gap-4 grid-cols-1">
                   {categorizedTreatments[category].map((treatment) => (
                     <Card key={treatment.id} className="hover:shadow-lg transition-shadow">
-                                              <CardHeader className="pb-3">
-                          <CardTitle className="text-lg font-semibold text-gray-900 leading-tight">
-                            {treatment.name}
-                          </CardTitle>
-                        </CardHeader>
-                      <CardContent className="space-y-4">
-                        <CardDescription className="text-sm text-gray-600">
+                      <CardHeader className="pb-2 md:pb-3">
+                        <CardTitle className="text-base md:text-lg font-semibold text-gray-900 leading-tight">
+                          {treatment.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 md:space-y-4">
+                        <CardDescription className="text-xs md:text-sm text-gray-600 line-clamp-3">
                           {treatment.description || "詳細な説明はお問い合わせください。"}
                         </CardDescription>
                         
-                        <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center justify-between text-xs md:text-sm text-gray-500">
                           <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
+                            <Clock className="h-3 w-3 md:h-4 md:w-4" />
                             <span>{treatment.duration}分</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <BadgeJapaneseYen className="h-4 w-4" />
+                            <BadgeJapaneseYen className="h-3 w-3 md:h-4 md:w-4" />
                             <span className="font-semibold">
                               {treatment.fee === 0 ? "無料" : `¥${treatment.fee.toLocaleString()}`}
                             </span>
                           </div>
                         </div>
 
-                        <div className="pt-2">
+                        <div className="pt-1 md:pt-2">
                           <Button
                             size="sm"
                             onClick={() => handleBookingClick(treatment)}
-                            className="w-full flex items-center gap-1"
+                            className="w-full flex items-center justify-center gap-1 text-xs md:text-sm"
                           >
-                            <Calendar className="h-4 w-4" />
+                            <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                             予約する
                           </Button>
                         </div>
@@ -263,13 +264,7 @@ const TreatmentSelection = () => {
               </div>
             ))}
           </div>
-        </ScrollArea>
-        
-        {/* 固定メニューバナー - 一時的に無効化 */}
-        {/* <FixedMenuBanner /> */}
-        
-        {/* 営業状況バナー（モバイルのみ） - 一時的に無効化 */}
-        {/* <BusinessStatusBanner /> */}
+        </div>
       </div>
     );
   }

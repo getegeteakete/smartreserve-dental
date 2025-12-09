@@ -92,25 +92,79 @@ export const useAppointmentManagement = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from("appointments")
-      .delete()
-      .eq("id", id);
+    try {
+      console.log("予約削除開始:", id);
 
-    if (error) {
+      // まず関連データを削除（CASCADEで自動削除されるはずだが、念のため明示的に削除）
+      // appointment_preferencesを削除
+      const { error: prefError } = await supabase
+        .from("appointment_preferences")
+        .delete()
+        .eq("appointment_id", id);
+
+      if (prefError) {
+        console.warn("予約希望日時の削除エラー（続行）:", prefError);
+        // エラーでも続行（CASCADEで削除される可能性があるため）
+      }
+
+      // appointment_tokensを削除
+      const { error: tokenError } = await supabase
+        .from("appointment_tokens")
+        .delete()
+        .eq("appointment_id", id);
+
+      if (tokenError) {
+        console.warn("予約トークンの削除エラー（続行）:", tokenError);
+        // エラーでも続行
+      }
+
+      // 予約を削除
+      const { error, data } = await supabase
+        .from("appointments")
+        .delete()
+        .eq("id", id)
+        .select();
+
+      if (error) {
+        console.error("予約削除エラー:", error);
+        console.error("エラー詳細:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        let errorMessage = "予約の削除に失敗しました";
+        if (error.message) {
+          errorMessage += `: ${error.message}`;
+        }
+        if (error.hint) {
+          errorMessage += ` (${error.hint})`;
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "エラー",
+          description: errorMessage,
+        });
+        return;
+      }
+
+      console.log("予約削除成功:", data);
+
+      toast({
+        title: "削除完了",
+        description: "予約を削除しました",
+      });
+      fetchAppointments();
+    } catch (error: any) {
+      console.error("予約削除処理エラー:", error);
       toast({
         variant: "destructive",
         title: "エラー",
-        description: "予約の削除に失敗しました",
+        description: `予約の削除に失敗しました: ${error.message || error.toString()}`,
       });
-      return;
     }
-
-    toast({
-      title: "削除完了",
-      description: "予約を削除しました",
-    });
-    fetchAppointments();
   };
 
   const handleQuickApproval = async (appointment: Appointment) => {

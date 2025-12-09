@@ -75,25 +75,27 @@ export default function Index() {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <div className="flex-1 pt-16">
+      <div className={`flex-1 ${isMobile ? 'pt-16' : 'pt-16'}`}>
         <TreatmentSelection />
       </div>
       
       {/* 管理者ログインボタン */}
-      <div className="bg-gray-50 border-t border-gray-200 py-6">
-        <div className="container mx-auto px-4 text-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/admin-login')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mx-auto"
-          >
-            <Shield className="h-4 w-4" />
-            管理者ログイン
-          </Button>
-          <p className="text-xs text-gray-500 mt-2">SmartReserve予約システム</p>
+      {!isMobile && (
+        <div className="bg-gray-50 border-t border-gray-200 py-6">
+          <div className="container mx-auto px-4 text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/admin-login')}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mx-auto"
+            >
+              <Shield className="h-4 w-4" />
+              管理者ログイン
+            </Button>
+            <p className="text-xs text-gray-500 mt-2">SmartReserve予約システム</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* AIチャットボット（非表示） */}
       {false && (
