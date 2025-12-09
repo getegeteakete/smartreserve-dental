@@ -45,9 +45,10 @@ const AppointmentCalendar = ({
   onScrollToPatientForm,
   maxVisiblePreference = 2 // デフォルトはすべて表示
 }: AppointmentCalendarProps) => {
-  // 今日から6週間後までの日付のみ選択可能
+  // 2週間後から6週間後までの日付のみ選択可能
   const today = new Date();
   today.setHours(0, 0, 0, 0); // 時刻を00:00:00にリセット
+  const twoWeeksFromNow = addDays(today, 14);
   const sixWeeksFromNow = addWeeks(today, 6);
   
   // スケジュールデータの状態管理
@@ -165,13 +166,11 @@ const AppointmentCalendar = ({
   }, [preference2Date, preference2TimeSlot, isLoadingSlots2, timeSlots2.length, onTimeSlotSelect]);
 
   const isDateDisabled = (date: Date) => {
-    // 選択可能な範囲外（今日から6週間後まで）
+    // 選択可能な範囲外（2週間後から6週間後まで）
     const dateOnly = new Date(date);
     dateOnly.setHours(0, 0, 0, 0);
-    const todayOnly = new Date(today);
-    todayOnly.setHours(0, 0, 0, 0);
     
-    if (dateOnly < todayOnly || dateOnly > sixWeeksFromNow) {
+    if (dateOnly < twoWeeksFromNow || dateOnly > sixWeeksFromNow) {
       return true;
     }
     // 休診日は選択不可
@@ -341,7 +340,7 @@ const AppointmentCalendar = ({
                     selected={preference?.date}
                     onSelect={(date) => handleDateSelect(date, index)}
                     disabled={isDateDisabled}
-                    fromDate={today}
+                    fromDate={twoWeeksFromNow}
                     toDate={sixWeeksFromNow}
                     className="w-full"
                     modifiers={{
@@ -352,13 +351,11 @@ const AppointmentCalendar = ({
                       },
                       // 営業日（選択可能な範囲内で、休みでない日）は黒枠を表示
                       business: (date) => {
-                        // 選択可能な範囲（今日〜6週間後）内かチェック
+                        // 選択可能な範囲（2週間後〜6週間後）内かチェック
                         const dateOnly = new Date(date);
                         dateOnly.setHours(0, 0, 0, 0);
-                        const todayOnly = new Date(today);
-                        todayOnly.setHours(0, 0, 0, 0);
                         
-                        if (dateOnly < todayOnly || dateOnly > sixWeeksFromNow) {
+                        if (dateOnly < twoWeeksFromNow || dateOnly > sixWeeksFromNow) {
                           return false;
                         }
                         // 休みの日でないかチェック
@@ -514,7 +511,7 @@ const AppointmentCalendar = ({
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold mb-2">予約日時の選択</h2>
         <p className="text-sm text-gray-600 mb-1">
-          ※ 予約は今日から6週間先まで選択可能です
+          ※ 予約は2週間後から6週間後まで選択可能です
         </p>
       </div>
 
