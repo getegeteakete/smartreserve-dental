@@ -46,7 +46,7 @@ export const generatePatientConfirmationEmail = (data: AppointmentEmailData, for
         <ol style="margin: 10px 0; padding-left: 20px;">
           <li>管理者がスケジュールを確認いたします</li>
           <li>予約が確定次第、確定メールをお送りいたします</li>
-          <li>確定メールに記載された日時にご来院ください</li>
+          <li>確定メールに記載された日時の10分前にご来院ください</li>
         </ol>
       </div>
       
