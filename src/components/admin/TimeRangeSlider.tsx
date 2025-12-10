@@ -51,32 +51,16 @@ export const TimeRangeSlider = ({
     if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
     console.log('✅ 開始ハンドルマウスダウン - イベント発火確認');
     setIsDraggingStart(true);
-    // マウスが離れたときに確実に終了するように
-    const handleMouseUp = () => {
-      console.log('✅ 開始ハンドルマウスアップ');
-      setIsDraggingStart(false);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleEndHandleMouseDown = (e: React.MouseEvent) => {
     if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
     console.log('✅ 終了ハンドルマウスダウン - イベント発火確認');
     setIsDraggingEnd(true);
-    // マウスが離れたときに確実に終了するように
-    const handleMouseUp = () => {
-      console.log('✅ 終了ハンドルマウスアップ');
-      setIsDraggingEnd(false);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleBarMouseDown = (e: React.MouseEvent) => {
@@ -115,14 +99,6 @@ export const TimeRangeSlider = ({
     const offset = clickX - barLeft;
     setDragOffset(offset);
     setIsDraggingBar(true);
-    // マウスが離れたときに確実に終了するように
-    const handleMouseUp = () => {
-      console.log('✅ バードラッグ終了');
-      setIsDraggingBar(false);
-      setDragOffset(0);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const updateTime = useCallback((clientX: number, isStart: boolean) => {
@@ -161,21 +137,17 @@ export const TimeRangeSlider = ({
       // 最小値チェック
       newStartMinutes = Math.max(minHour * 60, newStartMinutes);
       
-      // 開始時間が実際に変更された場合のみ更新
-      if (newStartMinutes !== currentStartMinutes) {
-        const newStartTime = minutesToTime(newStartMinutes);
-        console.log('開始時間更新:', { 
-          newStartTime, 
-          newStartMinutes, 
-          maxStartMinutes,
-          roundedMinutes,
-          currentStartMinutes,
-          minHour: minHour * 60
-        });
-        onChange(newStartTime, endTime);
-      } else {
-        console.log('開始時間変更なし:', { newStartMinutes, currentStartMinutes });
-      }
+      // 常に更新（15分単位の丸めにより、同じ値になる場合もあるが、確実に反映させる）
+      const newStartTime = minutesToTime(newStartMinutes);
+      console.log('開始時間更新:', { 
+        newStartTime, 
+        newStartMinutes, 
+        maxStartMinutes,
+        roundedMinutes,
+        currentStartMinutes,
+        minHour: minHour * 60
+      });
+      onChange(newStartTime, endTime);
     } else {
       // 終了時間は開始時間より30分以上後でなければならない
       const minEndMinutes = currentStartMinutes + 30;
@@ -183,21 +155,17 @@ export const TimeRangeSlider = ({
       // 最大値チェック
       newEndMinutes = Math.min((maxHour * 60), newEndMinutes);
       
-      // 終了時間が実際に変更された場合のみ更新
-      if (newEndMinutes !== currentEndMinutes) {
-        const newEndTime = minutesToTime(newEndMinutes);
-        console.log('終了時間更新:', { 
-          newEndTime, 
-          newEndMinutes, 
-          minEndMinutes,
-          roundedMinutes,
-          currentEndMinutes,
-          maxHour: maxHour * 60
-        });
-        onChange(startTime, newEndTime);
-      } else {
-        console.log('終了時間変更なし:', { newEndMinutes, currentEndMinutes });
-      }
+      // 常に更新（15分単位の丸めにより、同じ値になる場合もあるが、確実に反映させる）
+      const newEndTime = minutesToTime(newEndMinutes);
+      console.log('終了時間更新:', { 
+        newEndTime, 
+        newEndMinutes, 
+        minEndMinutes,
+        roundedMinutes,
+        currentEndMinutes,
+        maxHour: maxHour * 60
+      });
+      onChange(startTime, newEndTime);
     }
   }, [totalMinutes, minHour, maxHour, timeToMinutes, minutesToTime, onChange, startTime, endTime]);
 
@@ -300,11 +268,12 @@ export const TimeRangeSlider = ({
             style={{ 
               left: `${startPercent}%`, 
               transform: 'translate(-50%, -50%)',
-              zIndex: 30,
+              zIndex: isDraggingStart ? 50 : 30,
               touchAction: 'none',
               userSelect: 'none',
               WebkitUserSelect: 'none',
-              pointerEvents: disabled ? 'none' : 'auto'
+              pointerEvents: disabled ? 'none' : 'auto',
+              cursor: disabled ? 'not-allowed' : 'ew-resize'
             }}
             onMouseDown={handleStartHandleMouseDown}
             onTouchStart={(e) => {
