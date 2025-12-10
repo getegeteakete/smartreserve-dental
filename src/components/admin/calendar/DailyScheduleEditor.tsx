@@ -306,8 +306,16 @@ export const DailyScheduleEditor = ({
                     startTime={slot.start_time}
                     endTime={slot.end_time}
                     onChange={(start, end) => {
-                      updateTimeSlot(index, 'start_time', start);
-                      updateTimeSlot(index, 'end_time', end);
+                      console.log('🔄 DailyScheduleEditor onChange呼び出し:', { index, start, end, currentStart: slot.start_time, currentEnd: slot.end_time });
+                      // 一度に両方の値を更新
+                      const updated = [...timeSlots];
+                      updated[index] = { 
+                        ...updated[index], 
+                        start_time: start,
+                        end_time: end
+                      };
+                      console.log('🔄 timeSlots更新:', updated[index]);
+                      setTimeSlots(updated);
                     }}
                     disabled={!slot.is_available}
                     minHour={0}
