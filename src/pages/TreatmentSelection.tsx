@@ -190,7 +190,7 @@ const TreatmentSelection = () => {
                           </CardTitle>
                         </CardHeader>
                       <CardContent className="space-y-3 md:space-y-4">
-                        <CardDescription className="text-xs md:text-sm text-gray-600 line-clamp-3">
+                        <CardDescription className="text-xs md:text-sm text-gray-600 whitespace-pre-line leading-relaxed">
                           {treatment.description || "詳細な説明はお問い合わせください。"}
                         </CardDescription>
                         
