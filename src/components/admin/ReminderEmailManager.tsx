@@ -22,22 +22,60 @@ export function ReminderEmailManager() {
 
       if (error) {
         console.error("リマインダーメール送信エラー:", error);
-        throw error;
+        console.error("エラー詳細:", {
+          message: error.message,
+          context: error.context,
+          status: error.status
+        });
+        
+        let errorMessage = "リマインダーメールの送信に失敗しました";
+        if (error.message) {
+          errorMessage += `: ${error.message}`;
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "エラー",
+          description: errorMessage,
+        });
+        return;
       }
 
       console.log("リマインダーメール送信結果:", data);
 
+      // レスポンスのsuccessをチェック
+      if (data && !data.success) {
+        console.error("リマインダーメール送信失敗:", data);
+        toast({
+          variant: "destructive",
+          title: "エラー",
+          description: data.error || "リマインダーメールの送信に失敗しました",
+        });
+        return;
+      }
+
       toast({
         title: "リマインダーメール送信完了",
-        description: data.message,
+        description: data?.message || `${reminderType === 'day_before' ? '前日' : '当日'}リマインダーメールを送信しました`,
       });
 
     } catch (error: any) {
       console.error("リマインダーメール送信処理エラー:", error);
+      console.error("エラー詳細:", {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack
+      });
+      
+      let errorMessage = "リマインダーメールの送信に失敗しました";
+      if (error?.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      
       toast({
         variant: "destructive",
         title: "エラー",
-        description: "リマインダーメールの送信に失敗しました",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

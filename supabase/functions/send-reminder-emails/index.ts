@@ -106,7 +106,7 @@ const sendReminderEmail = async (appointment: Appointment, reminderType: 'day_be
         <p>ご来院の際は、以下の点にご注意ください：</p>
         <ul>
           <li>予約時間の10分前にはお越しください</li>
-          <li>保険証をお持ちください</li>
+          <li>マイナンバーカードをお持ちください</li>
           <li>お薬手帳をお持ちの方はご持参ください</li>
           <li>体調に不安がある場合は事前にお電話ください</li>
         </ul>
@@ -115,9 +115,15 @@ const sendReminderEmail = async (appointment: Appointment, reminderType: 'day_be
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
           <p><strong>六本松矯正歯科クリニックとよしま</strong></p>
-          <p>TEL: 03-1234-5678</p>
-          <p>診療時間: 9:00-18:30（土曜 9:00-17:00）</p>
-          <p>定休日: 日曜・祝日</p>
+          <p>所在地：〒810-0044 福岡県福岡市中央区六本松４丁目１１−２６ ビバーチェ・ハシモト 1F</p>
+          <p>電話番号：092-406-2119</p>
+          <p>診療時間<br/>
+          月曜日：午前中休診/15:00〜19:00<br/>
+          火・水・金：10:00〜13:30/15:00〜19:00<br/>
+          土：9:00〜12:30/14:00〜17:30<br/>
+          月一度日曜も診療しております<br/>
+          休診日：月曜午前・木・日・祝日<br/>
+          祝日がある週の木曜日は診療します</p>
         </div>
         
         <p style="color: #666; font-size: 12px; margin-top: 20px;">
@@ -158,9 +164,15 @@ const sendReminderEmail = async (appointment: Appointment, reminderType: 'day_be
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
           <p><strong>六本松矯正歯科クリニックとよしま</strong></p>
-          <p>TEL: 03-1234-5678</p>
-          <p>診療時間: 9:00-18:30（土曜 9:00-17:00）</p>
-          <p>定休日: 日曜・祝日</p>
+          <p>所在地：〒810-0044 福岡県福岡市中央区六本松４丁目１１−２６ ビバーチェ・ハシモト 1F</p>
+          <p>電話番号：092-406-2119</p>
+          <p>診療時間<br/>
+          月曜日：午前中休診/15:00〜19:00<br/>
+          火・水・金：10:00〜13:30/15:00〜19:00<br/>
+          土：9:00〜12:30/14:00〜17:30<br/>
+          月一度日曜も診療しております<br/>
+          休診日：月曜午前・木・日・祝日<br/>
+          祝日がある週の木曜日は診療します</p>
         </div>
         
         <p style="color: #666; font-size: 12px; margin-top: 20px;">
@@ -170,14 +182,43 @@ const sendReminderEmail = async (appointment: Appointment, reminderType: 'day_be
     `;
   }
 
-  const emailResponse = await resend.emails.send({
-    from: "六本松矯正歯科クリニックとよしま <t@489.toyoshima-do.com>",
-    to: [appointment.email],
-    subject: subject,
-    html: htmlContent,
-  });
+  // Resend APIキーの確認
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendApiKey) {
+    console.error("❌ RESEND_API_KEYが環境変数に設定されていません");
+    throw new Error("メール送信の設定が完了していません。管理者にお問い合わせください。");
+  }
 
-  return emailResponse;
+  try {
+    const emailResponse = await resend.emails.send({
+      from: "六本松矯正歯科クリニックとよしま <t@489.toyoshima-do.com>",
+      to: [appointment.email],
+      subject: subject,
+      html: htmlContent,
+    });
+
+    // エラーチェック
+    if (emailResponse.error) {
+      console.error("❌ Resend APIエラー:", emailResponse.error);
+      throw new Error(`メール送信に失敗しました: ${emailResponse.error.message || JSON.stringify(emailResponse.error)}`);
+    }
+
+    if (!emailResponse.data?.id) {
+      console.error("❌ メール送信失敗: レスポンスにIDがありません");
+      throw new Error("メール送信に失敗しました（レスポンスにIDがありません）");
+    }
+
+    console.log("✅ リマインダーメール送信成功:", {
+      emailId: emailResponse.data.id,
+      to: appointment.email,
+      subject: subject
+    });
+
+    return emailResponse;
+  } catch (error: any) {
+    console.error("❌ リマインダーメール送信エラー:", error);
+    throw error;
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -233,14 +274,28 @@ const handler = async (req: Request): Promise<Response> => {
     if (appointments && appointments.length > 0) {
       for (const appointment of appointments) {
         try {
+          // メールアドレスの検証
+          if (!appointment.email || !appointment.email.includes('@')) {
+            console.warn(`無効なメールアドレス: ${appointment.patient_name}様 (${appointment.email})`);
+            errorCount++;
+            continue;
+          }
+
           await sendReminderEmail(appointment, reminderType);
           successCount++;
-          console.log(`リマインダーメール送信成功: ${appointment.patient_name}様`);
-        } catch (error) {
+          console.log(`✅ リマインダーメール送信成功: ${appointment.patient_name}様`);
+        } catch (error: any) {
           errorCount++;
-          console.error(`リマインダーメール送信失敗: ${appointment.patient_name}様`, error);
+          console.error(`❌ リマインダーメール送信失敗: ${appointment.patient_name}様`, error);
+          console.error(`エラー詳細:`, {
+            message: error?.message,
+            name: error?.name,
+            stack: error?.stack
+          });
         }
       }
+    } else {
+      console.log("対象となる予約がありません");
     }
 
     const result = {
@@ -264,11 +319,19 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error("リマインダーメール送信処理エラー:", error);
+    console.error("❌ リマインダーメール送信処理エラー:", error);
+    console.error("エラー詳細:", {
+      message: error?.message,
+      name: error?.name,
+      stack: error?.stack,
+      cause: error?.cause
+    });
+    
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message 
+        error: error?.message || "リマインダーメールの送信に失敗しました",
+        details: error?.name || "UnknownError"
       }),
       {
         status: 500,
