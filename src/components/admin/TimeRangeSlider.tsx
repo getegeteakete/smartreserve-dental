@@ -25,6 +25,18 @@ export const TimeRangeSlider = ({
   const [isDraggingEnd, setIsDraggingEnd] = useState(false);
   const [isDraggingBar, setIsDraggingBar] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
+  
+  // 最新の値を保持するためのref
+  const startTimeRef = useRef(startTime);
+  const endTimeRef = useRef(endTime);
+  const onChangeRef = useRef(onChange);
+  
+  // refを更新
+  useEffect(() => {
+    startTimeRef.current = startTime;
+    endTimeRef.current = endTime;
+    onChangeRef.current = onChange;
+  }, [startTime, endTime, onChange]);
 
   // 時間を分に変換
   const timeToMinutes = useCallback((time: string): number => {
@@ -112,9 +124,9 @@ export const TimeRangeSlider = ({
     let roundedMinutes = Math.round(minutes / 15) * 15;
     roundedMinutes = Math.max(minHour * 60, Math.min((maxHour * 60), roundedMinutes));
     
-    // 最新の値を取得（propsから直接取得）
-    const currentStartMinutes = timeToMinutes(startTime);
-    const currentEndMinutes = timeToMinutes(endTime);
+    // 最新の値を取得（refから取得して常に最新の値を使用）
+    const currentStartMinutes = timeToMinutes(startTimeRef.current);
+    const currentEndMinutes = timeToMinutes(endTimeRef.current);
     
     console.log('updateTime:', { 
       isStart, 
@@ -126,8 +138,8 @@ export const TimeRangeSlider = ({
       roundedMinutes, 
       currentStartMinutes, 
       currentEndMinutes,
-      startTime,
-      endTime
+      startTime: startTimeRef.current,
+      endTime: endTimeRef.current
     });
     
     if (isStart) {
@@ -147,7 +159,7 @@ export const TimeRangeSlider = ({
         currentStartMinutes,
         minHour: minHour * 60
       });
-      onChange(newStartTime, endTime);
+      onChangeRef.current(newStartTime, endTimeRef.current);
     } else {
       // 終了時間は開始時間より30分以上後でなければならない
       const minEndMinutes = currentStartMinutes + 30;
@@ -165,9 +177,9 @@ export const TimeRangeSlider = ({
         currentEndMinutes,
         maxHour: maxHour * 60
       });
-      onChange(startTime, newEndTime);
+      onChangeRef.current(startTimeRef.current, newEndTime);
     }
-  }, [totalMinutes, minHour, maxHour, timeToMinutes, minutesToTime, onChange, startTime, endTime]);
+  }, [totalMinutes, minHour, maxHour, timeToMinutes, minutesToTime]);
 
   const updateBarPosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
@@ -179,8 +191,9 @@ export const TimeRangeSlider = ({
     // 15分単位に丸める
     const roundedMinutes = Math.round(minutes / 15) * 15;
     
-    const currentStartMinutes = timeToMinutes(startTime);
-    const currentEndMinutes = timeToMinutes(endTime);
+    // 最新の値を取得（refから取得）
+    const currentStartMinutes = timeToMinutes(startTimeRef.current);
+    const currentEndMinutes = timeToMinutes(endTimeRef.current);
     const duration = currentEndMinutes - currentStartMinutes;
     
     const newStartMinutes = Math.max(minHour * 60, Math.min(roundedMinutes, (maxHour * 60) - duration));
@@ -189,8 +202,8 @@ export const TimeRangeSlider = ({
     const newStartTime = minutesToTime(newStartMinutes);
     const newEndTime = minutesToTime(newEndMinutes);
     
-    onChange(newStartTime, newEndTime);
-  }, [totalMinutes, minHour, maxHour, timeToMinutes, minutesToTime, onChange, startTime, endTime, dragOffset]);
+    onChangeRef.current(newStartTime, newEndTime);
+  }, [totalMinutes, minHour, maxHour, timeToMinutes, minutesToTime, dragOffset]);
 
   useEffect(() => {
     if (!isDraggingStart && !isDraggingEnd && !isDraggingBar) {
