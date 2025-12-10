@@ -327,12 +327,13 @@ export const TimeRangeSlider = ({
             style={{ 
               left: `${startPercent}%`, 
               transform: 'translate(-50%, -50%)',
-              zIndex: isDraggingStart ? 50 : 30,
+              zIndex: isDraggingStart ? 50 : 40,
               touchAction: 'none',
               userSelect: 'none',
               WebkitUserSelect: 'none',
               pointerEvents: disabled ? 'none' : 'auto',
-              cursor: disabled ? 'not-allowed' : 'ew-resize'
+              cursor: disabled ? 'not-allowed' : 'ew-resize',
+              position: 'absolute'
             }}
             onMouseDown={handleStartHandleMouseDown}
             onTouchStart={(e) => {
@@ -363,7 +364,7 @@ export const TimeRangeSlider = ({
               left: `${startPercent}%`,
               width: `${endPercent - startPercent}%`,
               zIndex: 1,
-              pointerEvents: isDraggingStart || isDraggingEnd ? 'none' : 'auto'
+              pointerEvents: (isDraggingStart || isDraggingEnd) ? 'none' : (disabled ? 'none' : 'auto')
             }}
             onMouseDown={handleBarMouseDown}
           >
@@ -384,11 +385,12 @@ export const TimeRangeSlider = ({
             style={{ 
               left: `${endPercent}%`, 
               transform: 'translate(-50%, -50%)',
-              zIndex: 30,
+              zIndex: 40,
               touchAction: 'none',
               userSelect: 'none',
               WebkitUserSelect: 'none',
-              pointerEvents: disabled ? 'none' : 'auto'
+              pointerEvents: disabled ? 'none' : 'auto',
+              position: 'absolute'
             }}
             onMouseDown={handleEndHandleMouseDown}
             onTouchStart={(e) => {
