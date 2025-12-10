@@ -53,7 +53,7 @@ export const getScheduleInfo = (
     };
   }
 
-  // 特別営業日設定をチェック（土曜日以外）
+  // 特別診療日設定をチェック（土曜日以外）
   const specialSchedule = specialSchedules.find(s => s.specific_date === dateString);
   if (specialSchedule) {
     return {

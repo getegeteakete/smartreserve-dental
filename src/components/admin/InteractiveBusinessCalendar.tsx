@@ -170,7 +170,7 @@ export const InteractiveBusinessCalendar = ({
     fetchDailyMemos();
   }, [selectedYear, selectedMonth]);
 
-  // 営業日情報を更新
+  // 診療日情報を更新
   useEffect(() => {
     const businessDays = getMonthlyBusinessDays(selectedYear, selectedMonth);
     const formattedInfo = formatBusinessDaysDisplay(businessDays);
@@ -242,13 +242,13 @@ export const InteractiveBusinessCalendar = ({
         saturdayDays.push(day);
         console.log(`${dayStr}: 土曜営業として分類`);
       }
-      // 通常営業日（special-open, full-open, partial-open, morning-closed等）
+      // 通常診療日（special-open, full-open, partial-open, morning-closed等）
       else if (scheduleInfo.type === 'special-open' || 
           scheduleInfo.type === 'full-open' || 
           scheduleInfo.type === 'partial-open' ||
           scheduleInfo.type === 'morning-closed') {
         businessDays.push(day);
-        console.log(`${dayStr}: 営業日として分類 (type: ${scheduleInfo.type})`);
+        console.log(`${dayStr}: 診療日として分類 (type: ${scheduleInfo.type})`);
       } else {
         closedDays.push(day);
         console.log(`${dayStr}: 休日として分類 (type: ${scheduleInfo.type})`);
@@ -562,10 +562,10 @@ export const InteractiveBusinessCalendar = ({
         }}
       />
       
-      {/* 営業日一覧 */}
+      {/* 診療日一覧 */}
       <Card>
         <CardHeader>
-          <CardTitle>今月の営業日</CardTitle>
+          <CardTitle>今月の診療日</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

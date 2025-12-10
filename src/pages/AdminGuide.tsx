@@ -324,7 +324,7 @@ export default function AdminGuide() {
                   スケジュール管理の操作方法
                 </CardTitle>
                 <CardDescription>
-                  診療時間や特別営業日の設定を行います
+                  診療時間や特別診療日の設定を行います
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -357,17 +357,17 @@ export default function AdminGuide() {
 
                 <Separator />
 
-                {/* 特別営業日の設定 */}
+                {/* 特別診療日の設定 */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">2. 特別営業日の設定</h3>
+                  <h3 className="text-lg font-semibold">2. 特別診療日の設定</h3>
                   <div className="pl-7 space-y-2">
                     <p className="text-sm text-gray-600">
                       祝日の営業や休診日の臨時営業などを設定できます。
                     </p>
                     <div className="bg-green-50 p-3 rounded-lg">
-                      <p className="text-sm font-medium text-green-800">特別営業日追加の手順</p>
+                      <p className="text-sm font-medium text-green-800">特別診療日追加の手順</p>
                       <ol className="text-sm text-green-700 mt-2 space-y-1">
-                        <li>1. 「特別営業日追加」セクションに移動</li>
+                        <li>1. 「特別診療日追加」セクションに移動</li>
                         <li>2. カレンダーから日付を選択</li>
                         <li>3. 営業時間帯を選択</li>
                         <li>4. 「追加」ボタンで登録</li>

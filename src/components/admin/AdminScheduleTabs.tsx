@@ -179,7 +179,7 @@ export const AdminScheduleTabs = ({
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>営業日カレンダー - 特別設定</CardTitle>
+                  <CardTitle>診療日カレンダー - 特別設定</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">

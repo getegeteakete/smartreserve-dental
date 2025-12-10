@@ -41,7 +41,7 @@ export const getBusinessDayColors = () => ({
 });
 
 export const getBusinessDayLabels = () => ({
-  'business': '営業日',
+  'business': '診療日',
   'saturday': '土曜営業',
   'closed': '休み'
 });
@@ -71,7 +71,7 @@ export const getMonthlyBusinessDays = (year: number, month: number) => {
     if (dayOfWeek === 6) {
       businessDays['saturday'].push(dayNumber);
     }
-    // 営業日判定（月、火、水、金）
+    // 診療日判定（月、火、水、金）
     else if ([1, 2, 3, 5].includes(dayOfWeek)) {
       businessDays['business'].push(dayNumber);
     }
@@ -226,7 +226,7 @@ export const getTodayBusinessStatus = () => {
     if (isCurrentlyOpen) {
       return { isOpen: true, message: '本日は営業中', nextOpen: null };
     } else {
-      // 営業時間外だが営業日
+      // 診療時間外だが診療日
       const nextOpen = getNextOpenTime(today, todayHours, todayKey);
       return { isOpen: false, message: '本日は営業中', nextOpen };
     }
@@ -261,7 +261,7 @@ const getNextOpenTime = (today: Date, todayHours: BusinessHour, todayKey: string
   return getNextOpenMessage();
 };
 
-// 次の営業日メッセージを取得
+// 次の診療日メッセージを取得
 const getNextOpenMessage = (): string => {
   const today = new Date();
   let nextDay = addDays(today, 1);
@@ -282,7 +282,7 @@ const getNextOpenMessage = (): string => {
       continue;
     }
     
-    // 営業日を見つけた
+    // 診療日を見つけた
     const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
     const nextDayName = dayNames[dayOfWeek];
     

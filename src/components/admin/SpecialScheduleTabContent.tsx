@@ -62,7 +62,7 @@ export const SpecialScheduleTabContent = ({
         </div>
         
         <div className="flex flex-col">
-          <h3 className="text-lg font-semibold mb-4">営業日カレンダープレビュー</h3>
+          <h3 className="text-lg font-semibold mb-4">診療日カレンダープレビュー</h3>
           <div className="flex-1 flex items-start justify-center">
             <InteractiveBusinessCalendar
               selectedYear={selectedYear}

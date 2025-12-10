@@ -530,7 +530,7 @@ const EditForm = ({ schedule, onSave, onCancel, isLoading }: EditFormProps) => {
       <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
         <div className="flex items-center space-x-3">
           <Switch checked={isAvailable} onCheckedChange={setIsAvailable} />
-          <Label>{isAvailable ? "営業日" : "休業日"}</Label>
+          <Label>{isAvailable ? "診療日" : "休業日"}</Label>
         </div>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => onSave(schedule.id, startTime, endTime, isAvailable)} disabled={isLoading}>

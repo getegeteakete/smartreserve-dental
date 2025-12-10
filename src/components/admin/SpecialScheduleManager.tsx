@@ -172,13 +172,13 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
 
     setIsAdding(true);
     try {
-      console.log("特別営業日追加処理開始:", { selectedDate, selectedTime });
+      console.log("特別診療日追加処理開始:", { selectedDate, selectedTime });
       await onAdd(selectedDate, selectedTime);
-      console.log("特別営業日追加成功");
+      console.log("特別診療日追加成功");
       setSelectedDate(undefined);
       setSelectedTime("");
     } catch (error) {
-      console.error("特別営業日追加エラー:", error);
+      console.error("特別診療日追加エラー:", error);
     } finally {
       setIsAdding(false);
     }
@@ -191,7 +191,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
     try {
       await onToggle(scheduleId, isAvailable);
     } catch (error) {
-      console.error("特別営業日更新エラー:", error);
+      console.error("特別診療日更新エラー:", error);
     } finally {
       setLoadingScheduleId(null);
     }
@@ -204,7 +204,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
     try {
       await onDelete(scheduleId);
     } catch (error) {
-      console.error("特別営業日削除エラー:", error);
+      console.error("特別診療日削除エラー:", error);
       setLoadingScheduleId(null);
     }
   };
@@ -214,7 +214,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            特別営業日設定
+            特別診療日設定
             <Tooltip>
               <TooltipTrigger asChild>
                 <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
@@ -226,27 +226,27 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
             </Tooltip>
           </CardTitle>
           <CardDescription>
-            通常の曜日設定とは別に、特定の日付での診療時間を設定できます。特別営業日の設定は通常の曜日設定より優先されます。
+            通常の曜日設定とは別に、特定の日付での診療時間を設定できます。特別診療日の設定は通常の曜日設定より優先されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 日曜日特別営業日設定セクション */}
+          {/* 日曜日特別診療日設定セクション */}
           <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="font-semibold text-blue-900">日曜日特別営業日設定</h3>
+              <h3 className="font-semibold text-blue-900">日曜日特別診療日設定</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>日曜日は特別営業日として設定できます。<br/>
+                  <p>日曜日は特別診療日として設定できます。<br/>
                   年月を選択して、その月の日曜日から営業する日付を選んでください。</p>
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="mb-3 p-3 bg-blue-100 rounded border border-blue-300">
               <p className="text-sm text-blue-800">
-                <strong>※ 日曜日は特別営業日として設定されます。</strong><br/>
+                <strong>※ 日曜日は特別診療日として設定されます。</strong><br/>
                 通常の曜日設定とは別に、特定の日曜日を選んで営業時間を設定できます。
               </p>
             </div>
@@ -300,7 +300,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                 <div className="space-y-2">
                   <Label className="text-base font-medium">その月の日曜日から営業する日付を選択（複数選択可）</Label>
                   <p className="text-xs text-gray-600 mb-3">
-                    選択した日曜日が特別営業日として設定されます。
+                    選択した日曜日が特別診療日として設定されます。
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {sundaysInMonth.map(sunday => {
@@ -356,7 +356,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                             </div>
                             {isExisting && (
                               <div className="text-xs text-blue-600 mt-1 font-medium">
-                                (特別営業日設定済み)
+                                (特別診療日設定済み)
                               </div>
                             )}
                           </Label>
@@ -403,8 +403,8 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                   </div>
                   <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-xs text-yellow-800">
-                      <strong>注意：</strong>既に特別営業日として設定済みの日曜日は選択できません。<br/>
-                      削除してから再度設定する場合は、下の「設定済み特別営業日」一覧から削除してください。
+                      <strong>注意：</strong>既に特別診療日として設定済みの日曜日は選択できません。<br/>
+                      削除してから再度設定する場合は、下の「設定済み特別診療日」一覧から削除してください。
                     </p>
                   </div>
                 </div>
@@ -416,7 +416,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
 
           <div className="border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="font-semibold">新しい特別営業日を追加</h3>
+              <h3 className="font-semibold">新しい特別診療日を追加</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
@@ -429,7 +429,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
             </div>
             <div className="flex items-end gap-4">
               <div className="flex-1">
-                <Label htmlFor="special-date">営業日</Label>
+                <Label htmlFor="special-date">診療日</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Popover>
@@ -499,7 +499,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>日付と時間を選択後、クリックして<br/>
-                  特別営業日を追加します</p>
+                  特別診療日を追加します</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -507,13 +507,13 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
 
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="font-semibold">設定済み特別営業日</h3>
+              <h3 className="font-semibold">設定済み特別診療日</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>設定済みの特別営業日の一覧です。<br/>
+                  <p>設定済みの特別診療日の一覧です。<br/>
                   利用可能のチェックを外すと休業にできます。</p>
                 </TooltipContent>
               </Tooltip>
@@ -545,7 +545,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                           <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>不要になった特別営業日を<br/>
+                          <p>不要になった特別診療日を<br/>
                           削除できます</p>
                         </TooltipContent>
                       </Tooltip>
@@ -598,7 +598,7 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>この特別営業日を削除します</p>
+                          <p>この特別診療日を削除します</p>
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>

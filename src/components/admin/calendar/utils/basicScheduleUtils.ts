@@ -2,7 +2,7 @@
 import { hasHolidayInWeek } from "@/utils/holidayUtils";
 
 export const getBasicSchedule = (dayOfWeek: number, date?: Date): { morning?: string; afternoon?: string; type?: string } => {
-  // 木曜日（4）は基本的に定休日だが、祝日がある週は営業日
+  // 木曜日（4）は基本的に定休日だが、祝日がある週は診療日
   if (dayOfWeek === 4) {
     if (date && hasHolidayInWeek(date)) {
       return { morning: "10:00～13:30", afternoon: "15:00～19:00", type: "full" };

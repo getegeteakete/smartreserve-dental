@@ -52,17 +52,17 @@ export const DailyScheduleEditor = ({
     try {
       setLoading(true);
       
-      // 特別営業日のスケジュールを取得
+      // 特別診療日のスケジュールを取得
       const { data: specialSchedules, error: specialError } = await supabase
         .from('special_clinic_schedules')
         .select('*')
         .eq('specific_date', dateString);
 
       if (specialError) {
-        console.error('特別営業日取得エラー:', specialError);
+        console.error('特別診療日取得エラー:', specialError);
       }
 
-      // 基本営業日のスケジュールを取得（曜日ベース）
+      // 基本診療日のスケジュールを取得（曜日ベース）
       const dayOfWeek = selectedDate.getDay();
       const { data: basicSchedules, error: basicError } = await supabase
         .from('clinic_schedules')
@@ -72,10 +72,10 @@ export const DailyScheduleEditor = ({
         .eq('month', selectedDate.getMonth() + 1);
 
       if (basicError) {
-        console.error('基本営業日取得エラー:', basicError);
+        console.error('基本診療日取得エラー:', basicError);
       }
 
-      // 特別営業日があればそれを使用、なければ基本営業日を使用
+      // 特別診療日があればそれを使用、なければ基本診療日を使用
       let schedules: TimeSlot[] = [];
       
       if (specialSchedules && specialSchedules.length > 0) {
@@ -154,7 +154,7 @@ export const DailyScheduleEditor = ({
     try {
       setSaving(true);
       
-      // まず既存の特別営業日スケジュールを削除
+      // まず既存の特別診療日スケジュールを削除
       await supabase
         .from('special_clinic_schedules')
         .delete()

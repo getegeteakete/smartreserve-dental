@@ -19,7 +19,7 @@ export const BusinessCalendarPreview = () => {
   height="600" 
   frameborder="0" 
   scrolling="no"
-  title="営業日カレンダー">
+  title="診療日カレンダー">
 </iframe>`;
 
   const copyEmbedCode = () => {
@@ -34,9 +34,9 @@ export const BusinessCalendarPreview = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>営業日カレンダー - WordPress埋め込み用</CardTitle>
+          <CardTitle>診療日カレンダー - WordPress埋め込み用</CardTitle>
           <CardDescription>
-            WordPressサイトに埋め込み可能な営業日カレンダーです。稼働日はピンク色、休診日は薄い青色で表示されます。
+            WordPressサイトに埋め込み可能な診療日カレンダーです。稼働日はピンク色、休診日は薄い青色で表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

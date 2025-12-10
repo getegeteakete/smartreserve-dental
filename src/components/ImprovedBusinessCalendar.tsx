@@ -63,12 +63,12 @@ export const ImprovedBusinessCalendar = ({ className }: ImprovedBusinessCalendar
         </div>
       </div>
 
-      {/* 営業日一覧 */}
+      {/* 診療日一覧 */}
       <Card>
         <CardHeader>
-          <CardTitle>今月の営業日</CardTitle>
+          <CardTitle>今月の診療日</CardTitle>
           <CardDescription>
-            {format(selectedDate, 'yyyy年MM月', { locale: ja })}の営業日一覧
+            {format(selectedDate, 'yyyy年MM月', { locale: ja })}の診療日一覧
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -110,7 +110,7 @@ export const ImprovedBusinessCalendar = ({ className }: ImprovedBusinessCalendar
                 
                 if (modifiers.business.some(d => d.getDate() === dayNumber)) {
                   dayType = 'business';
-                  dayLabel = '営業日';
+                  dayLabel = '診療日';
                 } else if (modifiers.saturday.some(d => d.getDate() === dayNumber)) {
                   dayType = 'saturday';
                   dayLabel = '土曜営業';
@@ -156,7 +156,7 @@ export const ImprovedBusinessCalendar = ({ className }: ImprovedBusinessCalendar
               <div key={type} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded-full ${color.bg} ${color.border} border-2`} />
                 <span className="text-sm text-gray-700">
-                  {type === 'business' && '営業日'}
+                  {type === 'business' && '診療日'}
                   {type === 'saturday' && '土曜営業'}
                   {type === 'closed' && '休み'}
                 </span>

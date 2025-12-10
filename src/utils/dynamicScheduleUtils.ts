@@ -363,7 +363,7 @@ export const generateDynamicTimeSlotsForTreatment = async (
 };
 
 /**
- * データベースから営業日スケジュールを取得し、時間枠を動的生成（既存関数・下位互換）
+ * データベースから診療日スケジュールを取得し、時間枠を動的生成（既存関数・下位互換）
  */
 export const generateDynamicTimeSlots = async (date: Date): Promise<TimeSlot[]> => {
   // デフォルト30分間隔で時間枠を生成

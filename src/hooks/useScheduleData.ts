@@ -47,18 +47,18 @@ export const useScheduleData = (selectedYear: number, selectedMonth: number) => 
       });
 
       if (error) {
-        console.error("特別営業日取得エラー:", error);
+        console.error("特別診療日取得エラー:", error);
         setSpecialSchedules([]);
       } else {
         setSpecialSchedules(data || []);
       }
     } catch (error: any) {
-      console.error("特別営業日取得エラー:", error);
+      console.error("特別診療日取得エラー:", error);
       setSpecialSchedules([]);
       toast({
         variant: "destructive",
         title: "エラー",
-        description: `特別営業日の取得に失敗しました: ${error.message}`,
+        description: `特別診療日の取得に失敗しました: ${error.message}`,
       });
     }
   }, [selectedYear, selectedMonth, toast]);

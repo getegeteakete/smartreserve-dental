@@ -25,7 +25,7 @@ const BusinessStatusBanner = () => {
 
   const businessStatus = {
     isOpen: true,
-    message: '本日は営業日',
+    message: '本日は診療日',
     hours: getBusinessHours()
   };
 

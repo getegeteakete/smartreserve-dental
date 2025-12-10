@@ -59,7 +59,7 @@ export const BusinessCalendar = () => {
       {/* カレンダーヘッダー */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">
-          {format(selectedDate, 'yyyy年MM月', { locale: ja })} 営業日カレンダー
+          {format(selectedDate, 'yyyy年MM月', { locale: ja })} 診療日カレンダー
         </h2>
         <div className="flex items-center gap-2">
           <button
@@ -77,10 +77,10 @@ export const BusinessCalendar = () => {
         </div>
       </div>
 
-      {/* 営業日一覧 */}
+      {/* 診療日一覧 */}
       <Card>
         <CardHeader>
-          <CardTitle>今月の営業日</CardTitle>
+          <CardTitle>今月の診療日</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -121,7 +121,7 @@ export const BusinessCalendar = () => {
                 
                 if (modifiers.business.some(d => d.getDate() === dayNumber)) {
                   dayType = 'business';
-                  dayLabel = '営業日';
+                  dayLabel = '診療日';
                 } else if (modifiers.saturday.some(d => d.getDate() === dayNumber)) {
                   dayType = 'saturday';
                   dayLabel = '土曜営業';
@@ -167,7 +167,7 @@ export const BusinessCalendar = () => {
               <div key={type} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded-full ${color.bg} ${color.border} border-2`} />
                 <span className="text-sm text-gray-700">
-                  {type === 'business' && '営業日'}
+                  {type === 'business' && '診療日'}
                   {type === 'saturday' && '土曜営業'}
                   {type === 'closed' && '休み'}
                 </span>

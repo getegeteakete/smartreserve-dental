@@ -322,7 +322,7 @@
   transform: scale(1.02) !important;
 }
 
-/* 営業日の黒枠スタイル（選択されていない場合） */
+/* 診療日の黒枠スタイル（選択されていない場合） */
 .rdp-day.date-business:not(.date-selected):not(.date-disabled) {
   border: 1px solid #000 !important;
   background-color: #fff !important;
@@ -335,7 +335,7 @@
   transform: scale(1.02) !important;
 }
 
-/* 選択状態が最優先（営業日が選択された場合も青にする） */
+/* 選択状態が最優先（診療日が選択された場合も青にする） */
 .rdp-day.date-selected.date-business,
 .rdp-day[aria-selected="true"].date-business {
   background-color: #007bff !important;

@@ -44,8 +44,8 @@ const steps = [
   },
   {
     id: 5,
-    title: "⑤特別営業日設定",
-    description: "特別営業日タブに移動して特別営業日を入力しましょう",
+    title: "⑤特別診療日設定",
+    description: "特別診療日タブに移動して特別診療日を入力しましょう",
     target: "specialTab"
   }
 ];

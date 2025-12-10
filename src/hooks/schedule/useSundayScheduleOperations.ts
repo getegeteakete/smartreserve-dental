@@ -22,7 +22,7 @@ export const useSundayScheduleOperations = (
       console.log("=== 日曜診療設定開始 ===");
       console.log("対象日付:", format(clickedDate, 'yyyy-MM-dd'));
       
-      // 特別営業日として日曜診療の時間帯を設定
+      // 特別診療日として日曜診療の時間帯を設定
       // まず午前の診療時間を設定
       await onSpecialScheduleAdd(clickedDate, "09:00");
       

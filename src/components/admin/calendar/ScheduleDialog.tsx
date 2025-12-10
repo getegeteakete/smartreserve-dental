@@ -180,10 +180,10 @@ export const ScheduleDialog = ({
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* 特別営業日が設定されている場合の利用可能性切り替え */}
+            {/* 特別診療日が設定されている場合の利用可能性切り替え */}
             {hasSpecialSchedule && currentSpecialSchedule && (
               <div>
-                <h4 className="font-semibold mb-3">特別営業日設定</h4>
+                <h4 className="font-semibold mb-3">特別診療日設定</h4>
                 <div className="flex items-center space-x-2 p-3 border rounded-lg">
                   <Checkbox
                     id="special-available"
@@ -196,7 +196,7 @@ export const ScheduleDialog = ({
                   </Label>
                 </div>
                 <p className="text-xs text-gray-600 mt-2">
-                  チェックを外すと、この特別営業日を休診日にできます。
+                  チェックを外すと、この特別診療日を休診日にできます。
                 </p>
               </div>
             )}
@@ -268,7 +268,7 @@ export const ScheduleDialog = ({
               <div>
                 <h4 className="font-semibold mb-3">日曜日の設定</h4>
                 <p className="text-gray-600 text-sm mb-3">
-                  日曜日は特別営業日として設定されます。日曜診療を選択すると、9:00～12:30、14:00～17:30の時間帯で営業します。
+                  日曜日は特別診療日として設定されます。日曜診療を選択すると、9:00～12:30、14:00～17:30の時間帯で営業します。
                 </p>
               </div>
             )}
@@ -283,7 +283,7 @@ export const ScheduleDialog = ({
               </div>
             )}
 
-            {/* スケジュール変更オプション（特別営業日でない場合のみ） */}
+            {/* スケジュール変更オプション（特別診療日でない場合のみ） */}
             {!hasSpecialSchedule && (
               <div>
                 <h4 className="font-semibold mb-2">スケジュール変更</h4>
@@ -327,21 +327,21 @@ export const ScheduleDialog = ({
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800 mb-3">
                     「{format(clickedDate, 'MM月dd日', { locale: ja })}」のみスケジュールを変更したい場合は、
-                    特別営業日として設定してください。
+                    特別診療日として設定してください。
                   </p>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                        📅 この日のみ変更（特別営業日に設定）
+                        📅 この日のみ変更（特別診療日に設定）
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>特別営業日設定の確認</AlertDialogTitle>
+                        <AlertDialogTitle>特別診療日設定の確認</AlertDialogTitle>
                         <AlertDialogDescription className="space-y-2">
                           <p>
                             {format(clickedDate, 'MM月dd日(E)', { locale: ja })} を
-                            特別営業日に設定しますか？
+                            特別診療日に設定しますか？
                           </p>
                           <p className="text-sm text-blue-600">
                             ✅ この日のみのスケジュール変更が可能になります<br/>
@@ -399,7 +399,7 @@ export const ScheduleDialog = ({
                         <AlertDialogTitle>土曜営業設定の確認</AlertDialogTitle>
                         <AlertDialogDescription>
                           {format(clickedDate, 'MM月dd日(E)', { locale: ja })} を
-                          土曜営業日に設定しますか？
+                          土曜診療日に設定しますか？
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

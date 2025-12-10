@@ -349,7 +349,7 @@ const AppointmentCalendar = ({
                         const selectedIndex = getSelectedDateIndex(date, index);
                         return selectedIndex !== -1;
                       },
-                      // 営業日（選択可能な範囲内で、休みでない日）は黒枠を表示
+                      // 診療日（選択可能な範囲内で、休みでない日）は黒枠を表示
                       business: (date) => {
                         // 選択可能な範囲（2週間後〜6週間後）内かチェック
                         const dateOnly = new Date(date);

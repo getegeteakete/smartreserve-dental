@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
       isAvailable
     }: ScheduleSyncRequest = await req.json();
 
-    console.log('営業日スケジュール同期開始:', {
+    console.log('診療日スケジュール同期開始:', {
       year,
       month,
       dayOfWeek,
@@ -109,12 +109,12 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    console.log('営業日スケジュール同期完了');
+    console.log('診療日スケジュール同期完了');
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: '営業日スケジュールがGoogleカレンダーに同期されました'
+        message: '診療日スケジュールがGoogleカレンダーに同期されました'
       }),
       {
         status: 200,
@@ -123,10 +123,10 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error('営業日スケジュール同期エラー:', error);
+    console.error('診療日スケジュール同期エラー:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message || '営業日スケジュールの同期に失敗しました' 
+        error: error.message || '診療日スケジュールの同期に失敗しました' 
       }),
       {
         status: 500,
