@@ -528,39 +528,39 @@ const AppointmentCalendar = ({
 
       {/* 選択状況サマリー（表示されている希望日のみ） */}
       {maxVisiblePreference >= 0 && (
-        <div className="bg-blue-50 p-4 rounded-lg mt-6">
-          <h3 className="font-medium mb-3">選択状況</h3>
-          <div className="space-y-2">
-            {[0, 1, 2].map((index) => {
+      <div className="bg-blue-50 p-4 rounded-lg mt-6">
+        <h3 className="font-medium mb-3">選択状況</h3>
+        <div className="space-y-2">
+          {[0, 1, 2].map((index) => {
               // 表示されている希望日のみサマリーに表示
               if (index > maxVisiblePreference) {
                 return null;
               }
-              const preference = preferredDates[index];
-              const label = getPreferenceLabel(index);
-              const isRequired = index < 2;
-              
-              return (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {label}
-                  </span>
-                  {preference?.date && preference?.timeSlot ? (
-                    <Badge variant="outline" className="text-green-600 border-green-600">
-                      {format(preference.date, "M月d日")} {preference.timeSlot.slice(0, 5)}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className={cn(
-                      isRequired ? "text-red-500 border-red-300" : "text-gray-500 border-gray-300"
-                    )}>
-                      {isRequired ? "未選択（必須）" : "未選択（任意）"}
-                    </Badge>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+            const preference = preferredDates[index];
+            const label = getPreferenceLabel(index);
+            const isRequired = index < 2;
+            
+            return (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {label}
+                </span>
+                {preference?.date && preference?.timeSlot ? (
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    {format(preference.date, "M月d日")} {preference.timeSlot.slice(0, 5)}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className={cn(
+                    isRequired ? "text-red-500 border-red-300" : "text-gray-500 border-gray-300"
+                  )}>
+                    {isRequired ? "未選択（必須）" : "未選択（任意）"}
+                  </Badge>
+                )}
+              </div>
+            );
+          })}
         </div>
+      </div>
       )}
     </div>
   );

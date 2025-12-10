@@ -49,8 +49,17 @@ export const NotificationHistoryManager = () => {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (smsError) throw smsError;
-      setSmsLogs(smsData || []);
+      if (smsError) {
+        // テーブルが存在しない場合や権限エラーの場合は空配列を設定して続行
+        if (smsError.code === 'PGRST116' || smsError.message?.includes('does not exist') || smsError.message?.includes('permission denied') || smsError.message?.includes('relation') || smsError.message?.includes('table')) {
+          console.log('sms_logsテーブルが存在しないか、アクセス権限がありません。空の履歴で続行します。');
+          setSmsLogs([]);
+        } else {
+          throw smsError;
+        }
+      } else {
+        setSmsLogs(smsData || []);
+      }
 
       // リマインダー送信履歴を取得
       const { data: reminderData, error: reminderError } = await supabase
@@ -59,15 +68,30 @@ export const NotificationHistoryManager = () => {
         .order('sent_at', { ascending: false })
         .limit(50);
 
-      if (reminderError) throw reminderError;
-      setSentReminders(reminderData || []);
-    } catch (error) {
+      if (reminderError) {
+        // テーブルが存在しない場合や権限エラーの場合は空配列を設定して続行
+        if (reminderError.code === 'PGRST116' || reminderError.message?.includes('does not exist') || reminderError.message?.includes('permission denied') || reminderError.message?.includes('relation') || reminderError.message?.includes('table')) {
+          console.log('sent_remindersテーブルが存在しないか、アクセス権限がありません。空の履歴で続行します。');
+          setSentReminders([]);
+        } else {
+          throw reminderError;
+        }
+      } else {
+        setSentReminders(reminderData || []);
+      }
+    } catch (error: any) {
       console.error('Error loading notification history:', error);
-      toast({
-        title: 'エラー',
-        description: '履歴の読み込みに失敗しました',
-        variant: 'destructive',
-      });
+      // テーブルが存在しない場合はエラーメッセージを表示しない
+      if (error?.code !== 'PGRST116' && !error?.message?.includes('does not exist') && !error?.message?.includes('relation') && !error?.message?.includes('table')) {
+        toast({
+          title: 'エラー',
+          description: '履歴の読み込みに失敗しました',
+          variant: 'destructive',
+        });
+      }
+      // エラーが発生しても空配列を設定して続行
+      setSmsLogs([]);
+      setSentReminders([]);
     } finally {
       setIsLoading(false);
     }

@@ -232,23 +232,23 @@ export function AppointmentList() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(emailData),
-        });
+      });
 
         const emailResult = await emailResponse.json();
         console.log("確定メール送信レスポンス（handlePreferenceApproval）:", emailResult);
 
         if (!emailResponse.ok || !emailResult.success) {
           console.error("確定メール送信エラー（handlePreferenceApproval）:", emailResult.error);
-          toast({
-            title: "予約承認完了",
+        toast({
+          title: "予約承認完了",
             description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認しましたが、確定メールの送信に失敗しました。${emailResult.error ? `エラー: ${emailResult.error}` : ''}`,
-            variant: "destructive",
-          });
-        } else {
+          variant: "destructive",
+        });
+      } else {
           console.log("確定メール送信成功（handlePreferenceApproval）:", emailResult);
-          toast({
-            title: "承認完了",
-            description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認し、確定メールを送信しました`,
+        toast({
+          title: "承認完了",
+          description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認し、確定メールを送信しました`,
           });
         }
       } catch (emailError: any) {

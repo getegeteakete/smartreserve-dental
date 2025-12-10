@@ -186,9 +186,9 @@ const TreatmentSelection = () => {
                     <Card key={treatment.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader className="pb-2 md:pb-3">
                         <CardTitle className="text-base md:text-lg font-semibold text-gray-900 leading-tight">
-                          {treatment.name}
-                        </CardTitle>
-                      </CardHeader>
+                            {treatment.name}
+                          </CardTitle>
+                        </CardHeader>
                       <CardContent className="space-y-3 md:space-y-4">
                         <CardDescription className="text-xs md:text-sm text-gray-600 line-clamp-3">
                           {treatment.description || "詳細な説明はお問い合わせください。"}

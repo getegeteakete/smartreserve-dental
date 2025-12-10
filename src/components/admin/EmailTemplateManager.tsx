@@ -95,7 +95,7 @@ export const EmailTemplateManager = () => {
           throw error;
         }
       } else {
-        setTemplates(data || []);
+      setTemplates(data || []);
       }
     } catch (error: any) {
       console.error('Error loading templates:', error);
@@ -103,11 +103,11 @@ export const EmailTemplateManager = () => {
       setTemplates([]);
       // エラーメッセージは表示しない（テーブルが存在しない場合は正常な動作）
       if (error?.code !== 'PGRST116' && !error?.message?.includes('does not exist')) {
-        toast({
+      toast({
           title: '警告',
           description: 'テンプレートの読み込みに失敗しました。デフォルトテンプレートを使用します。',
           variant: 'default',
-        });
+      });
       }
     } finally {
       setIsLoading(false);
@@ -136,13 +136,17 @@ export const EmailTemplateManager = () => {
 
       if (error) {
         // テーブルが存在しない場合や権限エラーの場合はデフォルトテンプレートを使用
-        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('permission denied')) {
+        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('permission denied') || error.message?.includes('relation') || error.message?.includes('table')) {
           console.log('system_settingsテーブルから設定を読み込めませんでした。デフォルトテンプレートを使用します。');
           loadDefaultTemplate('patient');
           loadDefaultTemplate('admin');
           return;
         } else {
-          throw error;
+          // その他のエラーもログに記録するが、エラーメッセージは表示しない
+          console.warn('system_settingsテーブルから設定を読み込む際にエラーが発生しました。デフォルトテンプレートを使用します。', error);
+          loadDefaultTemplate('patient');
+          loadDefaultTemplate('admin');
+          return;
         }
       }
 
@@ -153,45 +157,45 @@ export const EmailTemplateManager = () => {
       // 設定値を反映
       if (data && data.length > 0) {
         data.forEach((setting) => {
-          const value = setting.setting_value;
-          switch (setting.setting_key) {
-            case 'email_auto_reply_enabled':
-              setPatientEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
-              break;
-            case 'email_patient_from_name':
-              setPatientEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
-              break;
-            case 'email_patient_from_email':
-              setPatientEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
-              break;
-            case 'email_patient_subject':
-              setPatientEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
-              break;
-            case 'email_patient_content':
+        const value = setting.setting_value;
+        switch (setting.setting_key) {
+          case 'email_auto_reply_enabled':
+            setPatientEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
+            break;
+          case 'email_patient_from_name':
+            setPatientEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
+            break;
+          case 'email_patient_from_email':
+            setPatientEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
+            break;
+          case 'email_patient_subject':
+            setPatientEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
+            break;
+          case 'email_patient_content':
               patientContent = value?.content || '';
               setPatientEmailSettings(prev => ({ ...prev, content_template: patientContent || prev.content_template }));
-              break;
-            case 'email_admin_enabled':
-              setAdminEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
-              break;
-            case 'email_admin_from_name':
-              setAdminEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
-              break;
-            case 'email_admin_from_email':
-              setAdminEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
-              break;
-            case 'email_admin_to_email':
-              setAdminEmailSettings(prev => ({ ...prev, to_email: value?.to_email || prev.to_email }));
-              break;
-            case 'email_admin_subject':
-              setAdminEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
-              break;
-            case 'email_admin_content':
+            break;
+          case 'email_admin_enabled':
+            setAdminEmailSettings(prev => ({ ...prev, enabled: value?.enabled !== false }));
+            break;
+          case 'email_admin_from_name':
+            setAdminEmailSettings(prev => ({ ...prev, from_name: value?.from_name || prev.from_name }));
+            break;
+          case 'email_admin_from_email':
+            setAdminEmailSettings(prev => ({ ...prev, from_email: value?.from_email || prev.from_email }));
+            break;
+          case 'email_admin_to_email':
+            setAdminEmailSettings(prev => ({ ...prev, to_email: value?.to_email || prev.to_email }));
+            break;
+          case 'email_admin_subject':
+            setAdminEmailSettings(prev => ({ ...prev, subject_template: value?.subject || prev.subject_template }));
+            break;
+          case 'email_admin_content':
               adminContent = value?.content || '';
               setAdminEmailSettings(prev => ({ ...prev, content_template: adminContent || prev.content_template }));
-              break;
-          }
-        });
+            break;
+        }
+      });
       }
 
       // デフォルトテンプレートを読み込む（設定がない場合）
@@ -203,9 +207,10 @@ export const EmailTemplateManager = () => {
       }
     } catch (error: any) {
       console.error('Error loading email settings:', error);
-      // エラーが発生してもデフォルトテンプレートを読み込む
+      // エラーが発生してもデフォルトテンプレートを読み込む（エラーメッセージは表示しない）
       loadDefaultTemplate('patient');
       loadDefaultTemplate('admin');
+      // エラーメッセージは表示しない（テーブルが存在しない場合は正常な動作）
     }
   };
 

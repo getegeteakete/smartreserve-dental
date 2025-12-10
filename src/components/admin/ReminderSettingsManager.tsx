@@ -60,15 +60,29 @@ export const ReminderSettingsManager = () => {
         .select('*')
         .order('days_before', { ascending: true });
 
-      if (error) throw error;
-      setSettings(data || []);
-    } catch (error) {
+      if (error) {
+        // テーブルが存在しない場合や権限エラーの場合は空配列を設定して続行
+        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('permission denied') || error.message?.includes('relation') || error.message?.includes('table')) {
+          console.log('reminder_settingsテーブルが存在しないか、アクセス権限がありません。空の設定で続行します。');
+          setSettings([]);
+        } else {
+          throw error;
+        }
+      } else {
+        setSettings(data || []);
+      }
+    } catch (error: any) {
       console.error('Error loading reminder settings:', error);
-      toast({
-        title: 'エラー',
-        description: 'リマインダー設定の読み込みに失敗しました',
-        variant: 'destructive',
-      });
+      // エラーが発生しても空配列を設定して続行
+      setSettings([]);
+      // テーブルが存在しない場合はエラーメッセージを表示しない
+      if (error?.code !== 'PGRST116' && !error?.message?.includes('does not exist') && !error?.message?.includes('relation') && !error?.message?.includes('table')) {
+        toast({
+          title: 'エラー',
+          description: 'リマインダー設定の読み込みに失敗しました',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
