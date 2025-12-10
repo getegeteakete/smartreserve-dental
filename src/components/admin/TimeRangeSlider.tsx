@@ -324,8 +324,9 @@ export const TimeRangeSlider = ({
               if (disabled) return;
               e.preventDefault();
               e.stopPropagation();
-              console.log('開始ハンドルタッチ開始');
+              console.log('✅ 開始ハンドルタッチ開始');
               setIsDraggingStart(true);
+              isDraggingStartRef.current = true;
             }}
           >
             <div className="flex flex-col gap-0.5 pointer-events-none">
@@ -379,8 +380,9 @@ export const TimeRangeSlider = ({
               if (disabled) return;
               e.preventDefault();
               e.stopPropagation();
-              console.log('終了ハンドルタッチ開始');
+              console.log('✅ 終了ハンドルタッチ開始');
               setIsDraggingEnd(true);
+              isDraggingEndRef.current = true;
             }}
           >
             <div className="flex flex-col gap-0.5 pointer-events-none">
