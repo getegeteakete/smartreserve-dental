@@ -67,8 +67,16 @@ export const TimeRangeSlider = ({
     if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
-    console.log('終了ハンドルマウスダウン');
+    e.nativeEvent.stopImmediatePropagation();
+    console.log('✅ 終了ハンドルマウスダウン - イベント発火確認');
     setIsDraggingEnd(true);
+    // マウスが離れたときに確実に終了するように
+    const handleMouseUp = () => {
+      console.log('✅ 終了ハンドルマウスアップ');
+      setIsDraggingEnd(false);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleBarMouseDown = (e: React.MouseEvent) => {
@@ -103,10 +111,18 @@ export const TimeRangeSlider = ({
       return; // 終了ハンドル領域
     }
     
-    console.log('バー: ドラッグ開始');
+    console.log('✅ バー: ドラッグ開始');
     const offset = clickX - barLeft;
     setDragOffset(offset);
     setIsDraggingBar(true);
+    // マウスが離れたときに確実に終了するように
+    const handleMouseUp = () => {
+      console.log('✅ バードラッグ終了');
+      setIsDraggingBar(false);
+      setDragOffset(0);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const updateTime = useCallback((clientX: number, isStart: boolean) => {
@@ -339,9 +355,20 @@ export const TimeRangeSlider = ({
             style={{ 
               left: `${endPercent}%`, 
               transform: 'translate(-50%, -50%)',
-              zIndex: 30
+              zIndex: 30,
+              touchAction: 'none',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              pointerEvents: disabled ? 'none' : 'auto'
             }}
             onMouseDown={handleEndHandleMouseDown}
+            onTouchStart={(e) => {
+              if (disabled) return;
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('終了ハンドルタッチ開始');
+              setIsDraggingEnd(true);
+            }}
           >
             <div className="flex flex-col gap-0.5 pointer-events-none">
               <div className="w-1 h-1.5 bg-white rounded"></div>
