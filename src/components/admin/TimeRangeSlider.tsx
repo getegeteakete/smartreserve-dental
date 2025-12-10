@@ -188,7 +188,13 @@ export const TimeRangeSlider = ({
         currentStartMinutes,
         minHour: minHour * 60
       });
-      onChangeRef.current(newStartTime, endTimeRef.current);
+      console.log('✅ onChangeRef.currentを呼び出し:', newStartTime, endTimeRef.current);
+      try {
+        onChangeRef.current(newStartTime, endTimeRef.current);
+        console.log('✅ onChangeRef.current呼び出し成功');
+      } catch (error) {
+        console.error('❌ onChangeRef.current呼び出しエラー:', error);
+      }
     } else {
       // 終了時間は開始時間より30分以上後でなければならない
       const minEndMinutes = currentStartMinutes + 30;
@@ -237,17 +243,22 @@ export const TimeRangeSlider = ({
   // イベントリスナーを常に登録（状態に応じて動作を変える）
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      e.preventDefault();
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       
       // refから最新の状態を取得
       if (isDraggingStartRef.current) {
-        console.log('🔄 開始ハンドルドラッグ中:', clientX);
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔄 開始ハンドルドラッグ中:', clientX, 'isDraggingStartRef:', isDraggingStartRef.current);
         updateTime(clientX, true);
       } else if (isDraggingEndRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('🔄 終了ハンドルドラッグ中:', clientX);
         updateTime(clientX, false);
       } else if (isDraggingBarRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('🔄 バードラッグ中:', clientX);
         updateBarPosition(clientX);
       }
@@ -260,6 +271,10 @@ export const TimeRangeSlider = ({
         setIsDraggingEnd(false);
         setIsDraggingBar(false);
         setDragOffset(0);
+        // refもリセット
+        isDraggingStartRef.current = false;
+        isDraggingEndRef.current = false;
+        isDraggingBarRef.current = false;
       }
     };
 
