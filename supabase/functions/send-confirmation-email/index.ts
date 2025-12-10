@@ -155,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
           <h4 style="margin-top: 0; color: #d97706;">ご来院について</h4>
           <ul>
             <li>予約時間の<strong>10分前</strong>にはお越しください</li>
-            <li>初診の方は保険証かマイナンバーカードをご持参ください</li>
+            <li>当日はマイナンバーカードをお持ちください</li>
             <li>現在服用されているお薬がある場合は、お薬手帳をお持ちください</li>
             <li>駐車場は3台分ご用意しております</li>
           </ul>
@@ -164,7 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="background-color: #fee2e2; padding: 15px; border-radius: 8px; margin: 20px 0;">
           <h4 style="margin-top: 0; color: #dc2626;">変更・キャンセルについて</h4>
           <ul>
-            <li>予約の変更・キャンセルは予約日の<strong>24時間前までにお電話にて</strong>ご連絡ください</li>
+            <li>キャンセルや変更の場合は2日前までにご連絡ください</li>
             <li>当日キャンセルの場合、キャンセル料が発生する場合があります</li>
             <li>無断キャンセルの場合、今後のご予約をお断りする場合があります</li>
           </ul>

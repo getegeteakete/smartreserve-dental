@@ -26,7 +26,8 @@ const BookingInfo = () => {
           </div>
           <div>
             <p className="font-semibold text-slate-800 mb-1">予約期間</p>
-            <p className="text-sm text-slate-600">予約は2週間先から6週間先まで可能です</p>
+            <p className="text-sm text-slate-600 mb-2">予約は2週間先から6週間先まで可能です</p>
+            <p className="text-xs text-slate-500">※2週間以内のご予約は電話にてお問い合わせください 092-406-2119</p>
           </div>
         </div>
 

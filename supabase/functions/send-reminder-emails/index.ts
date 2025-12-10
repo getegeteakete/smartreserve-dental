@@ -147,14 +147,14 @@ const sendReminderEmail = async (appointment: Appointment, reminderType: 'day_be
         
         <p style="color: #dc2626; font-weight: bold;">お忘れ物はございませんか？</p>
         <ul>
-          <li>保険証</li>
+          <li>マイナンバーカード</li>
           <li>お薬手帳（お持ちの方）</li>
           <li>診察券</li>
         </ul>
         
         <p>予約時間の10分前にはお越しください。</p>
         
-        <p>万が一体調不良等でキャンセルが必要な場合は、お早めにお電話ください。</p>
+        <p>万が一体調不良等でキャンセルが必要な場合は、2日前までにお電話ください。</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
           <p><strong>六本松矯正歯科クリニックとよしま</strong></p>

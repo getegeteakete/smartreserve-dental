@@ -137,6 +137,12 @@ export function AppointmentList() {
         return;
       }
 
+      console.log("希望日時承認開始:", {
+        appointmentId: appointment.id,
+        preferenceId,
+        selectedPreference
+      });
+
       // 確定済み予約との重複チェック
       const { canConfirm, error: conflictError } = await checkConfirmedTimeConflict(
         appointment.email,
@@ -145,7 +151,17 @@ export function AppointmentList() {
         appointment.id
       );
 
-      if (conflictError || !canConfirm) {
+      if (conflictError) {
+        console.error("重複チェックエラー:", conflictError);
+        toast({
+          variant: "destructive",
+          title: "エラー",
+          description: `予約重複チェック中にエラーが発生しました: ${conflictError}`,
+        });
+        return;
+      }
+
+      if (!canConfirm) {
         toast({
           variant: "destructive",
           title: "予約重複エラー",
@@ -154,20 +170,45 @@ export function AppointmentList() {
         return;
       }
 
+      console.log("重複チェック完了、予約更新開始");
+
       // 予約を承認し、選択された希望日時で確定（メール送信なし）
-      const { error: updateError } = await supabase
+      const { error: updateError, data: updateData } = await supabase
         .from("appointments")
         .update({
           status: 'confirmed',
           confirmed_date: selectedPreference.preferred_date,
           confirmed_time_slot: selectedPreference.preferred_time_slot
         })
-        .eq("id", appointment.id);
+        .eq("id", appointment.id)
+        .select();
 
       if (updateError) {
-        throw updateError;
+        console.error("予約更新エラー:", updateError);
+        console.error("エラー詳細:", {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
+        
+        let errorMessage = "予約の承認に失敗しました";
+        if (updateError.message) {
+          errorMessage += `: ${updateError.message}`;
+        }
+        if (updateError.hint) {
+          errorMessage += ` (${updateError.hint})`;
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "エラー",
+          description: errorMessage,
+        });
+        return;
       }
 
+      console.log("予約更新成功:", updateData);
       console.log("予約承認完了（AppointmentList）- 確定メール送信開始");
 
       // 確定メール送信
@@ -184,39 +225,60 @@ export function AppointmentList() {
       console.log("確定メール送信開始（handlePreferenceApproval）:", emailData);
 
       // Vercel API Routeを使用して確定メールを送信
-      const emailResponse = await fetch('/api/send-confirmation-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(emailData),
-      });
+      try {
+        const emailResponse = await fetch('/api/send-confirmation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailData),
+        });
 
-      const emailResult = await emailResponse.json();
-      console.log("確定メール送信レスポンス（handlePreferenceApproval）:", emailResult);
+        const emailResult = await emailResponse.json();
+        console.log("確定メール送信レスポンス（handlePreferenceApproval）:", emailResult);
 
-      if (!emailResponse.ok || !emailResult.success) {
-        console.error("確定メール送信エラー（handlePreferenceApproval）:", emailResult.error);
+        if (!emailResponse.ok || !emailResult.success) {
+          console.error("確定メール送信エラー（handlePreferenceApproval）:", emailResult.error);
+          toast({
+            title: "予約承認完了",
+            description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認しましたが、確定メールの送信に失敗しました。${emailResult.error ? `エラー: ${emailResult.error}` : ''}`,
+            variant: "destructive",
+          });
+        } else {
+          console.log("確定メール送信成功（handlePreferenceApproval）:", emailResult);
+          toast({
+            title: "承認完了",
+            description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認し、確定メールを送信しました`,
+          });
+        }
+      } catch (emailError: any) {
+        console.error("メール送信処理エラー:", emailError);
+        // メール送信エラーは予約承認自体は成功しているため、警告として表示
         toast({
           title: "予約承認完了",
-          description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認しましたが、確定メールの送信に失敗しました。${emailResult.error ? `エラー: ${emailResult.error}` : ''}`,
+          description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認しましたが、確定メールの送信に失敗しました。`,
           variant: "destructive",
-        });
-      } else {
-        console.log("確定メール送信成功（handlePreferenceApproval）:", emailResult);
-        toast({
-          title: "承認完了",
-          description: `${appointment.patient_name}様の予約を第${selectedPreference.preference_order}希望で承認し、確定メールを送信しました`,
         });
       }
 
       fetchAppointments();
     } catch (error: any) {
       console.error("予約承認エラー:", error);
+      console.error("エラー詳細:", {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      });
+      
+      let errorMessage = "予約の承認に失敗しました";
+      if (error?.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      
       toast({
         variant: "destructive",
         title: "エラー",
-        description: "予約の承認に失敗しました",
+        description: errorMessage,
       });
     }
   };

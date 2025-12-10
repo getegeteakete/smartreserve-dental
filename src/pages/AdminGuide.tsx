@@ -30,6 +30,7 @@ import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 export default function AdminGuide() {
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -54,6 +55,14 @@ export default function AdminGuide() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-10 flex justify-center items-center min-h-screen">
@@ -68,24 +77,35 @@ export default function AdminGuide() {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* サイドバー */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
-      />
+      {!isMobile && (
+        <AdminSidebar 
+          isCollapsed={sidebarCollapsed} 
+          onToggle={toggleSidebar} 
+        />
+      )}
+      {isMobile && (
+        <AdminSidebar 
+          isCollapsed={false} 
+          onToggle={toggleSidebar}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
+      )}
       
       {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* ヘッダー */}
         <AdminContentHeader 
           title="SmartReserve" 
-          subtitle="管理者向け使い方ガイド" 
+          subtitle="管理者向け使い方ガイド"
+          onMenuToggle={toggleMobileMenu}
         />
         
         {/* コンテンツエリア */}
-        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+        <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* ヘッダー */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
               <Button
                 variant="outline"
                 onClick={() => navigate("/admin")}
@@ -96,8 +116,8 @@ export default function AdminGuide() {
                 管理画面に戻る
               </Button>
               <div className="flex items-center gap-2">
-                <BookOpen className="h-6 w-6 text-blue-600" />
-                <h1 className="text-3xl font-bold text-gray-900">
+                <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                   管理者向け使い方ガイド
                 </h1>
               </div>

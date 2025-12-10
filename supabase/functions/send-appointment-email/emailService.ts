@@ -198,12 +198,12 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
     });
     
     try {
-      patientEmailResponse = await resend.emails.send({
-        from: `${patientSettings.fromName} <${patientSettings.fromEmail}>`,
-        to: [data.patientEmail],
-        subject: patientSubject,
-        html: confirmationEmailHtml,
-      });
+    patientEmailResponse = await resend.emails.send({
+      from: `${patientSettings.fromName} <${patientSettings.fromEmail}>`,
+      to: [data.patientEmail],
+      subject: patientSubject,
+      html: confirmationEmailHtml,
+    });
     } catch (sendError: any) {
       console.error("❌ Resend API呼び出しエラー:", sendError);
       throw new Error(`メール送信API呼び出しに失敗しました: ${sendError.message || JSON.stringify(sendError)}`);
@@ -265,12 +265,12 @@ export const sendAppointmentEmails = async (data: AppointmentEmailRequest & { ca
       });
       
       try {
-        adminEmailResponse = await resend.emails.send({
-          from: `${adminSettings.fromName} <${adminSettings.fromEmail}>`,
-          to: [adminSettings.toEmail],
-          subject: adminSubject,
-          html: adminNotificationHtml,
-        });
+    adminEmailResponse = await resend.emails.send({
+      from: `${adminSettings.fromName} <${adminSettings.fromEmail}>`,
+      to: [adminSettings.toEmail],
+      subject: adminSubject,
+      html: adminNotificationHtml,
+    });
       } catch (sendError: any) {
         console.warn("⚠️ 管理者メール送信エラー（患者様メールは成功）:", sendError);
         // 管理者メールの失敗は警告のみ（患者様メールが成功していれば続行）

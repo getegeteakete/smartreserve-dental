@@ -19,6 +19,7 @@ import { checkAdminAuth } from "@/utils/adminAuth";
 export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { appointments, fetchAppointments } = useAppointmentManagement();
@@ -39,6 +40,14 @@ export default function Admin() {
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   // 本日の予約を取得
@@ -115,26 +124,37 @@ export default function Admin() {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* サイドバー */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
-      />
+      {!isMobile && (
+        <AdminSidebar 
+          isCollapsed={sidebarCollapsed} 
+          onToggle={toggleSidebar} 
+        />
+      )}
+      {isMobile && (
+        <AdminSidebar 
+          isCollapsed={false} 
+          onToggle={toggleSidebar}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
+      )}
       
       {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* ヘッダー */}
         <AdminContentHeader 
           title="SmartReserve" 
-          subtitle="管理システムの概要" 
+          subtitle="管理システムの概要"
+          onMenuToggle={toggleMobileMenu}
         />
         
         {/* コンテンツエリア */}
-        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+        <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* タイトル */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
-              <p className="text-gray-600 mt-1">SmartReserve管理システムの概要</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">ダッシュボード</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1">SmartReserve管理システムの概要</p>
             </div>
 
             {/* ダッシュボードカード */}

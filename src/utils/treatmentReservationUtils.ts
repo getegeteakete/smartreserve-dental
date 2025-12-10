@@ -30,6 +30,13 @@ export const checkConfirmedTimeConflict = async (
   excludeAppointmentId?: string
 ): Promise<{ canConfirm: boolean; error?: string }> => {
   try {
+    console.log("確定済み予約重複チェック開始:", {
+      email,
+      date,
+      timeSlot,
+      excludeAppointmentId
+    });
+
     const { data: canConfirm, error } = await supabase.rpc('check_confirmed_time_conflict', {
       p_email: email,
       p_date: date,
@@ -39,13 +46,37 @@ export const checkConfirmedTimeConflict = async (
 
     if (error) {
       console.error("確定済み予約重複チェックエラー:", error);
-      return { canConfirm: false, error: "予約重複チェック中にエラーが発生しました" };
+      console.error("エラー詳細:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return { 
+        canConfirm: false, 
+        error: `予約重複チェック中にエラーが発生しました: ${error.message || '不明なエラー'}` 
+      };
     }
 
-    return { canConfirm };
-  } catch (error) {
+    // dataがnullやundefinedの場合の処理
+    if (canConfirm === null || canConfirm === undefined) {
+      console.warn("確定済み予約重複チェック: 結果がnull/undefinedです。デフォルトでfalseを返します。");
+      return { canConfirm: false, error: "予約重複チェックの結果が取得できませんでした" };
+    }
+
+    console.log("確定済み予約重複チェック結果:", { canConfirm, data型: typeof canConfirm });
+    return { canConfirm: Boolean(canConfirm) };
+  } catch (error: any) {
     console.error("確定済み予約重複チェック処理エラー:", error);
-    return { canConfirm: false, error: "予約重複チェック処理中にエラーが発生しました" };
+    console.error("エラー詳細:", {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    });
+    return { 
+      canConfirm: false, 
+      error: `予約重複チェック処理中にエラーが発生しました: ${error?.message || '不明なエラー'}` 
+    };
   }
 };
 

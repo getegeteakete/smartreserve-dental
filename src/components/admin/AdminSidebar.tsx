@@ -11,7 +11,8 @@ import {
   ChevronRight,
   BarChart3,
   MessageCircle,
-  ClipboardList
+  ClipboardList,
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,14 +21,24 @@ import { supabase } from "@/integrations/supabase/client";
 interface AdminSidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  isMobileMenuOpen?: boolean;
+  onMobileMenuClose?: () => void;
 }
 
-export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
+export const AdminSidebar = ({ isCollapsed, onToggle, isMobileMenuOpen = false, onMobileMenuClose }: AdminSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [pendingCount, setPendingCount] = useState<number>(0);
+
+  // メニューアイテムクリック時にスマホメニューを閉じる
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
+    if (isMobile && onMobileMenuClose) {
+      onMobileMenuClose();
+    }
+  };
 
   // 承認待ちの予約数を取得
   useEffect(() => {
@@ -135,10 +146,108 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
     navigate("/admin-login");
   };
 
+  // スマホではオーバーレイ表示、PCでは通常表示
+  if (isMobile) {
+    return (
+      <>
+        {/* オーバーレイ */}
+        {isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={onMobileMenuClose}
+          />
+        )}
+        
+        {/* サイドバー（スマホ） */}
+        <div className={`fixed inset-y-0 left-0 bg-gray-900 text-white z-50 w-64 transform transition-transform duration-300 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } flex flex-col h-screen`}>
+          {/* ヘッダー */}
+          <div className="p-4 border-b border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <h1 className="text-lg font-bold text-white">SmartReserve</h1>
+                <p className="text-sm text-gray-400">管理システム</p>
+              </div>
+              <button
+                onClick={onMobileMenuClose}
+                className="p-1 hover:bg-gray-700 rounded transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* メニューアイテム */}
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleMenuItemClick(item.path)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 relative ${
+                    active 
+                      ? 'bg-blue-600 text-white shadow-lg' 
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                  {item.badge && (
+                    <span className={`ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold ${
+                      item.id === 'appointments' && pendingCount > 0 ? 'animate-pulse' : ''
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* フッター */}
+          <div className="p-4 border-t border-gray-700">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-full flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <Settings className="h-5 w-5 flex-shrink-0" />
+              <span className="text-sm font-medium">管理者</span>
+              <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${
+                showUserMenu ? 'rotate-180' : ''
+              }`} />
+            </button>
+            
+            {showUserMenu && (
+              <div className="mt-2 bg-gray-800 rounded-lg p-2">
+                <div className="px-3 py-2 text-sm text-gray-400">
+                  sup@ei-life.co.jp
+                </div>
+                <div className="px-3 py-1 text-sm text-gray-400">
+                  (株)SmartReserve
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full mt-2 px-3 py-2 text-sm text-red-400 hover:bg-gray-700 rounded transition-colors"
+                >
+                  ログアウト
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // PC版の表示
   return (
     <div className={`bg-gray-900 text-white transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-64'
-    } ${isMobile ? 'fixed inset-0 z-50' : 'relative'} flex flex-col h-screen`}>
+    } relative flex flex-col h-screen`}>
       
       {/* ヘッダー */}
       <div className="p-4 border-b border-gray-700">
@@ -159,7 +268,7 @@ export const AdminSidebar = ({ isCollapsed, onToggle }: AdminSidebarProps) => {
       </div>
 
       {/* メニューアイテム */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);

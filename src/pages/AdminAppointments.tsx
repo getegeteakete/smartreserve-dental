@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 export default function AdminAppointments() {
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -22,6 +23,14 @@ export default function AdminAppointments() {
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   if (loading) {
@@ -38,21 +47,32 @@ export default function AdminAppointments() {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* サイドバー */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
-      />
+      {!isMobile && (
+        <AdminSidebar 
+          isCollapsed={sidebarCollapsed} 
+          onToggle={toggleSidebar} 
+        />
+      )}
+      {isMobile && (
+        <AdminSidebar 
+          isCollapsed={false} 
+          onToggle={toggleSidebar}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
+      )}
       
       {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* ヘッダー */}
         <AdminContentHeader 
           title="SmartReserve" 
-          subtitle="予約管理" 
+          subtitle="予約管理"
+          onMenuToggle={toggleMobileMenu}
         />
         
         {/* コンテンツエリア */}
-        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+        <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
             <AppointmentList />
           </div>

@@ -17,6 +17,7 @@ import { GeneralSettingsEditor } from "@/components/admin/GeneralSettingsEditor"
 const AdminSettings = () => {
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -48,6 +49,14 @@ const AdminSettings = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   const handleToggleSetting = async (key: string, currentValue: any) => {
     const newEnabled = !(currentValue?.enabled ?? false);
     await updateSetting(key, { ...currentValue, enabled: newEnabled }, newEnabled);
@@ -76,35 +85,47 @@ const AdminSettings = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* サイドバー */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
-      />
+      {!isMobile && (
+        <AdminSidebar 
+          isCollapsed={sidebarCollapsed} 
+          onToggle={toggleSidebar} 
+        />
+      )}
+      {isMobile && (
+        <AdminSidebar 
+          isCollapsed={false} 
+          onToggle={toggleSidebar}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
+      )}
       
       {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* ヘッダー */}
         <AdminContentHeader 
           title="SmartReserve" 
-          subtitle="システム設定" 
+          subtitle="システム設定"
+          onMenuToggle={toggleMobileMenu}
         />
         
         {/* コンテンツエリア */}
-        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+        <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* ヘッダーセクション */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                 <Button
                   variant="outline"
                   onClick={() => navigate("/admin")}
                   className="flex items-center gap-2"
+                  size={isMobile ? "sm" : "default"}
                 >
                   <ArrowLeft className="h-4 w-4" />
                   管理画面に戻る
                 </Button>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <SettingsIcon className="h-6 w-6" />
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                  <SettingsIcon className="h-5 w-5 md:h-6 md:w-6" />
                   システム設定
                 </h1>
               </div>

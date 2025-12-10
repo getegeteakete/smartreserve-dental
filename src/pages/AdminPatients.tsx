@@ -16,6 +16,7 @@ import { PatientDialogsContainer } from "@/components/admin/patient/PatientDialo
 
 const AdminPatients = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { loading, handleLogout, handleBackToAdmin } = usePatientManagementAuth();
@@ -50,6 +51,14 @@ const AdminPatients = () => {
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   const handleSearch = (query: string) => {
@@ -108,33 +117,45 @@ const AdminPatients = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* サイドバー */}
-      <AdminSidebar 
-        isCollapsed={sidebarCollapsed} 
-        onToggle={toggleSidebar} 
-      />
+      {!isMobile && (
+        <AdminSidebar 
+          isCollapsed={sidebarCollapsed} 
+          onToggle={toggleSidebar} 
+        />
+      )}
+      {isMobile && (
+        <AdminSidebar 
+          isCollapsed={false} 
+          onToggle={toggleSidebar}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
+      )}
       
       {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* ヘッダー */}
         <AdminContentHeader 
           title="SmartReserve" 
-          subtitle="患者管理" 
+          subtitle="患者管理"
+          onMenuToggle={toggleMobileMenu}
         />
         
         {/* コンテンツエリア */}
-        <div className="flex-1 overflow-auto bg-gray-100 p-6">
+        <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* ヘッダーセクション */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
               <Button
                 variant="outline"
                 onClick={() => navigate("/admin")}
                 className="flex items-center gap-2"
+                size={isMobile ? "sm" : "default"}
               >
                 <ArrowLeft className="h-4 w-4" />
                 管理画面に戻る
               </Button>
-              <h1 className="text-3xl font-bold text-gray-900">患者管理</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">患者管理</h1>
             </div>
 
             {/* 患者管理コンポーネント */}

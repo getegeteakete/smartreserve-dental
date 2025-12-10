@@ -56,6 +56,8 @@ export const generatePatientConfirmationEmail = (data: AppointmentEmailData, for
           <li>この段階ではまだ予約は確定しておりません</li>
           <li>確定メールが届くまでお待ちください</li>
           <li>ご質問等がございましたら、お電話にてお問い合わせください</li>
+          <li>キャンセルや変更の場合は2日前までにご連絡ください</li>
+          <li>当日はマイナンバーカードをお持ちください</li>
         </ul>
       </div>
       
