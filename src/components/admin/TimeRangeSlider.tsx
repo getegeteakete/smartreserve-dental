@@ -31,12 +31,30 @@ export const TimeRangeSlider = ({
   const endTimeRef = useRef(endTime);
   const onChangeRef = useRef(onChange);
   
+  // ドラッグ状態をrefで管理（クロージャ問題を回避）
+  const isDraggingStartRef = useRef(false);
+  const isDraggingEndRef = useRef(false);
+  const isDraggingBarRef = useRef(false);
+  
   // refを更新
   useEffect(() => {
     startTimeRef.current = startTime;
     endTimeRef.current = endTime;
     onChangeRef.current = onChange;
   }, [startTime, endTime, onChange]);
+  
+  // ドラッグ状態のrefを更新
+  useEffect(() => {
+    isDraggingStartRef.current = isDraggingStart;
+  }, [isDraggingStart]);
+  
+  useEffect(() => {
+    isDraggingEndRef.current = isDraggingEnd;
+  }, [isDraggingEnd]);
+  
+  useEffect(() => {
+    isDraggingBarRef.current = isDraggingBar;
+  }, [isDraggingBar]);
 
   // 時間を分に変換
   const timeToMinutes = useCallback((time: string): number => {
@@ -60,19 +78,29 @@ export const TimeRangeSlider = ({
   const endPercent = ((endMinutes - minHour * 60) / totalMinutes) * 100;
 
   const handleStartHandleMouseDown = (e: React.MouseEvent) => {
-    if (disabled) return;
+    if (disabled) {
+      console.log('❌ 開始ハンドル: disabled=trueのため無効');
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     console.log('✅ 開始ハンドルマウスダウン - イベント発火確認');
+    console.log('✅ setIsDraggingStart(true)を実行');
     setIsDraggingStart(true);
+    isDraggingStartRef.current = true;
+    console.log('✅ isDraggingStartRef.current = trueに設定');
   };
 
   const handleEndHandleMouseDown = (e: React.MouseEvent) => {
-    if (disabled) return;
+    if (disabled) {
+      console.log('❌ 終了ハンドル: disabled=trueのため無効');
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     console.log('✅ 終了ハンドルマウスダウン - イベント発火確認');
     setIsDraggingEnd(true);
+    isDraggingEndRef.current = true;
   };
 
   const handleBarMouseDown = (e: React.MouseEvent) => {
@@ -111,6 +139,7 @@ export const TimeRangeSlider = ({
     const offset = clickX - barLeft;
     setDragOffset(offset);
     setIsDraggingBar(true);
+    isDraggingBarRef.current = true;
   };
 
   const updateTime = useCallback((clientX: number, isStart: boolean) => {
@@ -205,34 +234,36 @@ export const TimeRangeSlider = ({
     onChangeRef.current(newStartTime, newEndTime);
   }, [totalMinutes, minHour, maxHour, timeToMinutes, minutesToTime, dragOffset]);
 
+  // イベントリスナーを常に登録（状態に応じて動作を変える）
   useEffect(() => {
-    if (!isDraggingStart && !isDraggingEnd && !isDraggingBar) {
-      return;
-    }
-
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
       e.preventDefault();
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       
-      if (isDraggingStart) {
+      // refから最新の状態を取得
+      if (isDraggingStartRef.current) {
         console.log('🔄 開始ハンドルドラッグ中:', clientX);
         updateTime(clientX, true);
-      } else if (isDraggingEnd) {
+      } else if (isDraggingEndRef.current) {
+        console.log('🔄 終了ハンドルドラッグ中:', clientX);
         updateTime(clientX, false);
-      } else if (isDraggingBar) {
+      } else if (isDraggingBarRef.current) {
+        console.log('🔄 バードラッグ中:', clientX);
         updateBarPosition(clientX);
       }
     };
 
     const handleMouseUp = () => {
-      console.log('🛑 ドラッグ終了');
-      setIsDraggingStart(false);
-      setIsDraggingEnd(false);
-      setIsDraggingBar(false);
-      setDragOffset(0);
+      if (isDraggingStartRef.current || isDraggingEndRef.current || isDraggingBarRef.current) {
+        console.log('🛑 ドラッグ終了');
+        setIsDraggingStart(false);
+        setIsDraggingEnd(false);
+        setIsDraggingBar(false);
+        setDragOffset(0);
+      }
     };
 
-    console.log('📌 イベントリスナー登録:', { isDraggingStart, isDraggingEnd, isDraggingBar });
+    console.log('📌 イベントリスナー登録（常時監視）');
     
     document.addEventListener('mousemove', handleMouseMove, { passive: false });
     document.addEventListener('mouseup', handleMouseUp);
@@ -246,7 +277,7 @@ export const TimeRangeSlider = ({
       document.removeEventListener('touchmove', handleMouseMove);
       document.removeEventListener('touchend', handleMouseUp);
     };
-  }, [isDraggingStart, isDraggingEnd, isDraggingBar, updateTime, updateBarPosition]);
+  }, [updateTime, updateBarPosition]);
 
   // 時間ラベルを生成
   const generateTimeLabels = () => {
