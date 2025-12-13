@@ -25,7 +25,7 @@ const Guide = () => {
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">使い方ガイド</h1>
           <p className="text-gray-600">
-            豊島歯科予約システムの使い方をご説明いたします
+            六本松矯正歯科クリニックとよしま予約システムの使い方をご説明いたします
           </p>
         </div>
 
