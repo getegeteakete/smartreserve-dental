@@ -68,7 +68,7 @@ const Header = () => {
                   </Button>
                 </NavigationMenuItem>
 
-                {/* 豊嶋歯科TOP */}
+                {/* 六本松矯正歯科クリニックとよしまTOP */}
                 <NavigationMenuItem>
                   <Button
                     variant="ghost"
@@ -76,7 +76,7 @@ const Header = () => {
                     className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
                   >
                     <Building2 className="h-4 w-4" />
-                    豊嶋歯科TOP
+                    六本松矯正歯科クリニックとよしまTOP
                     <ExternalLink className="h-3 w-3" />
                   </Button>
                 </NavigationMenuItem>
@@ -151,7 +151,7 @@ const Header = () => {
                 className="flex items-center gap-2 text-gray-700 hover:text-blue-600 justify-start px-4 py-3"
               >
                 <Building2 className="h-5 w-5" />
-                豊嶋歯科TOP
+                六本松矯正歯科クリニックとよしまTOP
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
