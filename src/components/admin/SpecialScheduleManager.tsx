@@ -48,6 +48,11 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
   const [sundayEndTime, setSundayEndTime] = useState("17:30");
   const [isBulkAdding, setIsBulkAdding] = useState(false);
 
+  // お正月休み一括設定用の状態
+  const [selectedNewYearYear, setSelectedNewYearYear] = useState(new Date().getFullYear());
+  const [selectedNewYearDays, setSelectedNewYearDays] = useState<string[]>([]);
+  const [isBulkAddingNewYear, setIsBulkAddingNewYear] = useState(false);
+
   // 10:00-20:00の30分刻みの時間スロットを生成
   const timeSlots = [];
   for (let hour = 10; hour < 20; hour++) {
@@ -83,6 +88,29 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
   // 年と月の選択肢を生成
   const years = Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  // 1月1日～9日の日付リストを生成
+  const newYearDays = useMemo(() => {
+    const days: string[] = [];
+    for (let day = 1; day <= 9; day++) {
+      const date = new Date(selectedNewYearYear, 0, day);
+      days.push(format(date, 'yyyy-MM-dd'));
+    }
+    return days;
+  }, [selectedNewYearYear]);
+
+  // 既に設定されているお正月休みをチェック
+  const existingNewYearSchedules = useMemo(() => {
+    return specialSchedules
+      .filter(schedule => {
+        const scheduleDate = new Date(schedule.specific_date);
+        return scheduleDate.getFullYear() === selectedNewYearYear &&
+               scheduleDate.getMonth() === 0 && // 1月
+               scheduleDate.getDate() >= 1 &&
+               scheduleDate.getDate() <= 9;
+      })
+      .map(schedule => schedule.specific_date);
+  }, [specialSchedules, selectedNewYearYear]);
 
   // 日曜日の一括追加処理
   const handleBulkAddSundays = async () => {
@@ -206,6 +234,76 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
     } catch (error) {
       console.error("特別診療日削除エラー:", error);
       setLoadingScheduleId(null);
+    }
+  };
+
+  // お正月休みの一括追加処理
+  const handleBulkAddNewYearHolidays = async () => {
+    if (selectedNewYearDays.length === 0 || isBulkAddingNewYear) {
+      return;
+    }
+
+    setIsBulkAddingNewYear(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const dateStr of selectedNewYearDays) {
+        // 既に設定されている場合はスキップ
+        if (existingNewYearSchedules.includes(dateStr)) {
+          continue;
+        }
+
+        try {
+          // 休診日として設定（is_available: false、時間は00:00-00:00）
+          const { error } = await (supabase as any).rpc('insert_special_clinic_schedule', {
+            p_specific_date: dateStr,
+            p_start_time: '00:00',
+            p_end_time: '00:00',
+            p_is_available: false
+          });
+
+          if (error) {
+            console.error(`お正月休み ${dateStr} の設定エラー:`, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } catch (error) {
+          console.error(`お正月休み ${dateStr} の設定エラー:`, error);
+          errorCount++;
+        }
+
+        // 少し待機してから次の処理
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      if (successCount > 0) {
+        toast({
+          title: "設定完了",
+          description: `${successCount}件のお正月休みを設定しました。${errorCount > 0 ? `（${errorCount}件失敗）` : ''}`,
+        });
+        setSelectedNewYearDays([]);
+        // 親コンポーネントに再取得を促す
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } else if (errorCount > 0) {
+        toast({
+          title: "エラー",
+          description: `お正月休みの設定に失敗しました。`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("お正月休み一括追加エラー:", error);
+      toast({
+        title: "エラー",
+        description: "お正月休みの設定中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkAddingNewYear(false);
     }
   };
 
@@ -414,6 +512,137 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
             </div>
           </div>
 
+          {/* お正月休み設定セクション */}
+          <div className="border rounded-lg p-4 bg-orange-50 border-orange-200">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="font-semibold text-orange-900">お正月休み設定</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>1月1日～9日の間で、お正月の休みを設定できます。<br/>
+                  年を選択して、休みにする日付を選んでください。</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="mb-3 p-3 bg-orange-100 rounded border border-orange-300">
+              <p className="text-sm text-orange-800">
+                <strong>※ お正月休みは休診日として設定されます。</strong><br/>
+                1月1日～9日の間で、休みにする日付を選択してください。
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-end gap-4">
+                <div className="w-32">
+                  <Label htmlFor="newyear-year">年</Label>
+                  <Select 
+                    value={selectedNewYearYear.toString()} 
+                    onValueChange={(value) => {
+                      setSelectedNewYearYear(parseInt(value));
+                      setSelectedNewYearDays([]);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map(year => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}年
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-base font-medium">1月1日～9日のうち、休みにする日付を選択（複数選択可）</Label>
+                <p className="text-xs text-gray-600 mb-3">
+                  選択した日付が休診日として設定されます。
+                </p>
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                  {newYearDays.map(dateStr => {
+                    const isExisting = existingNewYearSchedules.includes(dateStr);
+                    const isSelected = selectedNewYearDays.includes(dateStr);
+                    const date = new Date(dateStr);
+                    
+                    return (
+                      <div 
+                        key={dateStr} 
+                        className={`flex items-center space-x-2 p-3 border-2 rounded-lg transition-all ${
+                          isSelected 
+                            ? 'bg-orange-100 border-orange-400 shadow-sm' 
+                            : isExisting 
+                            ? 'bg-gray-50 border-gray-300 opacity-60' 
+                            : 'bg-white border-gray-200 hover:border-orange-300 hover:bg-orange-50 cursor-pointer'
+                        }`}
+                        onClick={() => {
+                          if (!isExisting) {
+                            if (isSelected) {
+                              setSelectedNewYearDays(selectedNewYearDays.filter(d => d !== dateStr));
+                            } else {
+                              setSelectedNewYearDays([...selectedNewYearDays, dateStr]);
+                            }
+                          }
+                        }}
+                      >
+                        <Checkbox
+                          id={`newyear-${dateStr}`}
+                          checked={isSelected}
+                          disabled={isExisting}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedNewYearDays([...selectedNewYearDays, dateStr]);
+                            } else {
+                              setSelectedNewYearDays(selectedNewYearDays.filter(d => d !== dateStr));
+                            }
+                          }}
+                          className="pointer-events-none"
+                        />
+                        <Label 
+                          htmlFor={`newyear-${dateStr}`} 
+                          className={`text-sm cursor-pointer flex-1 ${isExisting ? 'text-gray-400' : 'text-gray-700'}`}
+                        >
+                          <div className="font-medium">
+                            {format(date, 'M月d日(E)', { locale: ja })}
+                          </div>
+                          {isExisting && (
+                            <div className="text-xs text-orange-600 mt-1 font-medium">
+                              (設定済み)
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  onClick={handleBulkAddNewYearHolidays}
+                  disabled={selectedNewYearDays.length === 0 || isBulkAddingNewYear}
+                  className="bg-orange-600 hover:bg-orange-700 mt-4"
+                >
+                  {isBulkAddingNewYear ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      設定中...
+                    </>
+                  ) : (
+                    `選択した日付をお正月休みに設定 (${selectedNewYearDays.length}件)`
+                  )}
+                </Button>
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="text-xs text-yellow-800">
+                    <strong>注意：</strong>既に設定済みの日付は選択できません。<br/>
+                    削除してから再度設定する場合は、下の「設定済み特別診療日」一覧から削除してください。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <h3 className="font-semibold">新しい特別診療日を追加</h3>
@@ -557,6 +786,10 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                 {specialSchedules.map((schedule) => {
                   const scheduleDate = new Date(schedule.specific_date);
                   const isSunday = getDay(scheduleDate) === 0;
+                  const isNewYearHoliday = scheduleDate.getMonth() === 0 && 
+                                          scheduleDate.getDate() >= 1 && 
+                                          scheduleDate.getDate() <= 9 &&
+                                          !schedule.is_available;
                   return (
                     <TableRow key={schedule.id}>
                       <TableCell className="font-medium">
@@ -565,6 +798,11 @@ export const SpecialScheduleManager = ({ specialSchedules, onAdd, onToggle, onDe
                           {isSunday && (
                             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
                               日曜日
+                            </Badge>
+                          )}
+                          {isNewYearHoliday && (
+                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300">
+                              お正月休み
                             </Badge>
                           )}
                         </div>
