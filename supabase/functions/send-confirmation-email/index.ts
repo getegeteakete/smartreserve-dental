@@ -155,8 +155,8 @@ const handler = async (req: Request): Promise<Response> => {
           <h4 style="margin-top: 0; color: #d97706;">ご来院時の注意事項</h4>
           <ul>
             <li>確定日時の<strong>10分前</strong>にご来院ください</li>
-            <li>キャンセルや変更の場合は、お早めにご連絡ください</li>
-            <li>当日は保険証をお持ちください</li>
+            <li>キャンセルや変更の場合は2日前までにご連絡ください</li>
+            <li>当日はマイナンバーカードをお持ちください</li>
           </ul>
         </div>
         
