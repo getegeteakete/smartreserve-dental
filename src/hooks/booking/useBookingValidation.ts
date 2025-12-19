@@ -190,10 +190,10 @@ export const useBookingValidation = () => {
       
       if (normalizedTreatmentName.includes('初診') || normalizedTreatmentName.includes('相談')) {
         errorMessage = "初診・相談のご予約は、お一人様1回までとなっております。";
-        suggestions = "既に初診予約がございます。別の診療内容をご選択いただくか、既存の予約をキャンセルしてから再度お申し込みください。";
+        suggestions = "既に初診予約がございます。既存の予約を→電話にてキャンセルしてから再度お申し込みください。";
       } else if (normalizedTreatmentName.includes('精密検査')) {
         errorMessage = "精密検査のご予約は、お一人様1回までとなっております。";
-        suggestions = "既に精密検査の予約がございます。別の診療内容をご選択いただくか、既存の予約をキャンセルしてから再度お申し込みください。";
+        suggestions = "既に精密検査の予約がございます。既存の予約を→電話にてキャンセルしてから再度お申し込みください。";
       } else if (normalizedTreatmentName.includes('pmtc') || normalizedTreatmentName.includes('クリーニング')) {
         errorMessage = "PMTC・クリーニングのご予約は、お一人様2件の予約申し込みまでとなっております。";
         suggestions = "既に2件の予約申し込みがございます。\n\n新しい予約を作成すると、既存の予約申し込み（承認待ち）が自動的にキャンセルされ、新しい内容で置き換えられます。\n\n※ 確定済み(confirmed)の予約は自動キャンセルされません。";
@@ -207,7 +207,7 @@ export const useBookingValidation = () => {
       toast({
         variant: "destructive",
         title: "予約上限に達しています",
-        description: `${errorMessage}\n\n${suggestions}${existingInfo}\n\n※ 第1希望・第2希望・第3希望は候補日時であり、予約は1件のみ作成されます\n※ キャンセルは予約確認メールのリンクから可能です`,
+        description: `${errorMessage}\n\n${suggestions}${existingInfo}\n\n※ 第1希望・第2希望・第3希望は候補日時であり、予約は1件のみ作成されます`,
         duration: 10000, // 長めに表示
       });
       return false;
