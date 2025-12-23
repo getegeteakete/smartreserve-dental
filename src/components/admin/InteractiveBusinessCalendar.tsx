@@ -339,29 +339,44 @@ export const InteractiveBusinessCalendar = ({
         return;
       }
 
-      // 土曜日の場合の土曜営業設定
-      if (scheduleType === "saturday" && dayOfWeek === 6) {
-        console.log("土曜営業設定を実行します");
-        const saturdaySlots = generateTimeSlots("9:00", "12:30").concat(generateTimeSlots("14:00", "17:30"));
-        const allSlots = generateTimeSlots("9:00", "19:00");
-        
-        // まず全てのスロットを無効化
-        for (const slot of allSlots) {
-          try {
-            await onScheduleChange(dayOfWeek, slot, false);
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (error) {
-            console.error("土曜営業設定：無効化エラー:", slot, error);
+      // 土曜日の場合の処理
+      if (dayOfWeek === 6) {
+        if (scheduleType === "closed") {
+          // 土曜日を休業に設定
+          console.log("土曜日を休業に設定します");
+          const allSlots = generateTimeSlots("09:00", "19:00");
+          for (const slot of allSlots) {
+            try {
+              await onScheduleChange(dayOfWeek, slot, false);
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+              console.error("土曜休業設定エラー:", slot, error);
+            }
           }
-        }
-        
-        // 土曜営業用のスロットを有効化
-        for (const slot of saturdaySlots) {
-          try {
-            await onScheduleChange(dayOfWeek, slot, true);
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (error) {
-            console.error("土曜営業設定：有効化エラー:", slot, error);
+        } else if (scheduleType === "saturday") {
+          // 土曜営業設定
+          console.log("土曜営業設定を実行します");
+          const saturdaySlots = generateTimeSlots("9:00", "12:30").concat(generateTimeSlots("14:00", "17:30"));
+          const allSlots = generateTimeSlots("9:00", "19:00");
+          
+          // まず全てのスロットを無効化
+          for (const slot of allSlots) {
+            try {
+              await onScheduleChange(dayOfWeek, slot, false);
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+              console.error("土曜営業設定：無効化エラー:", slot, error);
+            }
+          }
+          
+          // 土曜営業用のスロットを有効化
+          for (const slot of saturdaySlots) {
+            try {
+              await onScheduleChange(dayOfWeek, slot, true);
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+              console.error("土曜営業設定：有効化エラー:", slot, error);
+            }
           }
         }
       }
@@ -410,8 +425,11 @@ export const InteractiveBusinessCalendar = ({
         }
       }
 
+      // スケジュールデータを再取得
+      console.log("一括変更完了、スケジュールデータ再取得中...");
+      await fetchAllScheduleData();
+      
       // UI更新
-      console.log("一括変更完了、UI更新中...");
       setRefreshKey(prev => prev + 1);
       
       setShowScheduleDialog(false);

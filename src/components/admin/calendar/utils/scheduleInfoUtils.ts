@@ -44,22 +44,42 @@ export const getScheduleInfo = (
     };
   }
 
-  // 土曜日の基本スケジュール処理を最優先（特別スケジュールチェック前）
-  if (dayOfWeek === 6) {
-    return {
-      type: 'saturday-open',
-      schedules: ['9:00～12:30', '14:00～17:30'],
-      displayText: '土曜営業'
-    };
-  }
-
-  // 特別診療日設定をチェック（土曜日以外）
+  // 特別診療日設定をチェック（最優先）
   const specialSchedule = specialSchedules.find(s => s.specific_date === dateString);
   if (specialSchedule) {
     return {
       type: specialSchedule.is_available ? 'special-open' : 'special-closed',
       schedules: specialSchedule.is_available ? [`${formatTime(specialSchedule.start_time)}～${formatTime(specialSchedule.end_time)}`] : ['休診日（特別設定）'],
       displayText: specialSchedule.is_available ? '特別営業' : '休み'
+    };
+  }
+
+  // 土曜日の処理：実際のスケジュールデータをチェック
+  if (dayOfWeek === 6) {
+    const saturdaySchedules = schedules.filter(s => s.day_of_week === 6);
+    if (saturdaySchedules.length > 0) {
+      const availableSchedules = saturdaySchedules.filter(s => s.is_available);
+      if (availableSchedules.length > 0) {
+        // 土曜営業スケジュールがある場合
+        return {
+          type: 'saturday-open',
+          schedules: availableSchedules.map(s => `${formatTime(s.start_time)}～${formatTime(s.end_time)}`),
+          displayText: '土曜営業'
+        };
+      } else {
+        // すべてのスケジュールが無効（休業）
+        return {
+          type: 'basic-closed',
+          schedules: ['休診日'],
+          displayText: '休み'
+        };
+      }
+    }
+    // デフォルトの土曜営業スケジュール（データがない場合）
+    return {
+      type: 'saturday-open',
+      schedules: ['9:00～12:30', '14:00～17:30'],
+      displayText: '土曜営業'
     };
   }
 
