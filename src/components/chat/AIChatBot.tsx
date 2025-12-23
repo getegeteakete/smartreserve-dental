@@ -363,7 +363,7 @@ export const AIChatBot = ({
     // 予約キャンセルの解析
     if (lowerMessage.includes('キャンセル') || (lowerMessage.includes('予約') && (lowerMessage.includes('取り消') || lowerMessage.includes('中止')))) {
       intent = 'cancel_booking';
-      aiResponse = '予約のキャンセルを承ります。\n\nまず、キャンセル対象の予約を確認させてください。\nメールアドレスまたは電話番号を教えていただけますか？\n\n※キャンセルは予約日の24時間前まで可能です';
+      aiResponse = '予約のキャンセルを承ります。\n\nまず、キャンセル対象の予約を確認させてください。\nメールアドレスまたは電話番号を教えていただけますか？\n\n※キャンセルや変更の場合は2日前までにご連絡ください';
       actions = [
         { type: 'view_mypage', label: 'マイページでキャンセル', data: { action: 'view_mypage' } }
       ];

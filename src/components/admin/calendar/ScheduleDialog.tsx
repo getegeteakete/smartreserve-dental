@@ -273,12 +273,42 @@ export const ScheduleDialog = ({
               </div>
             )}
 
-            {/* 土曜日の場合の説明 */}
+            {/* 土曜日の場合の説明とチェックボックス */}
             {isSaturday && !hasSpecialSchedule && (
               <div>
                 <h4 className="font-semibold mb-3">土曜日の設定</h4>
-                <p className="text-gray-600 text-sm mb-3">
-                  土曜営業を選択すると、9:00～12:30、14:00～17:30の時間帯で営業します。
+                <div className="flex items-center space-x-2 p-3 border rounded-lg bg-blue-50">
+                  <Checkbox
+                    id="saturday-available"
+                    checked={(() => {
+                      // 土曜日の基本営業スケジュール（9:00-12:30、14:00-17:30）が有効かどうかを判定
+                      const normalizeTime = (time: string) => time.substring(0, 5); // "09:00:00" -> "09:00" または "09:00" -> "09:00"
+                      const saturdaySchedule1 = currentSchedules.find(s => 
+                        s.is_available && 
+                        normalizeTime(s.start_time) === "09:00" && 
+                        normalizeTime(s.end_time) === "12:30"
+                      );
+                      const saturdaySchedule2 = currentSchedules.find(s => 
+                        s.is_available && 
+                        normalizeTime(s.start_time) === "14:00" && 
+                        normalizeTime(s.end_time) === "17:30"
+                      );
+                      return !!saturdaySchedule1 && !!saturdaySchedule2;
+                    })()}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        onScheduleChange("saturday");
+                      } else {
+                        onScheduleChange("closed");
+                      }
+                    }}
+                  />
+                  <Label htmlFor="saturday-available" className="text-sm cursor-pointer">
+                    土曜営業（9:00～12:30、14:00～17:30）
+                  </Label>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  チェックを外すと、すべての土曜日を休診日にできます。
                 </p>
               </div>
             )}

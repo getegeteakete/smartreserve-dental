@@ -81,7 +81,7 @@ const BookingInfo = () => {
             <div>
               <p className="font-semibold text-slate-800 mb-1">キャンセルについて</p>
               <p className="text-sm text-slate-600">
-                キャンセルは予約日の24時間前まで可能です
+                キャンセルや変更の場合は2日前までにご連絡ください
               </p>
             </div>
           </div>
