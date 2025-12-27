@@ -47,24 +47,39 @@ const WeeklyBusinessCalendar = () => {
       const year = today.getFullYear();
       const month = today.getMonth() + 1;
       
-      // 通常のスケジュールを取得（RPC関数を使用）
-      const { data: schedules, error: scheduleError } = await (supabase as any).rpc('get_clinic_schedules', {
-        p_year: year,
-        p_month: month
-      });
+      let schedules: DatabaseScheduleData[] = [];
+      let specialSchedules: SpecialScheduleData[] = [];
       
-      if (scheduleError) {
-        console.error('診療時間取得エラー:', scheduleError);
+      // 通常のスケジュールを取得（RPC関数を使用）
+      try {
+        const { data, error: scheduleError } = await (supabase as any).rpc('get_clinic_schedules', {
+          p_year: year,
+          p_month: month
+        });
+        
+        if (scheduleError) {
+          console.error('診療時間取得エラー:', scheduleError);
+        } else {
+          schedules = (data || []) as DatabaseScheduleData[];
+        }
+      } catch (error) {
+        console.error('診療時間取得エラー:', error);
       }
       
       // 特別スケジュールを取得
-      const { data: specialSchedules, error: specialError } = await (supabase as any).rpc('get_special_clinic_schedules', {
-        p_year: year,
-        p_month: month
-      });
-      
-      if (specialError) {
-        console.error('特別スケジュール取得エラー:', specialError);
+      try {
+        const { data, error: specialError } = await (supabase as any).rpc('get_special_clinic_schedules', {
+          p_year: year,
+          p_month: month
+        });
+        
+        if (specialError) {
+          console.error('特別スケジュール取得エラー:', specialError);
+        } else {
+          specialSchedules = (data || []) as SpecialScheduleData[];
+        }
+      } catch (error) {
+        console.error('特別スケジュール取得エラー:', error);
       }
       
       const schedule: ScheduleInfo[] = [];
@@ -72,32 +87,67 @@ const WeeklyBusinessCalendar = () => {
       for (let i = 0; i < 7; i++) {
         const currentDate = addDays(weekStart, i);
         
-        // getScheduleInfoを使用してスケジュール情報を取得
-        const scheduleInfo = getScheduleInfo(
-          currentDate,
-          (specialSchedules || []) as SpecialScheduleData[],
-          (schedules || []) as DatabaseScheduleData[]
-        );
-        
-        const isOpen = scheduleInfo.type === 'saturday-open' || 
-                      scheduleInfo.type === 'special-open' || 
-                      scheduleInfo.type === 'full-open' || 
-                      scheduleInfo.type === 'partial-open' ||
-                      scheduleInfo.type === 'morning-closed';
-        
-        schedule.push({
-          date: currentDate,
-          dayName: format(currentDate, "EEE", { locale: ja }),
-          hours: scheduleInfo.schedules.join(" / "),
-          isOpen: isOpen,
-          isSpecial: scheduleInfo.type === 'special-open' || scheduleInfo.type === 'special-closed',
-          specialText: scheduleInfo.displayText !== '' ? scheduleInfo.displayText : undefined,
-        });
+        try {
+          // getScheduleInfoを使用してスケジュール情報を取得
+          const scheduleInfo = getScheduleInfo(
+            currentDate,
+            specialSchedules,
+            schedules
+          );
+          
+          const isOpen = scheduleInfo.type === 'saturday-open' || 
+                        scheduleInfo.type === 'special-open' || 
+                        scheduleInfo.type === 'full-open' || 
+                        scheduleInfo.type === 'partial-open' ||
+                        scheduleInfo.type === 'morning-closed';
+          
+          schedule.push({
+            date: currentDate,
+            dayName: format(currentDate, "EEE", { locale: ja }),
+            hours: scheduleInfo.schedules && scheduleInfo.schedules.length > 0 
+              ? scheduleInfo.schedules.join(" / ") 
+              : '',
+            isOpen: isOpen,
+            isSpecial: scheduleInfo.type === 'special-open' || scheduleInfo.type === 'special-closed',
+            specialText: scheduleInfo.displayText && scheduleInfo.displayText !== '' 
+              ? scheduleInfo.displayText 
+              : undefined,
+          });
+        } catch (error) {
+          console.error(`日付 ${format(currentDate, 'yyyy-MM-dd')} のスケジュール取得エラー:`, error);
+          // エラーが発生した場合でも、デフォルトのスケジュールを追加
+          schedule.push({
+            date: currentDate,
+            dayName: format(currentDate, "EEE", { locale: ja }),
+            hours: '',
+            isOpen: false,
+            isSpecial: false,
+            specialText: undefined,
+          });
+        }
       }
       
       setWeekSchedule(schedule);
     } catch (error) {
       console.error('スケジュール取得エラー:', error);
+      // エラーが発生した場合でも、空のスケジュールを設定して表示する
+      const today = new Date();
+      const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+      const defaultSchedule: ScheduleInfo[] = [];
+      
+      for (let i = 0; i < 7; i++) {
+        const currentDate = addDays(weekStart, i);
+        defaultSchedule.push({
+          date: currentDate,
+          dayName: format(currentDate, "EEE", { locale: ja }),
+          hours: '',
+          isOpen: false,
+          isSpecial: false,
+          specialText: undefined,
+        });
+      }
+      
+      setWeekSchedule(defaultSchedule);
     } finally {
       setLoading(false);
     }
@@ -111,6 +161,18 @@ const WeeklyBusinessCalendar = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
             <p className="text-sm text-gray-600">診療時間を読み込み中...</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // weekScheduleが空の場合のデフォルト表示
+  if (weekSchedule.length === 0) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-gray-900 mb-6">今週の診療カレンダー</h3>
+        <div className="text-center py-8 text-gray-500">
+          スケジュールデータを読み込み中...
         </div>
       </div>
     );
@@ -146,7 +208,7 @@ const WeeklyBusinessCalendar = () => {
             {day.isOpen ? (
               <>
                 <div className="text-xs font-medium text-green-700 mb-1">
-                  {day.hours}
+                  {day.hours || '営業時間未設定'}
                 </div>
                 {day.specialText && (
                   <div className="text-xs text-gray-700 mt-1">
