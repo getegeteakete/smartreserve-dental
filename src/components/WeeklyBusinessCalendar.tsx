@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, getDay } from "date-fns";
+import { format, startOfWeek, addDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { getScheduleInfo } from "@/components/admin/calendar/utils/scheduleInfoUtils";
 
 interface ScheduleInfo {
   date: Date;
@@ -12,8 +13,17 @@ interface ScheduleInfo {
   specialText?: string;
 }
 
-interface ClinicSchedule {
+interface DatabaseScheduleData {
+  id?: string;
   day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+}
+
+interface SpecialScheduleData {
+  id: string;
+  specific_date: string;
   start_time: string;
   end_time: string;
   is_available: boolean;
@@ -37,56 +47,51 @@ const WeeklyBusinessCalendar = () => {
       const year = today.getFullYear();
       const month = today.getMonth() + 1;
       
-      const { data: schedules, error } = await supabase
-        .from('clinic_schedules')
-        .select('*')
-        .eq('year', year)
-        .eq('month', month)
-        .order('day_of_week', { ascending: true });
+      // 通常のスケジュールを取得（RPC関数を使用）
+      const { data: schedules, error: scheduleError } = await (supabase as any).rpc('get_clinic_schedules', {
+        p_year: year,
+        p_month: month
+      });
       
-      if (error) {
-        console.error('診療時間取得エラー:', error);
+      if (scheduleError) {
+        console.error('診療時間取得エラー:', scheduleError);
       }
       
-      const scheduleMap = new Map<number, ClinicSchedule[]>();
-      schedules?.forEach((schedule: ClinicSchedule) => {
-        if (!scheduleMap.has(schedule.day_of_week)) {
-          scheduleMap.set(schedule.day_of_week, []);
-        }
-        scheduleMap.get(schedule.day_of_week)!.push(schedule);
+      // 特別スケジュールを取得
+      const { data: specialSchedules, error: specialError } = await (supabase as any).rpc('get_special_clinic_schedules', {
+        p_year: year,
+        p_month: month
       });
+      
+      if (specialError) {
+        console.error('特別スケジュール取得エラー:', specialError);
+      }
       
       const schedule: ScheduleInfo[] = [];
       
       for (let i = 0; i < 7; i++) {
         const currentDate = addDays(weekStart, i);
-        const dayOfWeek = currentDate.getDay();
         
-        // データベースから営業時間を取得
-        const daySchedules = scheduleMap.get(dayOfWeek) || [];
-        const availableSchedules = daySchedules.filter(s => s.is_available);
-        
-        if (availableSchedules.length === 0) {
-          schedule.push({
-            date: currentDate,
-            dayName: format(currentDate, "EEE", { locale: ja }),
-            hours: "",
-            isOpen: false,
-          });
-          continue;
-        }
-        
-        // 営業時間をフォーマット
-        const hoursList = availableSchedules.map(s => 
-          `${s.start_time.substring(0, 5)}-${s.end_time.substring(0, 5)}`
+        // getScheduleInfoを使用してスケジュール情報を取得
+        const scheduleInfo = getScheduleInfo(
+          currentDate,
+          (specialSchedules || []) as SpecialScheduleData[],
+          (schedules || []) as DatabaseScheduleData[]
         );
-        const hours = hoursList.join(" / ");
+        
+        const isOpen = scheduleInfo.type === 'saturday-open' || 
+                      scheduleInfo.type === 'special-open' || 
+                      scheduleInfo.type === 'full-open' || 
+                      scheduleInfo.type === 'partial-open' ||
+                      scheduleInfo.type === 'morning-closed';
         
         schedule.push({
           date: currentDate,
           dayName: format(currentDate, "EEE", { locale: ja }),
-          hours: hours,
-          isOpen: true,
+          hours: scheduleInfo.schedules.join(" / "),
+          isOpen: isOpen,
+          isSpecial: scheduleInfo.type === 'special-open' || scheduleInfo.type === 'special-closed',
+          specialText: scheduleInfo.displayText !== '' ? scheduleInfo.displayText : undefined,
         });
       }
       
