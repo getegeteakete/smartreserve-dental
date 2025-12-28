@@ -40,10 +40,10 @@ const BusinessCalendarMonthEmbed = () => {
   }, [selectedDate]);
 
   useEffect(() => {
-    if (schedules.length >= 0 && specialSchedules.length >= 0) {
+    if (!loading) {
       updateModifiers();
     }
-  }, [schedules, specialSchedules, selectedDate]);
+  }, [schedules, specialSchedules, selectedDate, loading]);
 
   const loadSchedules = async () => {
     try {
@@ -51,55 +51,91 @@ const BusinessCalendarMonthEmbed = () => {
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth() + 1;
       
+      let regularData: DatabaseScheduleData[] = [];
+      let specialData: SpecialScheduleData[] = [];
+      
       // 通常のスケジュールを取得
-      const { data: regularData } = await (supabase as any).rpc('get_clinic_schedules', {
-        p_year: year,
-        p_month: month
-      });
+      try {
+        const { data, error } = await (supabase as any).rpc('get_clinic_schedules', {
+          p_year: year,
+          p_month: month
+        });
+        
+        if (error) {
+          console.error('診療時間取得エラー:', error);
+        } else {
+          regularData = (data || []) as DatabaseScheduleData[];
+        }
+      } catch (error) {
+        console.error('診療時間取得エラー:', error);
+      }
       
       // 特別スケジュールを取得
-      const { data: specialData } = await (supabase as any).rpc('get_special_clinic_schedules', {
-        p_year: year,
-        p_month: month
-      });
+      try {
+        const { data, error } = await (supabase as any).rpc('get_special_clinic_schedules', {
+          p_year: year,
+          p_month: month
+        });
+        
+        if (error) {
+          console.error('特別スケジュール取得エラー:', error);
+        } else {
+          specialData = (data || []) as SpecialScheduleData[];
+        }
+      } catch (error) {
+        console.error('特別スケジュール取得エラー:', error);
+      }
       
-      setSchedules(regularData || []);
-      setSpecialSchedules(specialData || []);
+      setSchedules(regularData);
+      setSpecialSchedules(specialData);
     } catch (error) {
       console.error("スケジュール取得エラー:", error);
+      setSchedules([]);
+      setSpecialSchedules([]);
     } finally {
       setLoading(false);
     }
   };
 
   const updateModifiers = () => {
-    const currentMonth = startOfMonth(selectedDate);
-    const endMonth = endOfMonth(selectedDate);
-    const monthDays = eachDayOfInterval({ start: currentMonth, end: endMonth });
+    try {
+      const currentMonth = startOfMonth(selectedDate);
+      const endMonth = endOfMonth(selectedDate);
+      const monthDays = eachDayOfInterval({ start: currentMonth, end: endMonth });
 
-    const businessDays: Date[] = [];
-    const saturdayDays: Date[] = [];
-    const closedDays: Date[] = [];
+      const businessDays: Date[] = [];
+      const saturdayDays: Date[] = [];
+      const closedDays: Date[] = [];
 
-    monthDays.forEach(day => {
-      const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
-      
-      // 土曜営業を分離
-      if (scheduleInfo.type === 'saturday-open') {
-        saturdayDays.push(day);
-      }
-      // 通常診療日
-      else if (scheduleInfo.type === 'special-open' || 
-          scheduleInfo.type === 'full-open' || 
-          scheduleInfo.type === 'partial-open' ||
-          scheduleInfo.type === 'morning-closed') {
-        businessDays.push(day);
-      } else {
-        closedDays.push(day);
-      }
-    });
+      monthDays.forEach(day => {
+        try {
+          const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
+          
+          // 土曜営業を分離
+          if (scheduleInfo.type === 'saturday-open') {
+            saturdayDays.push(day);
+          }
+          // 通常診療日
+          else if (scheduleInfo.type === 'special-open' || 
+              scheduleInfo.type === 'full-open' || 
+              scheduleInfo.type === 'partial-open' ||
+              scheduleInfo.type === 'morning-closed') {
+            businessDays.push(day);
+          } else {
+            closedDays.push(day);
+          }
+        } catch (error) {
+          console.error(`日付 ${format(day, 'yyyy-MM-dd')} のスケジュール取得エラー:`, error);
+          closedDays.push(day);
+        }
+      });
 
-    setModifiers({ businessDays, saturdayDays, closedDays });
+      setModifiers({ businessDays, saturdayDays, closedDays });
+    } catch (error) {
+      console.error('updateModifiers エラー:', error);
+      // エラーが発生した場合でも空のmodifiersを設定
+      setModifiers({ businessDays: [], saturdayDays: [], closedDays: [] });
+    }
   };
 
   const handleMonthChange = (increment: number) => {
@@ -110,6 +146,17 @@ const BusinessCalendarMonthEmbed = () => {
 
   const modifierStyles = getCalendarModifierStyles();
   const colors = getBusinessDayColors();
+
+  if (loading) {
+    return (
+      <div className="bg-white p-6 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">診療カレンダーを読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white p-6">
