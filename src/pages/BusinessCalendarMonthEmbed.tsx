@@ -130,11 +130,11 @@ const BusinessCalendarMonthEmbed = () => {
         }
       });
 
-      setModifiers({ businessDays, saturdayDays, closedDays });
+      setModifiers({ business: businessDays, saturday: saturdayDays, closed: closedDays });
     } catch (error) {
       console.error('updateModifiers エラー:', error);
       // エラーが発生した場合でも空のmodifiersを設定
-      setModifiers({ businessDays: [], saturdayDays: [], closedDays: [] });
+      setModifiers({ business: [], saturday: [], closed: [] });
     }
   };
 
@@ -192,9 +192,9 @@ const BusinessCalendarMonthEmbed = () => {
               locale={ja}
               className="rounded-md mx-auto"
             modifiers={{
-              business: modifiers.business,
-              saturday: modifiers.saturday,
-              closed: modifiers.closed
+              business: modifiers.business || [],
+              saturday: modifiers.saturday || [],
+              closed: modifiers.closed || []
             }}
             modifiersStyles={modifierStyles}
             components={{
@@ -205,13 +205,13 @@ const BusinessCalendarMonthEmbed = () => {
                 let dayType = 'closed';
                 let dayLabel = '休み';
                 
-                if (modifiers.business.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
+                if (modifiers.business && modifiers.business.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'business';
                   dayLabel = '診療日';
-                } else if (modifiers.saturday.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
+                } else if (modifiers.saturday && modifiers.saturday.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'saturday';
                   dayLabel = '土曜営業';
-                } else if (modifiers.closed.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
+                } else if (modifiers.closed && modifiers.closed.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'closed';
                   dayLabel = '休み';
                 }
@@ -246,9 +246,9 @@ const BusinessCalendarMonthEmbed = () => {
         <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-3 gap-4">
-              {Object.entries(colors).map(([type, color]) => (
+              {colors && Object.entries(colors).map(([type, color]) => (
                 <div key={type} className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full ${color.bg} ${color.border} border-2`} />
+                  <div className={`w-4 h-4 rounded-full ${color?.bg || 'bg-gray-200'} ${color?.border || 'border-gray-300'} border-2`} />
                   <span className="text-sm text-gray-700">
                     {type === 'business' && '診療日'}
                     {type === 'saturday' && '土曜営業'}
