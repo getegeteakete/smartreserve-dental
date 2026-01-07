@@ -182,12 +182,12 @@ const WeeklyBusinessCalendar = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6 shadow-sm">
       {/* タイトル */}
-      <h3 className="text-lg font-bold text-gray-900 mb-6">今週の診療カレンダー</h3>
+      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">今週の診療カレンダー</h3>
       
       {/* 週間スケジュール */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-2">
         {weekSchedule.map((day, index) => {
           const hoursArray = Array.isArray(day.hours) ? day.hours : [day.hours];
           const hoursDisplay = hoursArray.length > 0 && hoursArray[0] !== '' 
@@ -198,7 +198,7 @@ const WeeklyBusinessCalendar = () => {
             <div
               key={index}
               className={`
-                rounded-lg border-2 p-2 sm:p-3 text-center min-h-[120px] sm:min-h-[100px] flex flex-col items-center justify-center
+                rounded-lg border-2 p-4 sm:p-3 text-center min-h-[140px] sm:min-h-[120px] md:min-h-[100px] flex flex-col items-center justify-center
                 ${day.isOpen 
                   ? 'bg-green-50 border-green-200' 
                   : 'bg-white border-gray-200'
@@ -206,37 +206,37 @@ const WeeklyBusinessCalendar = () => {
               `}
             >
               {/* 日付と曜日 */}
-              <div className="text-xs sm:text-sm font-medium text-gray-800 mb-1">
+              <div className="text-base sm:text-sm font-bold text-gray-800 mb-1">
                 {format(day.date, "M/d")}
               </div>
-              <div className="text-xs sm:text-sm text-gray-700 mb-1 sm:mb-2">
+              <div className="text-sm sm:text-sm text-gray-600 mb-2 sm:mb-2">
                 ({day.dayName})
               </div>
               
               {/* 営業時間 or 休診 */}
               {day.isOpen ? (
-                <div className="flex flex-col items-center justify-center w-full">
+                <div className="flex flex-col items-center justify-center w-full px-1">
                   {hoursDisplay.length > 0 ? (
-                    <div className="text-[10px] sm:text-xs font-medium text-green-700 space-y-0.5">
+                    <div className="text-sm sm:text-xs font-semibold text-green-700 space-y-1.5 sm:space-y-0.5 w-full">
                       {hoursDisplay.map((hour, idx) => (
-                        <div key={idx} className="leading-tight">
+                        <div key={idx} className="leading-relaxed sm:leading-tight break-words">
                           {hour}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-[10px] sm:text-xs text-gray-500">
+                    <div className="text-xs sm:text-xs text-gray-500">
                       営業時間未設定
                     </div>
                   )}
                   {day.specialText && (
-                    <div className="text-[9px] sm:text-xs text-gray-600 mt-1">
+                    <div className="text-xs sm:text-xs text-gray-600 mt-2 sm:mt-1 font-medium">
                       {day.specialText}
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-xs sm:text-sm text-gray-700 font-medium">
+                <div className="text-base sm:text-sm text-gray-700 font-bold">
                   休診
                 </div>
               )}
