@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import WeeklyBusinessCalendar from "@/components/WeeklyBusinessCalendar";
 
-const BusinessCalendarEmbed = () => {
+const BusinessCalendarEmbedMobile = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,12 +38,12 @@ const BusinessCalendarEmbed = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="bg-white p-0 sm:p-1 md:p-2 w-full">
-      <div className="w-full max-w-6xl mx-auto">
+    <div ref={containerRef} className="bg-white p-0 w-full">
+      <div className="w-full mx-auto">
         <WeeklyBusinessCalendar />
       </div>
     </div>
   );
 };
 
-export default BusinessCalendarEmbed;
+export default BusinessCalendarEmbedMobile;

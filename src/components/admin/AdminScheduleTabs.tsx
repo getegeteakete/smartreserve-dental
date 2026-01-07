@@ -210,32 +210,104 @@ export const AdminScheduleTabs = ({
                       以下のコードをコピーして、WordPressのカスタムHTMLブロックに貼り付けてください。
                     </p>
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
-                      <code>{`<div style="width: 100%; margin: 10px auto; overflow-x: auto;">
+                      <code>{`<!-- PC用（自動高さ調整） -->
+<div style="width: 100%; margin: 10px auto; overflow-x: auto;">
   <iframe 
+    id="calendar-embed-pc"
     src="https://489.toyoshima-do.com/calendar-embed" 
     width="100%" 
-    height="850" 
+    height="400" 
     frameborder="0" 
     style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 320px;"
     scrolling="no"
     loading="lazy">
   </iframe>
-</div>`}</code>
+</div>
+<script>
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'calendar-embed-height') {
+      const iframe = document.getElementById('calendar-embed-pc');
+      if (iframe) {
+        iframe.style.height = event.data.height + 'px';
+      }
+    }
+  });
+</script>
+
+<!-- スマホ用（別URL） -->
+<div style="width: 100%; margin: 10px auto; overflow-x: auto;">
+  <iframe 
+    id="calendar-embed-mobile"
+    src="https://489.toyoshima-do.com/calendar-embed-mobile" 
+    width="100%" 
+    height="950" 
+    frameborder="0" 
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 320px;"
+    scrolling="no"
+    loading="lazy">
+  </iframe>
+</div>
+<script>
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'calendar-embed-height') {
+      const iframe = document.getElementById('calendar-embed-mobile');
+      if (iframe) {
+        iframe.style.height = event.data.height + 'px';
+      }
+    }
+  });
+</script>`}</code>
                     </pre>
                     <div className="mt-3">
                       <button
                         onClick={() => {
-                          const code = `<div style="width: 100%; margin: 10px auto; overflow-x: auto;">
+                          const code = `<!-- PC用（自動高さ調整） -->
+<div style="width: 100%; margin: 10px auto; overflow-x: auto;">
   <iframe 
+    id="calendar-embed-pc"
     src="https://489.toyoshima-do.com/calendar-embed" 
     width="100%" 
-    height="850" 
+    height="400" 
     frameborder="0" 
     style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 320px;"
     scrolling="no"
     loading="lazy">
   </iframe>
-</div>`;
+</div>
+<script>
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'calendar-embed-height') {
+      const iframe = document.getElementById('calendar-embed-pc');
+      if (iframe) {
+        iframe.style.height = event.data.height + 'px';
+      }
+    }
+  });
+</script>
+
+<!-- スマホ用（別URL） -->
+<div style="width: 100%; margin: 10px auto; overflow-x: auto;">
+  <iframe 
+    id="calendar-embed-mobile"
+    src="https://489.toyoshima-do.com/calendar-embed-mobile" 
+    width="100%" 
+    height="950" 
+    frameborder="0" 
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 320px;"
+    scrolling="no"
+    loading="lazy">
+  </iframe>
+</div>
+<script>
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'calendar-embed-height') {
+      const iframe = document.getElementById('calendar-embed-mobile');
+      if (iframe) {
+        iframe.style.height = event.data.height + 'px';
+      }
+    }
+  });
+</script>`;
                           navigator.clipboard.writeText(code);
                           alert('コードをコピーしました！WordPressのカスタムHTMLブロックに貼り付けてください。');
                         }}

@@ -68,6 +68,7 @@ const App = () => (
           <Route path="/admin/old-settings" element={<SystemSettings />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/calendar-embed" element={<BusinessCalendarEmbed />} />
+          <Route path="/calendar-embed-mobile" element={<BusinessCalendarEmbedMobile />} />
           <Route path="/calendar-month-embed" element={<BusinessCalendarMonthEmbed />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/contact" element={<Contact />} />
