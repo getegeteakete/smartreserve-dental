@@ -3,8 +3,8 @@ import WeeklyBusinessCalendar from "@/components/WeeklyBusinessCalendar";
 
 const BusinessCalendarEmbed = () => {
   return (
-    <div className="min-h-screen bg-white p-4 flex items-center justify-center">
-      <div className="max-w-6xl w-full">
+    <div className="bg-white p-2 sm:p-4 w-full">
+      <div className="w-full max-w-6xl mx-auto">
         <WeeklyBusinessCalendar />
       </div>
     </div>

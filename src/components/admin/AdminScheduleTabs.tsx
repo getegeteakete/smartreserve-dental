@@ -210,13 +210,13 @@ export const AdminScheduleTabs = ({
                       以下のコードをコピーして、WordPressのカスタムHTMLブロックに貼り付けてください。
                     </p>
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
-                      <code>{`<div style="width: 100%; margin: 20px auto;">
+                      <code>{`<div style="width: 100%; margin: 20px auto; overflow-x: auto;">
   <iframe 
     src="https://489.toyoshima-do.com/calendar-embed" 
     width="100%" 
-    height="280" 
+    height="950" 
     frameborder="0" 
-    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 320px;"
     scrolling="no"
     loading="lazy">
   </iframe>
@@ -225,13 +225,13 @@ export const AdminScheduleTabs = ({
                     <div className="mt-3">
                       <button
                         onClick={() => {
-                          const code = `<div style="width: 100%; margin: 20px auto;">
+                          const code = `<div style="width: 100%; margin: 20px auto; overflow-x: auto;">
   <iframe 
     src="https://489.toyoshima-do.com/calendar-embed" 
     width="100%" 
-    height="280" 
+    height="950" 
     frameborder="0" 
-    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+    style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 320px;"
     scrolling="no"
     loading="lazy">
   </iframe>
