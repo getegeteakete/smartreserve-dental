@@ -210,7 +210,7 @@ const BusinessCalendarMonthEmbed = () => {
                   dayLabel = '診療日';
                 } else if (modifiers.saturday && modifiers.saturday.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'saturday';
-                  dayLabel = '土曜営業';
+                  dayLabel = '土曜診療';
                 } else if (modifiers.closed && modifiers.closed.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'closed';
                   dayLabel = '休み';
@@ -251,7 +251,7 @@ const BusinessCalendarMonthEmbed = () => {
                   <div className={`w-4 h-4 rounded-full ${color?.bg || 'bg-gray-200'} ${color?.border || 'border-gray-300'} border-2`} />
                   <span className="text-sm text-gray-700">
                     {type === 'business' && '診療日'}
-                    {type === 'saturday' && '土曜営業'}
+                    {type === 'saturday' && '土曜診療'}
                     {type === 'closed' && '休み'}
                   </span>
                 </div>

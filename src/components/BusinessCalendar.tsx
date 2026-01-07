@@ -114,7 +114,7 @@ export const BusinessCalendar = () => {
     },
     {
       type: 'saturday',
-      label: '土曜営業',
+      label: '土曜診療',
       color: { bg: 'bg-orange-50', border: 'border-orange-400', text: 'text-orange-700' },
       days: modifiers.saturday.map(d => d.getDate()).sort((a, b) => a - b),
       displayText: modifiers.saturday.length > 0 ? `${modifiers.saturday.map(d => d.getDate()).sort((a, b) => a - b).join('、')}日` : 'なし'
@@ -212,7 +212,7 @@ export const BusinessCalendar = () => {
                   dayLabel = '診療日';
                 } else if (modifiers.saturday.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'saturday';
-                  dayLabel = '土曜営業';
+                  dayLabel = '土曜診療';
                 } else if (modifiers.closed.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
                   dayType = 'closed';
                   dayLabel = '休み';
@@ -256,7 +256,7 @@ export const BusinessCalendar = () => {
                 <div className={`w-4 h-4 rounded-full ${color.bg} ${color.border} border-2`} />
                 <span className="text-sm text-gray-700">
                   {type === 'business' && '診療日'}
-                  {type === 'saturday' && '土曜営業'}
+                  {type === 'saturday' && '土曜診療'}
                   {type === 'closed' && '休み'}
                 </span>
               </div>
