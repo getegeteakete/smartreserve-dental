@@ -22,6 +22,7 @@ import AdminSettings from "./pages/AdminSettings";
 import TreatmentManagement from "./pages/TreatmentManagement";
 import PatientManagement from "./pages/PatientManagement";
 import BusinessCalendarEmbed from "./pages/BusinessCalendarEmbed";
+import BusinessCalendarEmbedMobile from "./pages/BusinessCalendarEmbedMobile";
 import BusinessCalendarMonthEmbed from "./pages/BusinessCalendarMonthEmbed";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Guide from "./pages/Guide";
