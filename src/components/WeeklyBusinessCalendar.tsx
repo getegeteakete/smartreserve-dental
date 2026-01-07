@@ -182,9 +182,9 @@ const WeeklyBusinessCalendar = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-2 sm:p-3 md:p-6 shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200 p-2 sm:p-2 md:p-3 lg:p-4 shadow-sm">
       {/* タイトル */}
-      <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6">今週の診療カレンダー</h3>
+      <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">今週の診療カレンダー</h3>
       
       {/* 週間スケジュール */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-2">
@@ -198,7 +198,7 @@ const WeeklyBusinessCalendar = () => {
             <div
               key={index}
               className={`
-                rounded-lg border-2 p-3 sm:p-3 text-center min-h-[130px] sm:min-h-[120px] md:min-h-[100px] flex flex-col items-center justify-center
+                rounded-lg border-2 p-2 sm:p-2 md:p-3 text-center min-h-[130px] sm:min-h-[110px] md:min-h-[90px] flex flex-col items-center justify-center
                 ${day.isOpen 
                   ? 'bg-green-50 border-green-200' 
                   : 'bg-white border-gray-200'
