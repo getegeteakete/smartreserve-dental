@@ -36,7 +36,7 @@ export const BusinessCalendarPreview = () => {
         <CardHeader>
           <CardTitle>診療日カレンダー - WordPress埋め込み用</CardTitle>
           <CardDescription>
-            WordPressサイトに埋め込み可能な診療日カレンダーです。稼働日はピンク色、休診日は薄い青色で表示されます。
+            WordPressサイトに埋め込み可能な診療日カレンダーです。診療日はピンク色、休診日は薄い青色で表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

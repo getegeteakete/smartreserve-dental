@@ -7,7 +7,7 @@ import { getScheduleInfo } from "@/components/admin/calendar/utils/scheduleInfoU
 interface ScheduleInfo {
   date: Date;
   dayName: string;
-  hours: string;
+  hours: string[] | string;
   isOpen: boolean;
   isSpecial?: boolean;
   specialText?: string;
@@ -101,12 +101,15 @@ const WeeklyBusinessCalendar = () => {
                         scheduleInfo.type === 'partial-open' ||
                         scheduleInfo.type === 'morning-closed';
           
+          // 重複を排除して時間帯を取得
+          const uniqueSchedules = scheduleInfo.schedules && scheduleInfo.schedules.length > 0
+            ? Array.from(new Set(scheduleInfo.schedules))
+            : [];
+          
           schedule.push({
             date: currentDate,
             dayName: format(currentDate, "EEE", { locale: ja }),
-            hours: scheduleInfo.schedules && scheduleInfo.schedules.length > 0 
-              ? scheduleInfo.schedules.join(" / ") 
-              : '',
+            hours: uniqueSchedules.length > 0 ? uniqueSchedules : [],
             isOpen: isOpen,
             isSpecial: scheduleInfo.type === 'special-open' || scheduleInfo.type === 'special-closed',
             specialText: scheduleInfo.displayText && scheduleInfo.displayText !== '' 
@@ -119,7 +122,7 @@ const WeeklyBusinessCalendar = () => {
           schedule.push({
             date: currentDate,
             dayName: format(currentDate, "EEE", { locale: ja }),
-            hours: '',
+            hours: [],
             isOpen: false,
             isSpecial: false,
             specialText: undefined,
@@ -140,7 +143,7 @@ const WeeklyBusinessCalendar = () => {
         defaultSchedule.push({
           date: currentDate,
           dayName: format(currentDate, "EEE", { locale: ja }),
-          hours: '',
+          hours: [],
           isOpen: false,
           isSpecial: false,
           specialText: undefined,
@@ -184,45 +187,62 @@ const WeeklyBusinessCalendar = () => {
       <h3 className="text-lg font-bold text-gray-900 mb-6">今週の診療カレンダー</h3>
       
       {/* 週間スケジュール */}
-      <div className="grid grid-cols-7 gap-2">
-        {weekSchedule.map((day, index) => (
-          <div
-            key={index}
-            className={`
-              rounded-lg border-2 p-3 text-center min-h-[100px] flex flex-col items-center justify-center
-              ${day.isOpen 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-white border-gray-200'
-              }
-            `}
-          >
-            {/* 日付と曜日 */}
-            <div className="text-sm font-medium text-gray-800 mb-2">
-              {format(day.date, "M/d")}
-            </div>
-            <div className="text-sm text-gray-700 mb-2">
-              ({day.dayName})
-            </div>
-            
-            {/* 営業時間 or 休診 */}
-            {day.isOpen ? (
-              <>
-                <div className="text-xs font-medium text-green-700 mb-1">
-                  {day.hours || '営業時間未設定'}
-                </div>
-                {day.specialText && (
-                  <div className="text-xs text-gray-700 mt-1">
-                    {day.specialText}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-sm text-gray-700 font-medium">
-                休診
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        {weekSchedule.map((day, index) => {
+          const hoursArray = Array.isArray(day.hours) ? day.hours : [day.hours];
+          const hoursDisplay = hoursArray.length > 0 && hoursArray[0] !== '' 
+            ? hoursArray 
+            : [];
+          
+          return (
+            <div
+              key={index}
+              className={`
+                rounded-lg border-2 p-2 sm:p-3 text-center min-h-[120px] sm:min-h-[100px] flex flex-col items-center justify-center
+                ${day.isOpen 
+                  ? 'bg-green-50 border-green-200' 
+                  : 'bg-white border-gray-200'
+                }
+              `}
+            >
+              {/* 日付と曜日 */}
+              <div className="text-xs sm:text-sm font-medium text-gray-800 mb-1">
+                {format(day.date, "M/d")}
               </div>
-            )}
-          </div>
-        ))}
+              <div className="text-xs sm:text-sm text-gray-700 mb-1 sm:mb-2">
+                ({day.dayName})
+              </div>
+              
+              {/* 営業時間 or 休診 */}
+              {day.isOpen ? (
+                <div className="flex flex-col items-center justify-center w-full">
+                  {hoursDisplay.length > 0 ? (
+                    <div className="text-[10px] sm:text-xs font-medium text-green-700 space-y-0.5">
+                      {hoursDisplay.map((hour, idx) => (
+                        <div key={idx} className="leading-tight">
+                          {hour}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] sm:text-xs text-gray-500">
+                      営業時間未設定
+                    </div>
+                  )}
+                  {day.specialText && (
+                    <div className="text-[9px] sm:text-xs text-gray-600 mt-1">
+                      {day.specialText}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs sm:text-sm text-gray-700 font-medium">
+                  休診
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
