@@ -3,8 +3,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getCalendarModifierStyles, getBusinessDayColors } from "@/utils/businessDayDisplay";
+import { CalendarHeader } from "@/components/admin/calendar/CalendarHeader";
+import { CalendarLegend } from "@/components/admin/calendar/CalendarLegend";
+import { CalendarDay } from "@/components/admin/calendar/CalendarDay";
 import { supabase } from "@/integrations/supabase/client";
 import { getScheduleInfo } from "@/components/admin/calendar/utils/scheduleInfoUtils";
 
@@ -144,8 +145,7 @@ const BusinessCalendarMonthEmbed = () => {
     setSelectedDate(newDate);
   };
 
-  const modifierStyles = getCalendarModifierStyles();
-  const colors = getBusinessDayColors();
+  const { business: businessDays, saturday: saturdayDays, closed: closedDays } = modifiers;
 
   if (loading) {
     return (
@@ -160,103 +160,66 @@ const BusinessCalendarMonthEmbed = () => {
 
   return (
     <div className="bg-white p-6">
-      <div className="w-full space-y-6">
-        {/* カレンダーヘッダー（タイトルなし、ナビゲーションのみ） */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {format(selectedDate, 'yyyy年MM月', { locale: ja })}
-          </h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleMonthChange(-1)}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleMonthChange(1)}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* カレンダー */}
-        <Card>
-          <CardContent className="p-6">
-            <Calendar
-              mode="single"
-              selected={undefined}
-              onSelect={() => {}}
-              locale={ja}
-              className="rounded-md mx-auto"
-            modifiers={{
-              business: modifiers.business || [],
-              saturday: modifiers.saturday || [],
-              closed: modifiers.closed || []
-            }}
-            modifiersStyles={modifierStyles}
-            components={{
-              Day: ({ date, displayMonth, ...props }) => {
-                const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
-                const dayNumber = date.getDate();
-                
-                let dayType = 'closed';
-                let dayLabel = '休み';
-                
-                if (modifiers.business && modifiers.business.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
-                  dayType = 'business';
-                  dayLabel = '診療日';
-                } else if (modifiers.saturday && modifiers.saturday.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
-                  dayType = 'saturday';
-                  dayLabel = '土曜診療';
-                } else if (modifiers.closed && modifiers.closed.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))) {
-                  dayType = 'closed';
-                  dayLabel = '休み';
-                }
-
-                const colorClass = colors[dayType as keyof typeof colors];
-                
-                return (
-                  <div
-                    {...props}
-                    className={`
-                      w-12 h-12 text-sm flex flex-col items-center justify-center rounded-md border-2 cursor-pointer transition-all hover:shadow-md
-                      ${isCurrentMonth ? `${colorClass.bg} ${colorClass.text} ${colorClass.border}` : 'text-gray-300 bg-gray-50 border-gray-200'}
-                    `}
-                  >
-                    <span className="text-base font-medium">{dayNumber}</span>
-                    {isCurrentMonth && (
-                      <span className="text-[9px] leading-tight mt-0.5 px-1 rounded text-center">
-                        {dayLabel}
-                      </span>
-                    )}
-                  </div>
-                );
-              }
-            }}
-              month={selectedDate}
-              onMonthChange={setSelectedDate}
-            />
-          </CardContent>
-        </Card>
-
-        {/* 凡例 */}
+      <div className="w-full space-y-4">
+        <CalendarHeader 
+          selectedDate={selectedDate}
+          onMonthChange={handleMonthChange}
+        />
+        
+        <CalendarLegend />
+        
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-4">
-              {colors && Object.entries(colors).map(([type, color]) => (
-                <div key={type} className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full ${color?.bg || 'bg-gray-200'} ${color?.border || 'border-gray-300'} border-2`} />
-                  <span className="text-sm text-gray-700">
-                    {type === 'business' && '診療日'}
-                    {type === 'saturday' && '土曜診療'}
-                    {type === 'closed' && '休み'}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={() => {}}
+              month={selectedDate}
+              onMonthChange={(month) => {
+                setSelectedDate(month);
+              }}
+              locale={ja}
+              modifiers={{
+                business: businessDays || [],
+                saturday: saturdayDays || [],
+                closed: closedDays || [],
+              }}
+              modifiersStyles={{
+                business: { 
+                  backgroundColor: '#dbeafe',
+                  color: '#1e40af',
+                  border: '2px solid #3b82f6',
+                  fontWeight: 'bold'
+                },
+                saturday: { 
+                  backgroundColor: '#fed7aa',
+                  color: '#c2410c',
+                  border: '2px solid #fb923c',
+                  fontWeight: 'bold'
+                },
+                closed: { 
+                  backgroundColor: '#fee2e2',
+                  color: '#dc2626',
+                  border: '2px solid #ef4444',
+                  fontWeight: 'bold'
+                },
+              }}
+              components={{
+                Day: ({ date, ...props }) => {
+                  const scheduleInfo = getScheduleInfo(date, specialSchedules, schedules);
+                  return (
+                    <CalendarDay 
+                      date={date} 
+                      displayMonth={selectedDate}
+                      scheduleType={scheduleInfo.type}
+                      displayText={scheduleInfo.displayText}
+                      onClick={() => {}}
+                      {...props}
+                    />
+                  );
+                },
+              }}
+            />
           </CardContent>
         </Card>
       </div>
