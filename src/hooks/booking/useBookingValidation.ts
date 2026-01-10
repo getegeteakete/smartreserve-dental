@@ -140,21 +140,34 @@ export const useBookingValidation = () => {
   };
 
   const validateTreatmentLimit = async (email: string, treatmentName: string) => {
-    // デバッグ: 既存の予約を確認
+    // デバッグ: 既存の予約を確認（過去の予約は除外）
     const { supabase } = await import("@/integrations/supabase/client");
-    const { data: existingAppointments, error: checkError } = await supabase
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    // 現在日時以降の予約のみをチェック（過去の予約は除外）
+    // confirmed_dateがある場合はそれを使い、なければappointment_dateを使う
+    const { data: allAppointments, error: checkError } = await supabase
       .from("appointments")
-      .select("id, treatment_name, status, appointment_date, created_at")
+      .select("id, treatment_name, status, appointment_date, confirmed_date, created_at")
       .eq("email", email)
       .eq("treatment_name", treatmentName)
       .in("status", ["pending", "confirmed"]);
     
+    // フロントエンド側で過去の予約をフィルタリング
+    const existingAppointments = (allAppointments || []).filter(apt => {
+      const checkDate = apt.confirmed_date || apt.appointment_date;
+      if (!checkDate) return true; // 日付が設定されていない場合は含める（pending予約など）
+      return checkDate >= today; // 今日以降の予約のみ
+    });
+    
     const existingCount = existingAppointments?.length || 0;
     
-    console.log("🔍 診療制限チェック - 既存予約:", {
+    console.log("🔍 診療制限チェック - 既存予約（過去を除外）:", {
       email,
       treatmentName,
       existingCount,
+      today,
+      allAppointmentsCount: allAppointments?.length || 0,
       existingAppointments
     });
 
@@ -164,23 +177,34 @@ export const useBookingValidation = () => {
       return true;
     }
 
-    const { canReserve, error: limitError } = await checkTreatmentReservationLimit(
-      email,
-      treatmentName
-    );
+    // 過去の予約を除外した制限チェック（カスタム実装）
+    // checkTreatmentReservationLimitは過去も含むため、ここでは既存のexistingAppointmentsを使用
+    const { data: limitData, error: limitQueryError } = await supabase
+      .from("treatment_limits")
+      .select("max_reservations_per_slot")
+      .eq("treatment_name", treatmentName)
+      .single();
+    
+    const limitCount = limitData?.max_reservations_per_slot || 1;
+    const canReserve = existingCount < limitCount;
+    const limitError = limitQueryError ? "予約制限の確認中にエラーが発生しました" : null;
 
     if (limitError || !canReserve) {
       // より詳しいエラーメッセージを表示
       let errorMessage = "この診療内容は既に予約上限に達しています。";
       let suggestions = "";
       
-      // 既存予約の情報を追加
+      // 既存予約の情報を追加（未来の予約のみ）
       let existingInfo = "";
       if (existingAppointments && existingAppointments.length > 0) {
-        existingInfo = `\n\n【既存の予約】\n`;
+        existingInfo = `\n\n【既存の予約（未来の予約のみ）】\n`;
         existingAppointments.forEach((apt, index) => {
           const statusText = apt.status === 'pending' ? '承認待ち' : '確定済み';
-          const dateText = apt.appointment_date ? new Date(apt.appointment_date).toLocaleDateString('ja-JP') : '未定';
+          const dateText = apt.confirmed_date 
+            ? new Date(apt.confirmed_date).toLocaleDateString('ja-JP')
+            : apt.appointment_date 
+            ? new Date(apt.appointment_date).toLocaleDateString('ja-JP')
+            : '未定';
           existingInfo += `${index + 1}. ${apt.treatment_name} (${statusText}) - ${dateText}\n`;
         });
       }

@@ -20,7 +20,7 @@ BEGIN
 END;
 $$;
 
--- 診療内容別予約制限チェック関数
+-- 診療内容別予約制限チェック関数（過去の予約を除外）
 CREATE OR REPLACE FUNCTION public.check_treatment_reservation_limit(
   p_email text,
   p_treatment_name text
@@ -33,18 +33,28 @@ AS $$
 DECLARE
   current_count integer;
   limit_count integer := 1; -- デフォルト制限数
+  today_date text;
 BEGIN
+  -- 今日の日付を取得（YYYY-MM-DD形式）
+  today_date := TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD');
+  
   -- 診療内容別の制限を取得
   SELECT COALESCE(max_reservations_per_slot, 1) INTO limit_count
   FROM public.treatment_limits
   WHERE treatment_name = p_treatment_name;
   
-  -- 現在の同一診療内容での予約数を取得
+  -- 現在の同一診療内容での予約数を取得（過去の予約は除外）
+  -- confirmed_dateがある場合はそれを使い、なければappointment_dateを使う
+  -- 日付が設定されていない場合は含める（pending予約など）
   SELECT COUNT(*) INTO current_count
   FROM public.appointments
   WHERE email = p_email 
     AND treatment_name = p_treatment_name 
-    AND status IN ('pending', 'confirmed');
+    AND status IN ('pending', 'confirmed')
+    AND (
+      COALESCE(confirmed_date, appointment_date) >= today_date
+      OR confirmed_date IS NULL AND appointment_date IS NULL
+    );
   
   RETURN current_count < limit_count;
 END;
