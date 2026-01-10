@@ -20,6 +20,17 @@ export const CalendarDay = ({
   onClick 
 }: CalendarDayProps) => {
   const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
+  const dateString = format(date, 'yyyy-MM-dd');
+  
+  // デバッグログ（1月8日のみ）
+  if (dateString.includes('-01-08')) {
+    console.log('[CalendarDay] 1月8日の表示情報:', {
+      dateString,
+      scheduleType,
+      displayText,
+      isCurrentMonth
+    });
+  }
   
   let dayStyle = "w-12 h-12 text-sm flex flex-col items-center justify-center rounded-md border-2 cursor-pointer transition-all hover:shadow-md ";
   
@@ -36,6 +47,9 @@ export const CalendarDay = ({
       case 'special-open':
         dayStyle += "bg-purple-50 text-purple-700 border-purple-400 hover:bg-purple-100 ";
         break;
+      case 'saturday-open':
+        dayStyle += "bg-orange-50 text-orange-700 border-orange-400 hover:bg-orange-100 ";
+        break;
       default:
         dayStyle += "bg-red-50 text-red-700 border-red-400 hover:bg-red-100 ";
         break;
@@ -46,6 +60,12 @@ export const CalendarDay = ({
     <div className="relative">
       <button
         className={dayStyle}
+        style={{ 
+          // modifiersStylesの上書きを防ぐため、!importantを使用
+          backgroundColor: 'inherit',
+          color: 'inherit',
+          border: 'inherit'
+        }}
         onClick={(e) => {
           e.preventDefault();
           if (isCurrentMonth) {
