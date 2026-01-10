@@ -153,27 +153,45 @@ export const InteractiveBusinessCalendar = ({
 
   const fetchSpecialSchedules = async () => {
     try {
-      console.log(`特別スケジュール取得: ${selectedYear}年${selectedMonth}月`);
+      console.log(`[InteractiveBusinessCalendar] 特別スケジュール取得: ${selectedYear}年${selectedMonth}月`);
       
       // RPC関数の代わりに、直接special_clinic_schedulesテーブルから取得
       const startDate = new Date(selectedYear, selectedMonth - 1, 1);
       const endDate = new Date(selectedYear, selectedMonth, 0);
+      const startDateStr = format(startDate, 'yyyy-MM-dd');
+      const endDateStr = format(endDate, 'yyyy-MM-dd');
+      
+      console.log(`[InteractiveBusinessCalendar] 取得範囲: ${startDateStr} ～ ${endDateStr}`);
       
       const { data: specialData, error } = await supabase
         .from('special_clinic_schedules')
         .select('*')
-        .gte('specific_date', format(startDate, 'yyyy-MM-dd'))
-        .lte('specific_date', format(endDate, 'yyyy-MM-dd'));
+        .gte('specific_date', startDateStr)
+        .lte('specific_date', endDateStr)
+        .order('specific_date', { ascending: true });
 
       if (error) {
-        console.error("特別スケジュール取得エラー:", error);
+        console.error("[InteractiveBusinessCalendar] 特別スケジュール取得エラー:", error);
         setSpecialScheduleData([]);
       } else {
-        console.log("特別スケジュール取得結果:", specialData);
+        console.log(`[InteractiveBusinessCalendar] 特別スケジュール取得結果: ${specialData?.length || 0}件`, specialData);
+        
+        // 1月8日のデータがあるか確認
+        if (selectedMonth === 1) {
+          const jan8Data = specialData?.find(s => s.specific_date === `${selectedYear}-01-08`);
+          if (jan8Data) {
+            console.log(`[InteractiveBusinessCalendar] 1月8日の特別スケジュール:`, jan8Data);
+          } else {
+            console.log(`[InteractiveBusinessCalendar] 1月8日の特別スケジュールが見つかりません`);
+            // すべての特別スケジュールを表示して確認
+            console.log(`[InteractiveBusinessCalendar] 取得された特別スケジュール一覧:`, specialData?.map(s => s.specific_date));
+          }
+        }
+        
         setSpecialScheduleData(specialData || []);
       }
     } catch (error) {
-      console.error("特別スケジュール取得エラー:", error);
+      console.error("[InteractiveBusinessCalendar] 特別スケジュール取得エラー:", error);
       setSpecialScheduleData([]);
     } finally {
       setLoading(false);
@@ -280,7 +298,17 @@ export const InteractiveBusinessCalendar = ({
     monthDays.forEach(day => {
       const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
       const dayStr = format(day, 'MM/dd');
-      console.log(`${dayStr}のスケジュール情報:`, scheduleInfo);
+      const dateString = format(day, 'yyyy-MM-dd');
+      
+      // 1月8日の詳細ログ
+      if (dateString.includes('-01-08')) {
+        console.log(`[InteractiveBusinessCalendar] 1月8日の詳細情報:`, {
+          dateString,
+          scheduleInfo,
+          specialSchedulesForDate: specialSchedules.filter(s => s.specific_date === dateString),
+          allSpecialSchedules: specialSchedules.map(s => ({ date: s.specific_date, available: s.is_available }))
+        });
+      }
       
       // 土曜営業を分離
       if (scheduleInfo.type === 'saturday-open') {
