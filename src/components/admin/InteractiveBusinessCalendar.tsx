@@ -50,16 +50,25 @@ interface InteractiveBusinessCalendarProps {
   onSpecialScheduleDelete: (scheduleId: string) => Promise<void>;
 }
 
+interface DatabaseScheduleData {
+  id?: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+}
+
 export const InteractiveBusinessCalendar = ({ 
   selectedYear, 
   selectedMonth,
-  schedules,
+  schedules: parentSchedules,
   onYearMonthChange,
   onScheduleChange,
   onSpecialScheduleAdd, 
   onSpecialScheduleDelete 
 }: InteractiveBusinessCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(selectedYear, selectedMonth - 1));
+  const [schedules, setSchedules] = useState<DatabaseScheduleData[]>([]);
   const [specialSchedules, setSpecialScheduleData] = useState<SpecialScheduleData[]>([]);
   const [dailyMemos, setDailyMemos] = useState<Array<{date: string, memo: string}>>([]);
   const [businessDaysInfo, setBusinessDaysInfo] = useState<any[]>([]);
@@ -93,9 +102,41 @@ export const InteractiveBusinessCalendar = ({
     }
   };
 
+  // 通常のスケジュールを取得
+  const fetchSchedules = async () => {
+    try {
+      console.log(`通常スケジュール取得: ${selectedYear}年${selectedMonth}月`);
+      
+      const { data, error } = await (supabase as any).rpc('get_clinic_schedules', {
+        p_year: selectedYear,
+        p_month: selectedMonth
+      });
+
+      if (error) {
+        console.error("通常スケジュール取得エラー:", error);
+        setSchedules([]);
+      } else {
+        console.log("通常スケジュール取得結果:", data);
+        // DatabaseScheduleDataの形式に変換（day_of_week, start_time, end_time, is_availableのみ）
+        const formattedSchedules: DatabaseScheduleData[] = (data || []).map((s: any) => ({
+          id: s.id,
+          day_of_week: s.day_of_week,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          is_available: s.is_available
+        }));
+        setSchedules(formattedSchedules);
+      }
+    } catch (error) {
+      console.error("通常スケジュール取得エラー:", error);
+      setSchedules([]);
+    }
+  };
+
   // スケジュール再取得用の関数
   const fetchAllScheduleData = async () => {
     console.log("全スケジュールデータ再取得開始");
+    await fetchSchedules();
     await fetchSpecialSchedules();
     await fetchDailyMemos();
     // UI強制更新
@@ -166,9 +207,15 @@ export const InteractiveBusinessCalendar = ({
     console.log("useEffect: 選択年月変更:", selectedYear, selectedMonth);
     const newDate = new Date(selectedYear, selectedMonth - 1);
     setSelectedDate(newDate);
+    fetchSchedules();
     fetchSpecialSchedules();
     fetchDailyMemos();
   }, [selectedYear, selectedMonth]);
+
+  // 初期化時にスケジュールを取得
+  useEffect(() => {
+    fetchAllScheduleData();
+  }, []);
 
   // 診療日情報を更新
   useEffect(() => {
