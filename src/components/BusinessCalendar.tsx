@@ -129,6 +129,7 @@ export const BusinessCalendar = () => {
       <CalendarHeader 
         selectedDate={selectedDate}
         onMonthChange={handleMonthChange}
+        title={`${format(selectedDate, 'yyyy年MM月', { locale: ja })} 診療日カレンダー`}
       />
       
       {/* 診療日一覧 */}

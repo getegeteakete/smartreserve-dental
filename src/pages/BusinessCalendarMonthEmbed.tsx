@@ -164,6 +164,7 @@ const BusinessCalendarMonthEmbed = () => {
         <CalendarHeader 
           selectedDate={selectedDate}
           onMonthChange={handleMonthChange}
+          title={`${format(selectedDate, 'yyyy年MM月', { locale: ja })} 診療日カレンダー`}
         />
         
         <CalendarLegend />

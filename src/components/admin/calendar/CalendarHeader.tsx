@@ -8,9 +8,12 @@ import { ja } from "date-fns/locale";
 interface CalendarHeaderProps {
   selectedDate: Date;
   onMonthChange: (increment: number) => void;
+  title?: string;
 }
 
-export const CalendarHeader = ({ selectedDate, onMonthChange }: CalendarHeaderProps) => {
+export const CalendarHeader = ({ selectedDate, onMonthChange, title }: CalendarHeaderProps) => {
+  const defaultTitle = title || `${format(selectedDate, 'yyyy年MM月', { locale: ja })} スケジュール設定`;
+  
   return (
     <CardHeader className="text-center bg-gray-50 border-b-2 border-gray-200">
       <div className="flex items-center justify-between mb-4">
@@ -22,7 +25,7 @@ export const CalendarHeader = ({ selectedDate, onMonthChange }: CalendarHeaderPr
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <CardTitle className="text-xl">
-          {format(selectedDate, 'yyyy年MM月', { locale: ja })} スケジュール設定
+          {defaultTitle}
         </CardTitle>
         <Button 
           variant="outline" 
