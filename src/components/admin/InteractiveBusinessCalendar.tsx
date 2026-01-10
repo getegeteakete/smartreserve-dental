@@ -670,28 +670,42 @@ export const InteractiveBusinessCalendar = ({
             }}
             modifiersStyles={{
               business: { 
-                backgroundColor: '#dbeafe',
-                color: '#1e40af',
-                border: '2px solid #3b82f6',
-                fontWeight: 'bold'
+                backgroundColor: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                fontWeight: 'normal'
               },
               saturday: { 
-                backgroundColor: '#fed7aa',
-                color: '#c2410c',
-                border: '2px solid #fb923c',
-                fontWeight: 'bold'
+                backgroundColor: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                fontWeight: 'normal'
               },
               closed: { 
-                backgroundColor: '#fee2e2',
-                color: '#dc2626',
-                border: '2px solid #ef4444',
-                fontWeight: 'bold'
+                backgroundColor: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                fontWeight: 'normal'
               },
             }}
             components={{
               Day: ({ date, ...props }) => {
                 const scheduleInfo = getScheduleInfo(date, specialSchedules, schedules);
                 const memo = getDailyMemo(date);
+                
+                // デバッグログ（1月8日のみ）
+                const dateString = format(date, 'yyyy-MM-dd');
+                if (dateString.includes('-01-08')) {
+                  console.log('[InteractiveBusinessCalendar] 1月8日の表示:', {
+                    dateString,
+                    scheduleInfo,
+                    isInBusinessDays: businessDays.some(d => format(d, 'yyyy-MM-dd') === dateString),
+                    isInClosedDays: closedDays.some(d => format(d, 'yyyy-MM-dd') === dateString),
+                    businessDays: businessDays.map(d => format(d, 'yyyy-MM-dd')),
+                    closedDays: closedDays.map(d => format(d, 'yyyy-MM-dd'))
+                  });
+                }
+                
                 return (
                   <CalendarDay 
                     date={date} 
