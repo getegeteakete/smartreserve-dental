@@ -81,7 +81,7 @@ export const AdminScheduleTabs = ({
               )}
               <span className="font-semibold text-sm">ステップ1</span>
             </div>
-            <p className="text-xs font-medium">基本営業時間</p>
+            <p className="text-xs font-medium">基本診療時間</p>
             <Badge variant={hasBasicSchedule ? "default" : "secondary"} className="mt-2">
               {hasBasicSchedule ? `✓ 設定済み (${clinicSchedules.length}件)` : '未設定（必須）'}
             </Badge>
@@ -125,7 +125,7 @@ export const AdminScheduleTabs = ({
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic-schedule" className="flex items-center gap-2">
             <span className="bg-orange-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">1</span>
-            基本営業時間
+            基本診療時間
           </TabsTrigger>
           <TabsTrigger value="booking-time" disabled={!hasBasicSchedule} className="flex items-center gap-2">
             <span className={`rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold ${hasBasicSchedule ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'}`}>2</span>
@@ -140,7 +140,7 @@ export const AdminScheduleTabs = ({
         </TabsList>
 
         
-        {/* ステップ1: 基本営業時間 */}
+        {/* ステップ1: 基本診療時間 */}
         <TabsContent value="basic-schedule" className="space-y-6">
           <BasicScheduleManager
             selectedYear={selectedYear}
@@ -162,7 +162,7 @@ export const AdminScheduleTabs = ({
                   <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-700 mb-2">予約受付時間は設定できません</h3>
                   <p className="text-gray-600 mb-4">
-                    まず<strong className="text-orange-600">「基本営業時間」</strong>を設定してください。
+                    まず<strong className="text-orange-600">「基本診療時間」</strong>を設定してください。
                   </p>
                   <Badge variant="destructive" className="text-base px-4 py-2">
                     ⚠️ ステップ1を完了してください
@@ -383,7 +383,7 @@ export const AdminScheduleTabs = ({
                   <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-700 mb-2">カレンダー調整は設定できません</h3>
                   <p className="text-gray-600 mb-4">
-                    まず<strong className="text-orange-600">「基本営業時間」</strong>を設定してください。
+                    まず<strong className="text-orange-600">「基本診療時間」</strong>を設定してください。
                   </p>
                   <Badge variant="destructive" className="text-base px-4 py-2">
                     ⚠️ ステップ1を完了してください

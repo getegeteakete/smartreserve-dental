@@ -132,7 +132,7 @@ export const BasicScheduleManager = ({
       return data;
     },
     onSuccess: () => {
-      toast({ title: "基本営業時間を追加しました" });
+      toast({ title: "基本診療時間を追加しました" });
       queryClient.invalidateQueries({ queryKey: ["clinicSchedules"] });
       setNewSchedule({
         dayOfWeek: 1,
@@ -161,7 +161,7 @@ export const BasicScheduleManager = ({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "基本営業時間を更新しました" });
+      toast({ title: "基本診療時間を更新しました" });
       queryClient.invalidateQueries({ queryKey: ["clinicSchedules"] });
       setEditingSchedule(null);
     },
@@ -181,7 +181,7 @@ export const BasicScheduleManager = ({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "基本営業時間を削除しました" });
+      toast({ title: "基本診療時間を削除しました" });
       queryClient.invalidateQueries({ queryKey: ["clinicSchedules"] });
     },
     onError: () => {
@@ -219,7 +219,7 @@ export const BasicScheduleManager = ({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
-        <p className="text-lg font-medium text-gray-700">基本営業時間を読み込み中...</p>
+        <p className="text-lg font-medium text-gray-700">基本診療時間を読み込み中...</p>
       </div>
     );
   }
@@ -239,10 +239,10 @@ export const BasicScheduleManager = ({
                 </div>
                 <h2 className="text-3xl font-bold text-blue-900 mb-3">🚀 簡単スタート！</h2>
                 <p className="text-lg text-blue-800 mb-2">
-                  たった<strong className="text-2xl text-blue-600">1クリック</strong>で営業時間を設定できます
+                  たった<strong className="text-2xl text-blue-600">1クリック</strong>で診療時間を設定できます
                 </p>
                 <p className="text-sm text-blue-700">
-                  一般的な歯科医院の営業時間を自動設定します（後で編集可能）
+                  一般的な歯科医院の診療時間を自動設定します（後で編集可能）
                 </p>
               </div>
               
@@ -280,7 +280,7 @@ export const BasicScheduleManager = ({
                 ) : (
                   <>
                     <Clock className="h-6 w-6 mr-3" />
-                    ワンクリックで営業時間を設定する
+                    ワンクリックで診療時間を設定する
                   </>
                 )}
               </Button>
@@ -300,7 +300,7 @@ export const BasicScheduleManager = ({
             <div className="flex items-center gap-3 p-4">
               <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0" />
               <div>
-                <h4 className="font-bold text-green-900 text-lg">✅ 基本営業時間が設定されています</h4>
+                <h4 className="font-bold text-green-900 text-lg">✅ 基本診療時間が設定されています</h4>
                 <p className="text-sm text-green-800">
                   下の各曜日カードで編集・削除できます。営業/休業の切り替えもワンクリックです。
                 </p>
@@ -327,7 +327,7 @@ export const BasicScheduleManager = ({
               <CardContent>
                 {daySchedules.length === 0 ? (
                   <div className="text-center py-6">
-                    <p className="text-gray-500 mb-3">この曜日には営業時間が設定されていません</p>
+                    <p className="text-gray-500 mb-3">この曜日には診療時間が設定されていません</p>
                     <Button
                       variant="outline"
                       className="border-2 border-dashed border-blue-300 text-blue-600"
@@ -341,7 +341,7 @@ export const BasicScheduleManager = ({
                       }}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      {dayName}の営業時間を追加
+                      {dayName}の診療時間を追加
                     </Button>
                   </div>
                 ) : (
@@ -406,7 +406,7 @@ export const BasicScheduleManager = ({
                         ) : (
                           <>
                             <div className="mb-2">
-                              <Badge variant="outline" className="text-xs">営業時間 {idx + 1}</Badge>
+                              <Badge variant="outline" className="text-xs">診療時間 {idx + 1}</Badge>
                             </div>
                             
                             <div className="mb-3">
@@ -436,7 +436,7 @@ export const BasicScheduleManager = ({
                                   }`}
                                 >
                                   {schedule.is_available ? (
-                                    <><ToggleRight className="h-4 w-4" />営業</>
+                                    <><ToggleRight className="h-4 w-4" />診療</>
                                   ) : (
                                     <><ToggleLeft className="h-4 w-4" />休業</>
                                   )}
