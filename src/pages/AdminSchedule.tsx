@@ -56,7 +56,7 @@ const AdminSchedule = () => {
   console.log("AdminSchedule - treatmentLimits:", treatmentLimits);
   console.log("AdminSchedule - treatmentLimits length:", treatmentLimits.length);
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="container mx-auto py-10 flex justify-center items-center min-h-screen">
         <div className="text-center">
