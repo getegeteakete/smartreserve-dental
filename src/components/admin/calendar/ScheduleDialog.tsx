@@ -31,14 +31,14 @@ const getTimeOptions = (isSunday: boolean, isSaturday: boolean) => {
     ];
   } else if (isSaturday) {
     return [
-      { value: "saturday", label: "土曜営業" },
+      { value: "saturday", label: "土曜診療" },
       { value: "closed", label: "休診日" }
     ];
   } else {
     return [
-      { value: "morning", label: "午前のみ営業" },
-      { value: "afternoon", label: "午後のみ営業" },
-      { value: "full", label: "終日営業" },
+      { value: "morning", label: "午前のみ診療" },
+      { value: "afternoon", label: "午後のみ診療" },
+      { value: "full", label: "終日診療" },
       { value: "closed", label: "休診日" }
     ];
   }
@@ -191,7 +191,7 @@ export const ScheduleDialog = ({
                     onCheckedChange={(checked) => handleSpecialScheduleToggle(checked as boolean)}
                   />
                   <Label htmlFor="special-available" className="text-sm">
-                    {currentSpecialSchedule.is_available ? '営業中' : '休診中'}
+                    {currentSpecialSchedule.is_available ? '診療中' : '休診中'}
                     （{formatTime(currentSpecialSchedule.start_time)}～{formatTime(currentSpecialSchedule.end_time)}）
                   </Label>
                 </div>
@@ -238,7 +238,7 @@ export const ScheduleDialog = ({
                   <p className="text-gray-500 text-sm">この曜日は基本休診日です</p>
                 )}
                 <p className="text-xs text-gray-600 mt-2">
-                  青色：営業中、白色：休診中、オレンジ枠：変更予定 (*印は未適用の変更)
+                  青色：診療中、白色：休診中、オレンジ枠：変更予定 (*印は未適用の変更)
                 </p>
                 
                 {/* 変更適用ボタン */}
@@ -268,7 +268,7 @@ export const ScheduleDialog = ({
               <div>
                 <h4 className="font-semibold mb-3">日曜日の設定</h4>
                 <p className="text-gray-600 text-sm mb-3">
-                  日曜日は特別診療日として設定されます。日曜診療を選択すると、9:00～12:30、14:00～17:30の時間帯で営業します。
+                  日曜日は特別診療日として設定されます。日曜診療を選択すると、9:00～12:30、14:00～17:30の時間帯で診療します。
                 </p>
               </div>
             )}
@@ -304,7 +304,7 @@ export const ScheduleDialog = ({
                     }}
                   />
                   <Label htmlFor="saturday-available" className="text-sm cursor-pointer">
-                    土曜営業（9:00～12:30、14:00～17:30）
+                    土曜診療（9:00～12:30、14:00～17:30）
                   </Label>
                 </div>
                 <p className="text-xs text-gray-600 mt-2">
@@ -422,11 +422,11 @@ export const ScheduleDialog = ({
                 {!hasSpecialSchedule && isSaturday && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm">土曜営業に設定</Button>
+                      <Button size="sm">土曜診療に設定</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>土曜営業設定の確認</AlertDialogTitle>
+                        <AlertDialogTitle>土曜診療設定の確認</AlertDialogTitle>
                         <AlertDialogDescription>
                           {format(clickedDate, 'MM月dd日(E)', { locale: ja })} を
                           土曜診療日に設定しますか？
@@ -479,7 +479,7 @@ export const ScheduleDialog = ({
               {selectedTimeSlot && (
                 <>
                   {formatTime(selectedTimeSlot.start)}～{formatTime(selectedTimeSlot.end)} を
-                  {selectedNewState ? '営業中' : '休診中'}に変更しますか？
+                  {selectedNewState ? '診療中' : '休診中'}に変更しますか？
                   <br />
                   <span className="text-sm text-gray-600">
                     ※変更は一時的に保存され、「変更を適用」ボタンで確定されます。

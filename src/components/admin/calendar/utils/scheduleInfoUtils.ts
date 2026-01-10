@@ -50,7 +50,7 @@ export const getScheduleInfo = (
     return {
       type: specialSchedule.is_available ? 'special-open' : 'special-closed',
       schedules: specialSchedule.is_available ? [`${formatTime(specialSchedule.start_time)}～${formatTime(specialSchedule.end_time)}`] : ['休診日（特別設定）'],
-      displayText: specialSchedule.is_available ? '特別営業' : '休み'
+      displayText: specialSchedule.is_available ? '特別診療' : '休み'
     };
   }
 
@@ -64,7 +64,7 @@ export const getScheduleInfo = (
         return {
           type: 'saturday-open',
           schedules: availableSchedules.map(s => `${formatTime(s.start_time)}～${formatTime(s.end_time)}`),
-          displayText: '土曜営業'
+          displayText: '土曜診療'
         };
       } else {
         // すべてのスケジュールが無効（休業）
@@ -75,11 +75,11 @@ export const getScheduleInfo = (
         };
       }
     }
-    // デフォルトの土曜営業スケジュール（データがない場合）
+    // デフォルトの土曜診療スケジュール（データがない場合）
     return {
       type: 'saturday-open',
       schedules: ['9:00～12:30', '14:00～17:30'],
-      displayText: '土曜営業'
+      displayText: '土曜診療'
     };
   }
 
@@ -91,7 +91,7 @@ export const getScheduleInfo = (
       return {
         type: 'full-open',
         schedules: ['10:00～13:30', '15:00～19:00'],
-        displayText: '祝日週営業'
+        displayText: '祝日週診療'
       };
     } else {
       return {
@@ -127,9 +127,9 @@ export const getScheduleInfo = (
           displayText = "";
         }
       } else if (morningSchedules.length > 0) {
-        displayText = "午前営業";
+        displayText = "午前診療";
       } else if (afternoonSchedules.length > 0) {
-        displayText = "午後営業";
+        displayText = "午後診療";
       }
 
       return {
@@ -155,7 +155,7 @@ export const getScheduleInfo = (
     
     let displayText = "";
     if (basicSchedule.type === "full") displayText = "";
-    else if (basicSchedule.type === "afternoon") displayText = "午後営業";
+    else if (basicSchedule.type === "afternoon") displayText = "午後診療";
 
     return {
       type: basicSchedule.type === "full" ? 'full-open' : 'partial-open',

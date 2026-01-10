@@ -226,7 +226,7 @@ const WeeklyBusinessCalendar = () => {
                     </div>
                   ) : (
                     <div className="text-xs sm:text-xs text-gray-500">
-                      営業時間未設定
+                      診療時間未設定
                     </div>
                   )}
                   {day.specialText && (

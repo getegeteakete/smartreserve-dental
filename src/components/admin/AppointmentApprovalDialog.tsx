@@ -139,7 +139,11 @@ export function AppointmentApprovalDialog({
       console.log("確定メール送信開始（AppointmentApprovalDialog）:", emailData);
 
       // Vercel API Routeを使用して確定メールを送信
-      const emailResponse = await fetch('/api/send-confirmation-email', {
+      // 本番環境とローカル環境の両方で動作するようにURLを構築
+      const apiUrl = window.location.origin + '/api/send-confirmation-email';
+      console.log("確定メール送信URL:", apiUrl);
+      
+      const emailResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

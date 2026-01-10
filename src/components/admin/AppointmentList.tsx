@@ -226,13 +226,17 @@ export function AppointmentList() {
 
       // Vercel API Routeを使用して確定メールを送信
       try {
-        const emailResponse = await fetch('/api/send-confirmation-email', {
+        // 本番環境とローカル環境の両方で動作するようにURLを構築
+        const apiUrl = window.location.origin + '/api/send-confirmation-email';
+        console.log("確定メール送信URL:", apiUrl);
+        
+        const emailResponse = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(emailData),
-      });
+        });
 
         const emailResult = await emailResponse.json();
         console.log("確定メール送信レスポンス（handlePreferenceApproval）:", emailResult);
