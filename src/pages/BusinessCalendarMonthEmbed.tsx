@@ -52,10 +52,12 @@ const BusinessCalendarMonthEmbed = () => {
       const year = selectedDate.getFullYear();
       const month = selectedDate.getMonth() + 1;
       
+      console.log(`[BusinessCalendarMonthEmbed] スケジュール取得開始: ${year}年${month}月`);
+      
       let regularData: DatabaseScheduleData[] = [];
       let specialData: SpecialScheduleData[] = [];
       
-      // 通常のスケジュールを取得
+      // 通常のスケジュールを取得（InteractiveBusinessCalendarと同じ方法）
       try {
         const { data, error } = await (supabase as any).rpc('get_clinic_schedules', {
           p_year: year,
@@ -63,34 +65,58 @@ const BusinessCalendarMonthEmbed = () => {
         });
         
         if (error) {
-          console.error('診療時間取得エラー:', error);
+          console.error('[BusinessCalendarMonthEmbed] 診療時間取得エラー:', error);
         } else {
-          regularData = (data || []) as DatabaseScheduleData[];
+          // DatabaseScheduleDataの形式に変換（InteractiveBusinessCalendarと同じ）
+          regularData = (data || []).map((s: any) => ({
+            id: s.id,
+            day_of_week: s.day_of_week,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            is_available: s.is_available
+          })) as DatabaseScheduleData[];
+          console.log(`[BusinessCalendarMonthEmbed] 通常スケジュール取得: ${regularData.length}件`, regularData);
         }
       } catch (error) {
-        console.error('診療時間取得エラー:', error);
+        console.error('[BusinessCalendarMonthEmbed] 診療時間取得エラー:', error);
       }
       
-      // 特別スケジュールを取得
+      // 特別スケジュールを取得（InteractiveBusinessCalendarと同じ方法で直接テーブルから取得）
       try {
-        const { data, error } = await (supabase as any).rpc('get_special_clinic_schedules', {
-          p_year: year,
-          p_month: month
-        });
+        // RPC関数ではなく、InteractiveBusinessCalendarと同じように直接テーブルから取得
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0);
+        
+        const { data, error } = await supabase
+          .from('special_clinic_schedules')
+          .select('*')
+          .gte('specific_date', format(startDate, 'yyyy-MM-dd'))
+          .lte('specific_date', format(endDate, 'yyyy-MM-dd'));
         
         if (error) {
-          console.error('特別スケジュール取得エラー:', error);
+          console.error('[BusinessCalendarMonthEmbed] 特別スケジュール取得エラー:', error);
         } else {
           specialData = (data || []) as SpecialScheduleData[];
+          console.log(`[BusinessCalendarMonthEmbed] 特別スケジュール取得: ${specialData.length}件`, specialData);
+          
+          // 1月8日のデータがあるか確認
+          if (month === 1) {
+            const jan8Data = specialData.find(s => s.specific_date === `${year}-01-08`);
+            if (jan8Data) {
+              console.log('[BusinessCalendarMonthEmbed] 1月8日の特別スケジュール:', jan8Data);
+            } else {
+              console.log('[BusinessCalendarMonthEmbed] 1月8日の特別スケジュールが見つかりません');
+            }
+          }
         }
       } catch (error) {
-        console.error('特別スケジュール取得エラー:', error);
+        console.error('[BusinessCalendarMonthEmbed] 特別スケジュール取得エラー:', error);
       }
       
       setSchedules(regularData);
       setSpecialSchedules(specialData);
     } catch (error) {
-      console.error("スケジュール取得エラー:", error);
+      console.error("[BusinessCalendarMonthEmbed] スケジュール取得エラー:", error);
       setSchedules([]);
       setSpecialSchedules([]);
     } finally {
@@ -110,13 +136,24 @@ const BusinessCalendarMonthEmbed = () => {
 
       monthDays.forEach(day => {
         try {
+          const dateString = format(day, 'yyyy-MM-dd');
           const scheduleInfo = getScheduleInfo(day, specialSchedules, schedules);
+          
+          // 1月8日のデバッグログ
+          if (dateString.includes('-01-08')) {
+            console.log(`[BusinessCalendarMonthEmbed] 1月8日のスケジュール情報:`, {
+              dateString,
+              scheduleInfo,
+              specialSchedulesForDate: specialSchedules.filter(s => s.specific_date === dateString),
+              allSpecialSchedules: specialSchedules
+            });
+          }
           
           // 土曜営業を分離
           if (scheduleInfo.type === 'saturday-open') {
             saturdayDays.push(day);
           }
-          // 通常診療日
+          // 通常診療日（special-openも含む）
           else if (scheduleInfo.type === 'special-open' || 
               scheduleInfo.type === 'full-open' || 
               scheduleInfo.type === 'partial-open' ||
@@ -126,7 +163,7 @@ const BusinessCalendarMonthEmbed = () => {
             closedDays.push(day);
           }
         } catch (error) {
-          console.error(`日付 ${format(day, 'yyyy-MM-dd')} のスケジュール取得エラー:`, error);
+          console.error(`[BusinessCalendarMonthEmbed] 日付 ${format(day, 'yyyy-MM-dd')} のスケジュール取得エラー:`, error);
           closedDays.push(day);
         }
       });
