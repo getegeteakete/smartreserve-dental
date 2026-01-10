@@ -60,12 +60,6 @@ export const CalendarDay = ({
     <div className="relative">
       <button
         className={dayStyle}
-        style={{ 
-          // modifiersStylesの上書きを防ぐため、!importantを使用
-          backgroundColor: 'inherit',
-          color: 'inherit',
-          border: 'inherit'
-        }}
         onClick={(e) => {
           e.preventDefault();
           if (isCurrentMonth) {
