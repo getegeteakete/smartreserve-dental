@@ -16,14 +16,15 @@ const AdminSchedule = () => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     // 管理者認証チェック
     if (checkAdminAuth(navigate)) {
-      setLoading(false);
+      setAuthLoading(false);
     }
   }, [navigate]);
+  
   const {
     loading,
     selectedYear,
