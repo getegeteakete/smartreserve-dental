@@ -207,9 +207,7 @@ export const InteractiveBusinessCalendar = ({
     console.log("useEffect: 選択年月変更:", selectedYear, selectedMonth);
     const newDate = new Date(selectedYear, selectedMonth - 1);
     setSelectedDate(newDate);
-    fetchSchedules();
-    fetchSpecialSchedules();
-    fetchDailyMemos();
+    fetchAllScheduleData();
   }, [selectedYear, selectedMonth]);
 
   // 初期化時にスケジュールを取得
