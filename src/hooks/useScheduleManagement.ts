@@ -11,11 +11,8 @@ export const useScheduleManagement = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const navigate = useNavigate();
 
-  // 管理者認証チェック
-  const isAdminLoggedIn = localStorage.getItem("admin_logged_in");
-  if (!isAdminLoggedIn) {
-    navigate("/admin-login");
-  }
+  // 管理者認証チェック（コンポーネント側でuseEffectで行うべきなので、ここでは削除）
+  // 認証チェックは各ページコンポーネント（AdminSchedule.tsx等）で行う
 
   const {
     schedules,

@@ -8,13 +8,22 @@ import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { checkAdminAuth } from "@/utils/adminAuth";
 
 const AdminSchedule = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 管理者認証チェック
+    if (checkAdminAuth(navigate)) {
+      setLoading(false);
+    }
+  }, [navigate]);
   const {
     loading,
     selectedYear,
@@ -46,6 +55,17 @@ const AdminSchedule = () => {
 
   console.log("AdminSchedule - treatmentLimits:", treatmentLimits);
   console.log("AdminSchedule - treatmentLimits length:", treatmentLimits.length);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-10 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">認証確認中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
